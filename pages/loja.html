@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Loja | NØVA</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- Font Awesome -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/loja.css">
+</head>
+
+<body>
+
+    <!-- ================= HEADER ================= -->
+
+    <header class="header">
+
+        <div class="container header-container">
+
+            <a href="../index.html" class="logo">
+                NØVA
+            </a>
+
+            <nav class="nav">
+                <a href="../index.html">Início</a>
+                <a href="loja.html" class="active">Loja</a>
+                <a href="#categorias">Categorias</a>
+            </nav>
+
+            <div class="header-actions">
+
+                <button class="header-icon" aria-label="Pesquisar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+
+                <button class="header-icon" aria-label="Minha conta">
+                    <i class="fa-regular fa-user"></i>
+                </button>
+
+                <a href="carrinho.html" class="header-icon cart-icon" aria-label="Carrinho">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span class="cart-count">0</span>
+                </a>
+
+                <button class="menu-toggle" aria-label="Abrir menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- ================= PAGE HERO ================= -->
+
+    <main>
+
+        <section class="shop-hero">
+
+            <div class="container">
+
+                <span class="section-label">
+                    NØVA STORE
+                </span>
+
+                <h1>
+                    Encontre seu próximo estilo.
+                </h1>
+
+                <p>
+                    Explore nossa seleção de peças desenvolvidas
+                    para quem não segue padrões.
+                </p>
+
+                <!-- Busca visual -->
+
+                <div class="shop-search">
+
+                    <i class="fa-solid fa-magnifying-glass"></i>
+
+                    <input
+                        type="text"
+                        placeholder="Buscar produtos..."
+                    >
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= CATEGORIAS ================= -->
+
+        <section class="shop-categories" id="categorias">
+
+            <div class="container">
+
+                <div class="category-tabs">
+
+                    <button class="category-tab active">
+                        Todos
+                    </button>
+
+                    <button class="category-tab">
+                        Camisetas
+                    </button>
+
+                    <button class="category-tab">
+                        Moletons
+                    </button>
+
+                    <button class="category-tab">
+                        Calças
+                    </button>
+
+                    <button class="category-tab">
+                        Acessórios
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= LOJA ================= -->
+
+        <section class="shop-products">
+
+            <div class="container shop-layout">
+
+
+                <!-- ================= FILTROS ================= -->
+
+                <aside class="filters">
+
+                    <div class="filters-header">
+
+                        <h2>
+                            Filtros
+                        </h2>
+
+                        <button class="clear-filters">
+                            Limpar
+                        </button>
+
+                    </div>
+
+
+                    <!-- Categoria -->
+
+                    <div class="filter-group">
+
+                        <h3>
+                            Categoria
+                        </h3>
+
+                        <label class="filter-option">
+                            <input type="checkbox">
+                            <span>Camisetas</span>
+                        </label>
+
+                        <label class="filter-option">
+                            <input type="checkbox">
+                            <span>Moletons</span>
+                        </label>
+
+                        <label class="filter-option">
+                            <input type="checkbox">
+                            <span>Calças</span>
+                        </label>
+
+                        <label class="filter-option">
+                            <input type="checkbox">
+                            <span>Acessórios</span>
+                        </label>
+
+                    </div>
+
+
+                    <!-- Tamanho -->
+
+                    <div class="filter-group">
+
+                        <h3>
+                            Tamanho
+                        </h3>
+
+                        <div class="size-options">
+
+                            <button>PP</button>
+                            <button>P</button>
+                            <button>M</button>
+                            <button>G</button>
+                            <button>GG</button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Preço -->
+
+                    <div class="filter-group">
+
+                        <h3>
+                            Faixa de preço
+                        </h3>
+
+                        <div class="price-inputs">
+
+                            <input
+                                type="number"
+                                placeholder="Mín."
+                            >
+
+                            <span>—</span>
+
+                            <input
+                                type="number"
+                                placeholder="Máx."
+                            >
+
+                        </div>
+
+                    </div>
+
+                </aside>
+
+
+                <!-- ================= PRODUTOS ================= -->
+
+                <div class="shop-content">
+
+                    <div class="shop-toolbar">
+
+                        <span class="products-count">
+                            12 produtos
+                        </span>
+
+                        <select class="sort-products">
+
+                            <option>
+                                Mais relevantes
+                            </option>
+
+                            <option>
+                                Menor preço
+                            </option>
+
+                            <option>
+                                Maior preço
+                            </option>
+
+                            <option>
+                                Mais recentes
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="shop-grid">
+
+
+                        <!-- PRODUTO 01 -->
+
+                        <article class="shop-product-card">
+
+                            <div class="shop-product-image">
+
+                                <span class="product-tag">
+                                    NOVO
+                                </span>
+
+                                <span class="image-placeholder">
+                                    IMAGEM
+                                </span>
+
+                                <button
+                                    class="favorite-button"
+                                    aria-label="Favoritar produto"
+                                >
+                                    <i class="fa-regular fa-heart"></i>
+                                </button>
+
+                            </div>
+
+                            <div class="shop-product-info">
+
+                                <span class="product-category">
+                                    CAMISETA
+                                </span>
+
+                                <h3>
+                                    NØVA Essential Tee
+                                </h3>
+
+                                <p class="product-price">
+                                    R$ 89,90
+                                </p>
+
+                            </div>
+
+                        </article>
+
+
+                        <!-- PRODUTO 02 -->
+
+                        <article class="shop-product-card">
+
+                            <div class="shop-product-image">
+
+                                <span class="image-placeholder">
+                                    IMAGEM
+                                </span>
+
+                                <button
+                                    class="favorite-button"
+                                    aria-label="Favoritar produto"
+                                >
+                                    <i class="fa-regular fa-heart"></i>
+                                </button>
+
+                            </div>
+
+                            <div class="shop-product-info">
+
+                                <span class="product-category">
+                                    CAMISETA
+                                </span>
+
+                                <h3>
+                                    Oversized Black
+                                </h3>
+
+                                <p class="product-price">
+                                    R$ 119,90
+                                </p>
+
+                            </div>
+
+                        </article>
+
+
+                        <!-- PRODUTO 03 -->
+
+                        <article class="shop-product-card">
+
+                            <div class="shop-product-image">
+
+                                <span class="product-tag">
+                                    DESTAQUE
+                                </span>
+
+                                <span class="image-placeholder">
+                                    IMAGEM
+                                </span>
+
+                                <button
+                                    class="favorite-button"
+                                    aria-label="Favoritar produto"
+                                >
+                                    <i class="fa-regular fa-heart"></i>
+                                </button>
+
+                            </div>
+
+                            <div class="shop-product-info">
+
+                                <span class="product-category">
+                                    MOLETOM
+                                </span>
+
+                                <h3>
+                                    NØVA Heavy Hoodie
+                                </h3>
+
+                                <p class="product-price">
+                                    R$ 199,90
+                                </p>
+
+                            </div>
+
+                        </article>
+
+
+                        <!-- PRODUTO 04 -->
+
+                        <article class="shop-product-card">
+
+                            <div class="shop-product-image">
+
+                                <span class="image-placeholder">
+                                    IMAGEM
+                                </span>
+
+                                <button
+                                    class="favorite-button"
+                                    aria-label="Favoritar produto"
+                                >
+                                    <i class="fa-regular fa-heart"></i>
+                                </button>
+
+                            </div>
+
+                            <div class="shop-product-info">
+
+                                <span class="product-category">
+                                    CALÇA
+                                </span>
+
+                                <h3>
+                                    Urban Cargo
+                                </h3>
+
+                                <p class="product-price">
+                                    R$ 179,90
+                                </p>
+
+                            </div>
+
+                        </article>
+
+
+                        <!-- PRODUTO 05 -->
+
+                        <article class="shop-product-card">
+
+                            <div class="shop-product-image">
+
+                                <span class="image-placeholder">
+                                    IMAGEM
+                                </span>
+
+                                <button
+                                    class="favorite-button"
+                                    aria-label="Favoritar produto"
+                                >
+                                    <i class="fa-regular fa-heart"></i>
+                                </button>
+
+                            </div>
+
+                            <div class="shop-product-info">
+
+                                <span class="product-category">
+                                    CAMISETA
+                                </span>
+
+                                <h3>
+                                    Purple Signal Tee
+                                </h3>
+
+                                <p class="product-price">
+                                    R$ 99,90
+                                </p>
+
+                            </div>
+
+                        </article>
+
+
+                        <!-- PRODUTO 06 -->
+
+                        <article class="shop-product-card">
+
+                            <div class="shop-product-image">
+
+                                <span class="product-tag">
+                                    NOVO
+                                </span>
+
+                                <span class="image-placeholder">
+                                    IMAGEM
+                                </span>
+
+                                <button
+                                    class="favorite-button"
+                                    aria-label="Favoritar produto"
+                                >
+                                    <i class="fa-regular fa-heart"></i>
+                                </button>
+
+                            </div>
+
+                            <div class="shop-product-info">
+
+                                <span class="product-category">
+                                    ACESSÓRIO
+                                </span>
+
+                                <h3>
+                                    NØVA Cap
+                                </h3>
+
+                                <p class="product-price">
+                                    R$ 79,90
+                                </p>
+
+                            </div>
+
+                        </article>
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ================= FOOTER ================= -->
+
+    <footer class="footer">
+
+        <div class="container footer-container">
+
+            <div class="footer-brand">
+
+                <a href="../index.html" class="logo">
+                    NØVA
+                </a>
+
+                <p>
+                    Vista sua identidade.
+                </p>
+
+            </div>
+
+
+            <div class="footer-links">
+
+                <a href="../index.html">
+                    Início
+                </a>
+
+                <a href="loja.html">
+                    Loja
+                </a>
+
+                <a href="#categorias">
+                    Categorias
+                </a>
+
+                <a href="carrinho.html">
+                    Carrinho
+                </a>
+
+            </div>
+
+
+            <div class="footer-social">
+
+                <a href="#" aria-label="Instagram">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+
+                <a href="#" aria-label="TikTok">
+                    <i class="fa-brands fa-tiktok"></i>
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="container footer-bottom">
+
+            <p>
+                © 2026 NØVA. Todos os direitos reservados.
+            </p>
+
+            <span>
+                Designed by Mtss
+            </span>
+
+        </div>
+
+    </footer>
+
+</body>
+
+</html>

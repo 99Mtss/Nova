@@ -1,0 +1,382 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Produto | NØVA</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/produto.css">
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="container header-container">
+
+            <a href="../index.html" class="logo">NØVA</a>
+
+            <nav class="nav">
+                <a href="../index.html">Início</a>
+                <a href="loja.html" class="active">Loja</a>
+                <a href="loja.html#categorias">Categorias</a>
+            </nav>
+
+            <div class="header-actions">
+                <button class="header-icon" aria-label="Pesquisar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+
+                <button class="header-icon" aria-label="Minha conta">
+                    <i class="fa-regular fa-user"></i>
+                </button>
+
+                <a href="carrinho.html" class="header-icon cart-icon" aria-label="Carrinho">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span class="cart-count">0</span>
+                </a>
+
+                <button class="menu-toggle" aria-label="Abrir menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+
+        </div>
+    </header>
+
+
+    <main>
+
+        <!-- CAMINHO DA PÁGINA -->
+        <div class="container product-breadcrumb">
+            <a href="../index.html">Início</a>
+            <i class="fa-solid fa-chevron-right"></i>
+            <a href="loja.html">Loja</a>
+            <i class="fa-solid fa-chevron-right"></i>
+            <span>NØVA Essential Tee</span>
+        </div>
+
+
+        <!-- DETALHES DO PRODUTO -->
+        <section class="product-details">
+            <div class="container product-details-grid">
+
+                <!-- GALERIA -->
+                <div class="product-gallery">
+
+                    <div class="product-main-image">
+                        <span class="product-image-placeholder">
+                            IMAGEM DO PRODUTO
+                        </span>
+
+                        <span class="product-label">MAIS VENDIDO</span>
+
+                        <button class="gallery-favorite" aria-label="Favoritar">
+                            <i class="fa-regular fa-heart"></i>
+                        </button>
+                    </div>
+
+                    <div class="product-thumbnails">
+                        <button class="product-thumbnail active" aria-label="Imagem 1">
+                            <span>01</span>
+                        </button>
+
+                        <button class="product-thumbnail" aria-label="Imagem 2">
+                            <span>02</span>
+                        </button>
+
+                        <button class="product-thumbnail" aria-label="Imagem 3">
+                            <span>03</span>
+                        </button>
+
+                        <button class="product-thumbnail" aria-label="Imagem 4">
+                            <span>04</span>
+                        </button>
+                    </div>
+
+                </div>
+
+
+                <!-- INFORMAÇÕES -->
+                <div class="product-information">
+
+                    <span class="product-reference">NØVA ESSENTIALS</span>
+
+                    <h1>NØVA Essential Tee</h1>
+
+                    <div class="product-rating">
+                        <div class="rating-stars">
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-regular fa-star"></i>
+                        </div>
+
+                        <span>4,0</span>
+                        <span class="rating-divider">|</span>
+                        <span>Ver avaliações</span>
+                    </div>
+
+                    <div class="product-detail-price">
+                        <strong>R$ 89,90</strong>
+                        <span>ou 3x de R$ 29,97 sem juros</span>
+                    </div>
+
+                    <p class="product-description">
+                        Essencial no guarda-roupa de quem tem identidade.
+                        Uma camiseta com visual minimalista, caimento moderno
+                        e versatilidade para diferentes combinações.
+                    </p>
+
+
+                    <!-- CORES -->
+                    <div class="product-option">
+                        <div class="option-heading">
+                            <span>Cor:</span>
+                            <strong>Preto</strong>
+                        </div>
+
+                        <div class="product-colors">
+                            <button class="color-option selected black" aria-label="Preto"></button>
+                            <button class="color-option white" aria-label="Branco"></button>
+                            <button class="color-option purple" aria-label="Roxo"></button>
+                        </div>
+                    </div>
+
+
+                    <!-- TAMANHOS -->
+                    <div class="product-option">
+                        <div class="option-heading">
+                            <span>Tamanho</span>
+                            <a href="#guia-tamanhos">Guia de tamanhos</a>
+                        </div>
+
+                        <div class="product-sizes">
+                            <button>PP</button>
+                            <button>P</button>
+                            <button class="selected">M</button>
+                            <button>G</button>
+                            <button>GG</button>
+                        </div>
+                    </div>
+
+
+                    <!-- QUANTIDADE -->
+                    <div class="product-option">
+                        <div class="option-heading">
+                            <span>Quantidade</span>
+                        </div>
+
+                        <div class="quantity-control">
+                            <button aria-label="Diminuir quantidade">−</button>
+                            <span>1</span>
+                            <button aria-label="Aumentar quantidade">+</button>
+                        </div>
+                    </div>
+
+
+                    <!-- AÇÕES -->
+                    <div class="product-actions">
+                        <button class="btn btn-primary add-to-cart">
+                            <i class="fa-solid fa-bag-shopping"></i>
+                            Adicionar ao carrinho
+                        </button>
+
+                        <button class="buy-favorite" aria-label="Favoritar produto">
+                            <i class="fa-regular fa-heart"></i>
+                        </button>
+                    </div>
+
+                    <p class="product-stock">
+                        <i class="fa-solid fa-circle-check"></i>
+                        Produto disponível
+                    </p>
+
+
+                    <!-- INFORMAÇÕES ADICIONAIS -->
+                    <div class="product-extra-info">
+
+                        <div class="extra-info-item">
+                            <i class="fa-solid fa-truck-fast"></i>
+                            <div>
+                                <strong>Entrega</strong>
+                                <p>Consulte as opções de envio no checkout.</p>
+                            </div>
+                        </div>
+
+                        <div class="extra-info-item">
+                            <i class="fa-solid fa-arrow-rotate-left"></i>
+                            <div>
+                                <strong>Trocas e devoluções</strong>
+                                <p>Consulte nossa política de trocas.</p>
+                            </div>
+                        </div>
+
+                        <div class="extra-info-item">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <div>
+                                <strong>Compra segura</strong>
+                                <p>Seus dados devem ser protegidos durante a compra.</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- DESCRIÇÃO -->
+        <section class="product-description-section" id="guia-tamanhos">
+            <div class="container">
+
+                <div class="description-heading">
+                    <span class="section-label">DETALHES</span>
+                    <h2>Feita para ser essencial.</h2>
+                    <p>
+                        Uma peça versátil que combina com diferentes estilos.
+                        Confira os detalhes do produto antes de finalizar sua compra.
+                    </p>
+                </div>
+
+                <div class="product-features">
+
+                    <div class="product-feature">
+                        <i class="fa-solid fa-shirt"></i>
+                        <h3>Estilo versátil</h3>
+                        <p>Ideal para combinações casuais e streetwear.</p>
+                    </div>
+
+                    <div class="product-feature">
+                        <i class="fa-solid fa-scissors"></i>
+                        <h3>Caimento moderno</h3>
+                        <p>Visual pensado para compor diferentes looks.</p>
+                    </div>
+
+                    <div class="product-feature">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <h3>Design minimalista</h3>
+                        <p>Menos excesso, mais identidade.</p>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- PRODUTOS RELACIONADOS -->
+        <section class="related-products">
+            <div class="container">
+
+                <div class="related-heading">
+                    <div>
+                        <span class="section-label">VOCÊ TAMBÉM PODE GOSTAR</span>
+                        <h2>Complete seu estilo.</h2>
+                    </div>
+
+                    <a href="loja.html" class="related-link">
+                        Ver loja
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                <div class="related-grid">
+
+                    <article class="related-card">
+                        <a href="produto.html" class="related-image">
+                            <span>IMAGEM</span>
+                        </a>
+                        <span class="related-category">MOLETOM</span>
+                        <h3>NØVA Heavy Hoodie</h3>
+                        <p>R$ 199,90</p>
+                    </article>
+
+                    <article class="related-card">
+                        <a href="produto.html" class="related-image">
+                            <span>IMAGEM</span>
+                        </a>
+                        <span class="related-category">CAMISETA</span>
+                        <h3>Oversized Black</h3>
+                        <p>R$ 119,90</p>
+                    </article>
+
+                    <article class="related-card">
+                        <a href="produto.html" class="related-image">
+                            <span>IMAGEM</span>
+                        </a>
+                        <span class="related-category">ACESSÓRIO</span>
+                        <h3>NØVA Cap</h3>
+                        <p>R$ 79,90</p>
+                    </article>
+
+                    <article class="related-card">
+                        <a href="produto.html" class="related-image">
+                            <span>IMAGEM</span>
+                        </a>
+                        <span class="related-category">CALÇA</span>
+                        <h3>Urban Cargo</h3>
+                        <p>R$ 179,90</p>
+                    </article>
+
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+
+    <!-- FOOTER -->
+    <footer class="footer">
+
+        <div class="container footer-container">
+
+            <div class="footer-brand">
+                <a href="../index.html" class="logo">NØVA</a>
+                <p>Vista sua identidade.</p>
+            </div>
+
+            <div class="footer-links">
+                <a href="../index.html">Início</a>
+                <a href="loja.html">Loja</a>
+                <a href="loja.html#categorias">Categorias</a>
+                <a href="carrinho.html">Carrinho</a>
+            </div>
+
+            <div class="footer-social">
+                <a href="#" aria-label="Instagram">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+
+                <a href="#" aria-label="TikTok">
+                    <i class="fa-brands fa-tiktok"></i>
+                </a>
+            </div>
+
+        </div>
+
+        <div class="container footer-bottom">
+            <p>© 2026 NØVA. Todos os direitos reservados.</p>
+            <span>Designed by Mtss</span>
+        </div>
+
+    </footer>
+
+</body>
+</html>
+```

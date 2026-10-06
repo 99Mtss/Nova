@@ -1,0 +1,716 @@
+/* =========================================================
+   NØVA - LOJA
+   ========================================================= */
+
+
+/* =========================================================
+   HERO DA LOJA
+   ========================================================= */
+
+.shop-hero {
+    padding: 100px 0 60px;
+    background: var(--fundo-principal);
+    border-bottom: 1px solid var(--borda);
+}
+
+.shop-hero .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.shop-hero .section-label {
+    margin-bottom: 16px;
+}
+
+.shop-hero h1 {
+    max-width: 800px;
+    margin-bottom: 18px;
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    font-weight: 800;
+    letter-spacing: -2px;
+}
+
+.shop-hero p {
+    max-width: 620px;
+    margin-bottom: 35px;
+    color: var(--texto-secundario);
+    font-size: 1rem;
+    line-height: 1.8;
+}
+
+
+/* =========================================================
+   BUSCA
+   ========================================================= */
+
+.shop-search {
+    width: min(100%, 650px);
+    height: 58px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 20px;
+
+    background: var(--fundo-card);
+    border: 1px solid var(--borda);
+    border-radius: 8px;
+
+    transition: border-color 0.3s ease;
+}
+
+.shop-search:focus-within {
+    border-color: var(--destaque);
+}
+
+.shop-search i {
+    margin-right: 14px;
+    color: var(--texto-secundario);
+}
+
+.shop-search input {
+    width: 100%;
+    height: 100%;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+
+    color: var(--texto);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+}
+
+.shop-search input::placeholder {
+    color: var(--texto-secundario);
+}
+
+
+/* =========================================================
+   CATEGORIAS
+   ========================================================= */
+
+.shop-categories {
+    padding: 25px 0;
+    background: var(--fundo-secundario);
+    border-bottom: 1px solid var(--borda);
+}
+
+.category-tabs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.category-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.category-tab {
+    flex-shrink: 0;
+
+    padding: 11px 20px;
+
+    border: 1px solid var(--borda);
+    border-radius: 6px;
+
+    background: transparent;
+
+    color: var(--texto-secundario);
+
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+
+    cursor: pointer;
+
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.category-tab:hover {
+    border-color: var(--destaque);
+    color: var(--texto);
+}
+
+.category-tab.active {
+    background: var(--destaque);
+    border-color: var(--destaque);
+    color: var(--destaque-inverso);
+}
+
+
+/* =========================================================
+   ÁREA DA LOJA
+   ========================================================= */
+
+.shop-products {
+    padding: 70px 0 100px;
+}
+
+.shop-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 50px;
+    align-items: start;
+}
+
+
+/* =========================================================
+   FILTROS
+   ========================================================= */
+
+.filters {
+    position: sticky;
+    top: 100px;
+
+    padding: 24px;
+
+    background: var(--fundo-card);
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+}
+
+.filters-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--borda);
+}
+
+.filters-header h2 {
+    margin: 0;
+
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.clear-filters {
+    border: none;
+    background: transparent;
+
+    color: var(--texto-secundario);
+
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.75rem;
+
+    cursor: pointer;
+
+    transition: color 0.25s ease;
+}
+
+.clear-filters:hover {
+    color: var(--destaque);
+}
+
+
+/* =========================================================
+   GRUPOS DE FILTRO
+   ========================================================= */
+
+.filter-group {
+    padding: 24px 0;
+    border-bottom: 1px solid var(--borda);
+}
+
+.filter-group:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.filter-group h3 {
+    margin-bottom: 17px;
+
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+
+/* =========================================================
+   CHECKBOX
+   ========================================================= */
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-bottom: 13px;
+
+    color: var(--texto-secundario);
+
+    font-size: 0.85rem;
+
+    cursor: pointer;
+}
+
+.filter-option:last-child {
+    margin-bottom: 0;
+}
+
+.filter-option input {
+    width: 16px;
+    height: 16px;
+
+    accent-color: var(--destaque);
+
+    cursor: pointer;
+}
+
+.filter-option:hover {
+    color: var(--texto);
+}
+
+
+/* =========================================================
+   TAMANHOS
+   ========================================================= */
+
+.size-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.size-options button {
+    height: 38px;
+
+    border: 1px solid var(--borda);
+    border-radius: 5px;
+
+    background: transparent;
+
+    color: var(--texto-secundario);
+
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.78rem;
+
+    cursor: pointer;
+
+    transition:
+        border-color 0.25s ease,
+        color 0.25s ease,
+        background 0.25s ease;
+}
+
+.size-options button:hover {
+    border-color: var(--destaque);
+    color: var(--texto);
+}
+
+.size-options button:focus {
+    background: var(--destaque);
+    border-color: var(--destaque);
+    color: var(--destaque-inverso);
+}
+
+
+/* =========================================================
+   PREÇO
+   ========================================================= */
+
+.price-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.price-inputs input {
+    width: 100%;
+    height: 38px;
+
+    padding: 0 10px;
+
+    border: 1px solid var(--borda);
+    border-radius: 5px;
+
+    background: var(--fundo-principal);
+
+    color: var(--texto);
+
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.75rem;
+
+    outline: none;
+}
+
+.price-inputs input:focus {
+    border-color: var(--destaque);
+}
+
+.price-inputs span {
+    color: var(--texto-secundario);
+}
+
+
+/* =========================================================
+   CONTEÚDO DOS PRODUTOS
+   ========================================================= */
+
+.shop-content {
+    min-width: 0;
+}
+
+.shop-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 25px;
+}
+
+.products-count {
+    color: var(--texto-secundario);
+    font-size: 0.85rem;
+}
+
+.sort-products {
+    height: 42px;
+
+    padding: 0 38px 0 14px;
+
+    border: 1px solid var(--borda);
+    border-radius: 6px;
+
+    background: var(--fundo-card);
+    color: var(--texto);
+
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.78rem;
+
+    outline: none;
+    cursor: pointer;
+}
+
+.sort-products:focus {
+    border-color: var(--destaque);
+}
+
+
+/* =========================================================
+   GRID DE PRODUTOS
+   ========================================================= */
+
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 25px;
+}
+
+
+/* =========================================================
+   CARD
+   ========================================================= */
+
+.shop-product-card {
+    min-width: 0;
+    cursor: pointer;
+}
+
+.shop-product-image {
+    position: relative;
+
+    aspect-ratio: 3 / 4;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            145deg,
+            #1e222b,
+            #151820
+        );
+
+    border-radius: 8px;
+
+    transition: transform 0.35s ease;
+}
+
+.shop-product-card:hover .shop-product-image {
+    transform: translateY(-4px);
+}
+
+.image-placeholder {
+    color: #666d79;
+
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+
+    letter-spacing: 2px;
+}
+
+
+/* =========================================================
+   TAG DO PRODUTO
+   ========================================================= */
+
+.product-tag {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+
+    z-index: 2;
+
+    padding: 6px 9px;
+
+    border-radius: 4px;
+
+    background: var(--destaque);
+    color: var(--destaque-inverso);
+
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 600;
+
+    letter-spacing: 0.5px;
+}
+
+
+/* =========================================================
+   FAVORITO
+   ========================================================= */
+
+.favorite-button {
+    position: absolute;
+    top: 13px;
+    right: 13px;
+
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+
+    background: rgba(15, 17, 23, 0.8);
+
+    color: var(--texto);
+
+    cursor: pointer;
+
+    backdrop-filter: blur(5px);
+
+    transition:
+        background 0.25s ease,
+        color 0.25s ease;
+}
+
+.favorite-button:hover {
+    background: var(--destaque);
+    color: white;
+}
+
+
+/* =========================================================
+   INFORMAÇÕES
+   ========================================================= */
+
+.shop-product-info {
+    padding-top: 15px;
+}
+
+.product-category {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: var(--texto-secundario);
+
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 500;
+
+    letter-spacing: 1px;
+}
+
+.shop-product-info h3 {
+    margin-bottom: 7px;
+
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+
+    transition: color 0.25s ease;
+}
+
+.shop-product-card:hover .shop-product-info h3 {
+    color: var(--destaque);
+}
+
+.product-price {
+    color: var(--texto);
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.footer {
+    margin-top: 0;
+}
+
+
+/* =========================================================
+   RESPONSIVIDADE
+   ========================================================= */
+
+
+/* TABLET */
+
+@media (max-width: 1100px) {
+
+    .shop-layout {
+        grid-template-columns: 210px 1fr;
+        gap: 30px;
+    }
+
+    .shop-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+}
+
+
+/* TABLET MENOR */
+
+@media (max-width: 900px) {
+
+    .shop-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .filters {
+        position: static;
+    }
+
+    .filter-group {
+        display: none;
+    }
+
+    .filters-header {
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .filters-header::after {
+        content: "Abrir filtros";
+        margin-left: auto;
+        margin-right: 15px;
+
+        color: var(--texto-secundario);
+        font-size: 0.75rem;
+    }
+
+    .shop-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+}
+
+
+/* MOBILE */
+
+@media (max-width: 650px) {
+
+    .shop-hero {
+        padding: 70px 0 45px;
+    }
+
+    .shop-hero h1 {
+        font-size: 2rem;
+        letter-spacing: -1px;
+    }
+
+    .shop-hero p {
+        font-size: 0.85rem;
+    }
+
+    .shop-search {
+        height: 52px;
+    }
+
+    .shop-categories {
+        padding: 18px 0;
+    }
+
+    .category-tabs {
+        justify-content: flex-start;
+    }
+
+    .shop-products {
+        padding: 45px 0 70px;
+    }
+
+    .shop-toolbar {
+        margin-bottom: 20px;
+    }
+
+    .sort-products {
+        height: 38px;
+        max-width: 170px;
+    }
+
+    .shop-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px 12px;
+    }
+
+    .shop-product-info h3 {
+        font-size: 0.82rem;
+    }
+
+    .product-price {
+        font-size: 0.8rem;
+    }
+
+}
+
+
+/* MOBILE PEQUENO */
+
+@media (max-width: 400px) {
+
+    .shop-grid {
+        gap: 18px 10px;
+    }
+
+    .favorite-button {
+        width: 34px;
+        height: 34px;
+    }
+
+    .product-tag {
+        top: 10px;
+        left: 10px;
+        padding: 5px 7px;
+    }
+
+}

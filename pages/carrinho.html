@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Carrinho | NØVA</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/carrinho.css">
+</head>
+
+<body>
+
+    <!-- ================= HEADER ================= -->
+
+    <header class="header">
+
+        <div class="container header-container">
+
+            <a href="../index.html" class="logo">
+                NØVA
+            </a>
+
+            <nav class="nav">
+                <a href="../index.html">Início</a>
+                <a href="loja.html">Loja</a>
+                <a href="loja.html#categorias">Categorias</a>
+            </nav>
+
+            <div class="header-actions">
+
+                <button class="header-icon" aria-label="Pesquisar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+
+                <button class="header-icon" aria-label="Minha conta">
+                    <i class="fa-regular fa-user"></i>
+                </button>
+
+                <a
+                    href="carrinho.html"
+                    class="header-icon cart-icon active"
+                    aria-label="Carrinho"
+                >
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span class="cart-count">2</span>
+                </a>
+
+                <button class="menu-toggle" aria-label="Abrir menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- ================= CARRINHO ================= -->
+
+    <main>
+
+        <section class="cart-page">
+
+            <div class="container">
+
+                <!-- TÍTULO -->
+
+                <div class="cart-heading">
+
+                    <span class="section-label">
+                        SEU PEDIDO
+                    </span>
+
+                    <h1>
+                        Carrinho
+                    </h1>
+
+                    <p>
+                        Confira suas peças antes de continuar para o checkout.
+                    </p>
+
+                </div>
+
+
+                <!-- CONTEÚDO -->
+
+                <div class="cart-layout">
+
+
+                    <!-- ================= PRODUTOS ================= -->
+
+                    <div class="cart-products">
+
+                        <div class="cart-products-header">
+
+                            <h2>
+                                Produtos
+                            </h2>
+
+                            <span>
+                                2 itens
+                            </span>
+
+                        </div>
+
+
+                        <!-- PRODUTO 01 -->
+
+                        <article class="cart-item">
+
+                            <div class="cart-item-image">
+                                <span>
+                                    IMAGEM
+                                </span>
+                            </div>
+
+                            <div class="cart-item-info">
+
+                                <span class="cart-item-category">
+                                    CAMISETA
+                                </span>
+
+                                <h3>
+                                    NØVA Essential Tee
+                                </h3>
+
+                                <p class="cart-item-color">
+                                    Cor: Preto
+                                </p>
+
+                                <p class="cart-item-size">
+                                    Tamanho: M
+                                </p>
+
+                                <button class="remove-item">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                    Remover
+                                </button>
+
+                            </div>
+
+                            <div class="cart-item-right">
+
+                                <div class="cart-item-price">
+                                    R$ 89,90
+                                </div>
+
+                                <div class="cart-quantity">
+
+                                    <button aria-label="Diminuir">
+                                        −
+                                    </button>
+
+                                    <span>
+                                        1
+                                    </span>
+
+                                    <button aria-label="Aumentar">
+                                        +
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </article>
+
+
+                        <!-- PRODUTO 02 -->
+
+                        <article class="cart-item">
+
+                            <div class="cart-item-image">
+                                <span>
+                                    IMAGEM
+                                </span>
+                            </div>
+
+                            <div class="cart-item-info">
+
+                                <span class="cart-item-category">
+                                    MOLETOM
+                                </span>
+
+                                <h3>
+                                    NØVA Heavy Hoodie
+                                </h3>
+
+                                <p class="cart-item-color">
+                                    Cor: Preto
+                                </p>
+
+                                <p class="cart-item-size">
+                                    Tamanho: G
+                                </p>
+
+                                <button class="remove-item">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                    Remover
+                                </button>
+
+                            </div>
+
+                            <div class="cart-item-right">
+
+                                <div class="cart-item-price">
+                                    R$ 199,90
+                                </div>
+
+                                <div class="cart-quantity">
+
+                                    <button aria-label="Diminuir">
+                                        −
+                                    </button>
+
+                                    <span>
+                                        1
+                                    </span>
+
+                                    <button aria-label="Aumentar">
+                                        +
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </article>
+
+
+                        <!-- CONTINUAR COMPRANDO -->
+
+                        <a href="loja.html" class="continue-shopping">
+
+                            <i class="fa-solid fa-arrow-left"></i>
+
+                            Continuar comprando
+
+                        </a>
+
+                    </div>
+
+
+                    <!-- ================= RESUMO ================= -->
+
+                    <aside class="cart-summary">
+
+                        <div class="summary-header">
+
+                            <h2>
+                                Resumo do pedido
+                            </h2>
+
+                        </div>
+
+
+                        <div class="summary-items">
+
+                            <div class="summary-row">
+
+                                <span>
+                                    Subtotal
+                                </span>
+
+                                <strong>
+                                    R$ 289,80
+                                </strong>
+
+                            </div>
+
+                            <div class="summary-row">
+
+                                <span>
+                                    Frete
+                                </span>
+
+                                <span class="shipping-info">
+                                    A calcular
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- CUPOM -->
+
+                        <div class="coupon">
+
+                            <label for="coupon">
+                                Cupom de desconto
+                            </label>
+
+                            <div class="coupon-input">
+
+                                <input
+                                    type="text"
+                                    id="coupon"
+                                    placeholder="Digite seu cupom"
+                                >
+
+                                <button>
+                                    Aplicar
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- TOTAL -->
+
+                        <div class="summary-total">
+
+                            <span>
+                                Total
+                            </span>
+
+                            <strong>
+                                R$ 289,80
+                            </strong>
+
+                        </div>
+
+
+                        <!-- CHECKOUT -->
+
+                        <a
+                            href="checkout.html"
+                            class="btn btn-primary checkout-button"
+                        >
+                            Continuar para checkout
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+
+                        <!-- SEGURANÇA -->
+
+                        <div class="secure-purchase">
+
+                            <i class="fa-solid fa-shield-halved"></i>
+
+                            <div>
+
+                                <strong>
+                                    Compra segura
+                                </strong>
+
+                                <p>
+                                    Seus dados serão protegidos durante a compra.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </aside>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ================= FOOTER ================= -->
+
+    <footer class="footer">
+
+        <div class="container footer-container">
+
+            <div class="footer-brand">
+
+                <a href="../index.html" class="logo">
+                    NØVA
+                </a>
+
+                <p>
+                    Vista sua identidade.
+                </p>
+
+            </div>
+
+
+            <div class="footer-links">
+
+                <a href="../index.html">
+                    Início
+                </a>
+
+                <a href="loja.html">
+                    Loja
+                </a>
+
+                <a href="loja.html#categorias">
+                    Categorias
+                </a>
+
+                <a href="carrinho.html">
+                    Carrinho
+                </a>
+
+            </div>
+
+
+            <div class="footer-social">
+
+                <a href="#" aria-label="Instagram">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+
+                <a href="#" aria-label="TikTok">
+                    <i class="fa-brands fa-tiktok"></i>
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="container footer-bottom">
+
+            <p>
+                © 2026 NØVA. Todos os direitos reservados.
+            </p>
+
+            <span>
+                Designed by Mtss
+            </span>
+
+        </div>
+
+    </footer>
+
+</body>
+
+</html>

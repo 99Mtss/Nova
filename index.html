@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="NØVA — Estilo que vai com você.">
+
+    <title>NØVA — Loja</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Ícones -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <!-- CSS global -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <header class="header">
+
+        <div class="container header-container">
+
+            <!-- Logo -->
+            <a href="index.html" class="logo">
+                NØVA
+            </a>
+
+            <!-- Navegação -->
+            <nav class="nav">
+
+                <a href="index.html" class="nav-link active">
+                    Início
+                </a>
+
+                <a href="pages/loja.html" class="nav-link">
+                    Loja
+                </a>
+
+                <a href="#" class="nav-link">
+                    Categorias
+                </a>
+
+            </nav>
+
+            <!-- Ações -->
+            <div class="header-actions">
+
+                <button
+                    class="header-icon"
+                    aria-label="Pesquisar"
+                    type="button">
+
+                    <i class="fa-solid fa-magnifying-glass"></i>
+
+                </button>
+
+                <button
+                    class="header-icon"
+                    aria-label="Minha conta"
+                    type="button">
+
+                    <i class="fa-regular fa-user"></i>
+
+                </button>
+
+                <a
+                    href="pages/carrinho.html"
+                    class="header-icon cart-icon"
+                    aria-label="Carrinho">
+
+                    <i class="fa-solid fa-bag-shopping"></i>
+
+                    <span class="cart-count">0</span>
+
+                </a>
+
+                <!-- Menu mobile -->
+                <button
+                    class="menu-mobile"
+                    aria-label="Abrir menu"
+                    type="button">
+
+                    <i class="fa-solid fa-bars"></i>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <main>
+
+        <!-- =================================================
+             HERO
+             ================================================= -->
+
+        <section class="hero">
+
+            <div class="hero-overlay"></div>
+
+            <div class="container hero-content">
+
+                <span class="hero-label">
+                    COLEÇÃO 2026
+                </span>
+
+                <h1>
+                    ESTILO<br>
+                    QUE VAI COM<br>
+                    VOCÊ.
+                </h1>
+
+                <p>
+                    Roupas que unem conforto, atitude e qualidade.
+                    Seu estilo, sua identidade.
+                </p>
+
+                <a
+                    href="pages/loja.html"
+                    class="btn btn-primary">
+
+                    Ver coleção
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </a>
+
+            </div>
+
+            <!-- Controles do banner -->
+
+            <button
+                class="hero-arrow hero-arrow-left"
+                aria-label="Banner anterior">
+
+                <i class="fa-solid fa-chevron-left"></i>
+
+            </button>
+
+            <button
+                class="hero-arrow hero-arrow-right"
+                aria-label="Próximo banner">
+
+                <i class="fa-solid fa-chevron-right"></i>
+
+            </button>
+
+            <!-- Indicadores -->
+
+            <div class="hero-dots">
+
+                <span class="hero-dot active"></span>
+                <span class="hero-dot"></span>
+                <span class="hero-dot"></span>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             BENEFÍCIOS
+             ================================================= -->
+
+        <section class="benefits">
+
+            <div class="container benefits-grid">
+
+                <div class="benefit">
+
+                    <div class="benefit-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+
+                    <div>
+                        <h3>Compra segura</h3>
+
+                        <p>
+                            Seus dados protegidos.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="benefit">
+
+                    <div class="benefit-icon">
+                        <i class="fa-solid fa-credit-card"></i>
+                    </div>
+
+                    <div>
+                        <h3>Pagamento facilitado</h3>
+
+                        <p>
+                            Diversas formas de pagamento.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="benefit">
+
+                    <div class="benefit-icon">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </div>
+
+                    <div>
+                        <h3>Troca garantida</h3>
+
+                        <p>
+                            Troque em até 7 dias.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             MAIS VENDIDOS
+             ================================================= -->
+
+        <section class="section best-sellers">
+
+            <div class="container">
+
+                <div class="section-header">
+
+                    <div>
+                        <span class="section-label">
+                            DESTAQUES
+                        </span>
+
+                        <h2>
+                            Mais vendidos
+                        </h2>
+
+                        <p>
+                            Os favoritos da comunidade NØVA.
+                        </p>
+                    </div>
+
+                    <a
+                        href="pages/loja.html"
+                        class="section-link">
+
+                        Ver todos
+                        <i class="fa-solid fa-arrow-right"></i>
+
+                    </a>
+
+                </div>
+
+
+                <div class="products-grid">
+
+                    <!-- Produto 1 -->
+
+                    <article class="product-card">
+
+                        <a href="pages/produto.html">
+
+                            <div class="product-image">
+
+                                <img
+                                    src="assets/images/products/produto-1.jpg"
+                                    alt="Produto NØVA">
+
+                                <span class="product-tag">
+                                    Mais vendido
+                                </span>
+
+                            </div>
+
+                        </a>
+
+                        <div class="product-info">
+
+                            <h3>
+                                Camiseta Oversized
+                            </h3>
+
+                            <span class="product-price">
+                                R$ 129,90
+                            </span>
+
+                            <div class="product-bottom">
+
+                                <div class="product-rating">
+
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+
+                                </div>
+
+                                <button
+                                    class="product-cart"
+                                    aria-label="Adicionar ao carrinho">
+
+                                    <i class="fa-solid fa-bag-shopping"></i>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </article>
+
+
+                    <!-- Produto 2 -->
+
+                    <article class="product-card">
+
+                        <a href="pages/produto.html">
+
+                            <div class="product-image">
+
+                                <img
+                                    src="assets/images/products/produto-2.jpg"
+                                    alt="Produto NØVA">
+
+                            </div>
+
+                        </a>
+
+                        <div class="product-info">
+
+                            <h3>
+                                Moletom Essential
+                            </h3>
+
+                            <span class="product-price">
+                                R$ 199,90
+                            </span>
+
+                            <div class="product-bottom">
+
+                                <div class="product-rating">
+
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+
+                                </div>
+
+                                <button
+                                    class="product-cart"
+                                    aria-label="Adicionar ao carrinho">
+
+                                    <i class="fa-solid fa-bag-shopping"></i>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </article>
+
+
+                    <!-- Produto 3 -->
+
+                    <article class="product-card">
+
+                        <a href="pages/produto.html">
+
+                            <div class="product-image">
+
+                                <img
+                                    src="assets/images/products/produto-3.jpg"
+                                    alt="Produto NØVA">
+
+                            </div>
+
+                        </a>
+
+                        <div class="product-info">
+
+                            <h3>
+                                Moletom Urban
+                            </h3>
+
+                            <span class="product-price">
+                                R$ 189,90
+                            </span>
+
+                            <div class="product-bottom">
+
+                                <div class="product-rating">
+
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+
+                                </div>
+
+                                <button
+                                    class="product-cart"
+                                    aria-label="Adicionar ao carrinho">
+
+                                    <i class="fa-solid fa-bag-shopping"></i>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </article>
+
+
+                    <!-- Produto 4 -->
+
+                    <article class="product-card">
+
+                        <a href="pages/produto.html">
+
+                            <div class="product-image">
+
+                                <img
+                                    src="assets/images/products/produto-4.jpg"
+                                    alt="Produto NØVA">
+
+                            </div>
+
+                        </a>
+
+                        <div class="product-info">
+
+                            <h3>
+                                Boné Dad Hat
+                            </h3>
+
+                            <span class="product-price">
+                                R$ 89,90
+                            </span>
+
+                            <div class="product-bottom">
+
+                                <div class="product-rating">
+
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+
+                                </div>
+
+                                <button
+                                    class="product-cart"
+                                    aria-label="Adicionar ao carrinho">
+
+                                    <i class="fa-solid fa-bag-shopping"></i>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </article>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             BANNER DE COLEÇÃO
+             ================================================= -->
+
+        <section class="collection-banner">
+
+            <div class="collection-overlay"></div>
+
+            <div class="container collection-content">
+
+                <span>
+                    NØVA COLLECTION
+                </span>
+
+                <h2>
+                    OUTONO / INVERNO
+                </h2>
+
+                <p>
+                    Peças que combinam com a sua rotina.
+                </p>
+
+                <a
+                    href="pages/loja.html"
+                    class="btn btn-secondary">
+
+                    Conferir coleção
+
+                </a>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             CATEGORIAS
+             ================================================= -->
+
+        <section class="section categories">
+
+            <div class="container">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <span class="section-label">
+                            EXPLORE
+                        </span>
+
+                        <h2>
+                            Categorias
+                        </h2>
+
+                        <p>
+                            Encontre seu próximo estilo.
+                        </p>
+
+                    </div>
+
+                    <a
+                        href="pages/loja.html"
+                        class="section-link">
+
+                        Ver todas
+                        <i class="fa-solid fa-arrow-right"></i>
+
+                    </a>
+
+                </div>
+
+
+                <div class="categories-grid">
+
+                    <a
+                        href="pages/loja.html"
+                        class="category-card">
+
+                        <img
+                            src="assets/images/categories/camisetas.jpg"
+                            alt="Camisetas">
+
+                        <div class="category-overlay"></div>
+
+                        <div class="category-content">
+
+                            <span>
+                                01
+                            </span>
+
+                            <h3>
+                                Camisetas
+                            </h3>
+
+                            <i class="fa-solid fa-arrow-right"></i>
+
+                        </div>
+
+                    </a>
+
+
+                    <a
+                        href="pages/loja.html"
+                        class="category-card">
+
+                        <img
+                            src="assets/images/categories/moletons.jpg"
+                            alt="Moletons">
+
+                        <div class="category-overlay"></div>
+
+                        <div class="category-content">
+
+                            <span>
+                                02
+                            </span>
+
+                            <h3>
+                                Moletons
+                            </h3>
+
+                            <i class="fa-solid fa-arrow-right"></i>
+
+                        </div>
+
+                    </a>
+
+
+                    <a
+                        href="pages/loja.html"
+                        class="category-card">
+
+                        <img
+                            src="assets/images/categories/calcas.jpg"
+                            alt="Calças">
+
+                        <div class="category-overlay"></div>
+
+                        <div class="category-content">
+
+                            <span>
+                                03
+                            </span>
+
+                            <h3>
+                                Calças
+                            </h3>
+
+                            <i class="fa-solid fa-arrow-right"></i>
+
+                        </div>
+
+                    </a>
+
+
+                    <a
+                        href="pages/loja.html"
+                        class="category-card">
+
+                        <img
+                            src="assets/images/categories/acessorios.jpg"
+                            alt="Acessórios">
+
+                        <div class="category-overlay"></div>
+
+                        <div class="category-content">
+
+                            <span>
+                                04
+                            </span>
+
+                            <h3>
+                                Acessórios
+                            </h3>
+
+                            <i class="fa-solid fa-arrow-right"></i>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =====================================================
+         FOOTER
+         ===================================================== -->
+
+    <footer class="footer">
+
+        <div class="container footer-grid">
+
+            <!-- Marca -->
+
+            <div class="footer-brand">
+
+                <a href="index.html" class="logo">
+                    NØVA
+                </a>
+
+                <p>
+                    Mais que roupas, um estilo de vida.
+                </p>
+
+                <div class="social-links">
+
+                    <a href="#" aria-label="Instagram">
+                        <i class="fa-brands fa-instagram"></i>
+                    </a>
+
+                    <a href="#" aria-label="TikTok">
+                        <i class="fa-brands fa-tiktok"></i>
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- Links -->
+
+            <div class="footer-column">
+
+                <h3>
+                    Links
+                </h3>
+
+                <a href="index.html">
+                    Início
+                </a>
+
+                <a href="pages/loja.html">
+                    Loja
+                </a>
+
+                <a href="#">
+                    Categorias
+                </a>
+
+                <a href="pages/carrinho.html">
+                    Carrinho
+                </a>
+
+            </div>
+
+
+            <!-- Atendimento -->
+
+            <div class="footer-column">
+
+                <h3>
+                    Atendimento
+                </h3>
+
+                <span>
+                    Segunda a sexta
+                </span>
+
+                <span>
+                    09h às 18h
+                </span>
+
+                <a href="#">
+                    contato@nova.com
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="container footer-bottom">
+
+            <p>
+                © 2026 NØVA. Todos os direitos reservados.
+            </p>
+
+            <span>
+                Feito com estilo.
+            </span>
+
+        </div>
+
+    </footer>
+
+
+    <!-- JavaScript -->
+    <script src="js/app.js"></script>
+
+</body>
+
+</html>

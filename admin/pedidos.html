@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Pedidos | NØVA Admin</title>
+
+    <!-- GOOGLE FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@400;500;600&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- FONT AWESOME -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/pedidos.css">
+</head>
+
+<body>
+
+
+    <!-- =====================================================
+         SIDEBAR
+         ===================================================== -->
+
+    <aside class="admin-sidebar">
+
+        <div class="admin-logo">
+
+            <a href="../index.html">
+                NØVA
+            </a>
+
+            <span>
+                ADMIN
+            </span>
+
+        </div>
+
+
+        <nav class="admin-nav">
+
+            <span class="nav-title">
+                GERAL
+            </span>
+
+
+            <a
+                href="index.html"
+                class="admin-nav-link"
+            >
+
+                <i class="fa-solid fa-chart-line"></i>
+
+                <span>
+                    Dashboard
+                </span>
+
+            </a>
+
+
+            <a
+                href="pedidos.html"
+                class="admin-nav-link active"
+            >
+
+                <i class="fa-solid fa-receipt"></i>
+
+                <span>
+                    Pedidos
+                </span>
+
+            </a>
+
+
+            <a
+                href="produtos.html"
+                class="admin-nav-link"
+            >
+
+                <i class="fa-solid fa-box"></i>
+
+                <span>
+                    Produtos
+                </span>
+
+            </a>
+
+
+            <span class="nav-title">
+                LOJA
+            </span>
+
+
+            <a
+                href="../pages/loja.html"
+                class="admin-nav-link"
+            >
+
+                <i class="fa-solid fa-store"></i>
+
+                <span>
+                    Ver loja
+                </span>
+
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <a
+                href="#"
+                class="admin-nav-link"
+            >
+
+                <i class="fa-solid fa-gear"></i>
+
+                <span>
+                    Configurações
+                </span>
+
+            </a>
+
+
+            <a
+                href="../index.html"
+                class="admin-nav-link logout-link"
+            >
+
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+
+                <span>
+                    Sair
+                </span>
+
+            </a>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN
+         ===================================================== -->
+
+    <main class="admin-main">
+
+
+        <!-- =================================================
+             HEADER
+             ================================================= -->
+
+        <header class="admin-header">
+
+            <div class="admin-header-left">
+
+                <button
+                    class="sidebar-toggle"
+                    type="button"
+                    aria-label="Abrir menu"
+                >
+
+                    <i class="fa-solid fa-bars"></i>
+
+                </button>
+
+
+                <div>
+
+                    <span class="admin-page-label">
+                        GERENCIAMENTO
+                    </span>
+
+                    <h1>
+                        Pedidos
+                    </h1>
+
+                </div>
+
+            </div>
+
+
+            <div class="admin-header-right">
+
+                <button
+                    class="admin-notification"
+                    type="button"
+                    aria-label="Notificações"
+                >
+
+                    <i class="fa-regular fa-bell"></i>
+
+                    <span></span>
+
+                </button>
+
+
+                <div class="admin-user">
+
+                    <div class="admin-user-avatar">
+                        A
+                    </div>
+
+                    <div class="admin-user-info">
+
+                        <strong>
+                            Administrador
+                        </strong>
+
+                        <small>
+                            ADM
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =================================================
+             CONTEÚDO
+             ================================================= -->
+
+        <section class="pedidos-content">
+
+
+            <!-- CABEÇALHO -->
+
+            <div class="pedidos-top">
+
+                <div>
+
+                    <span class="admin-section-label">
+                        VENDAS
+                    </span>
+
+                    <h2>
+                        Gerencie os pedidos da loja
+                    </h2>
+
+                    <p>
+                        Acompanhe, organize e gerencie todos os pedidos realizados.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 ESTATÍSTICAS
+                 ================================================= -->
+
+            <div class="pedidos-stats">
+
+
+                <div class="pedido-stat-card">
+
+                    <div class="pedido-stat-icon total">
+
+                        <i class="fa-solid fa-receipt"></i>
+
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Total de pedidos
+                        </span>
+
+                        <strong>
+                            248
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="pedido-stat-card">
+
+                    <div class="pedido-stat-icon pendente">
+
+                        <i class="fa-regular fa-clock"></i>
+
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Pendentes
+                        </span>
+
+                        <strong>
+                            18
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="pedido-stat-card">
+
+                    <div class="pedido-stat-icon enviado">
+
+                        <i class="fa-solid fa-truck"></i>
+
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Enviados
+                        </span>
+
+                        <strong>
+                            42
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="pedido-stat-card">
+
+                    <div class="pedido-stat-icon cancelado">
+
+                        <i class="fa-solid fa-xmark"></i>
+
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Cancelados
+                        </span>
+
+                        <strong>
+                            7
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 FILTROS
+                 ================================================= -->
+
+            <div class="pedidos-filters">
+
+
+                <div class="pedido-search">
+
+                    <i class="fa-solid fa-magnifying-glass"></i>
+
+                    <input
+                        type="text"
+                        placeholder="Buscar por pedido ou cliente..."
+                    >
+
+                </div>
+
+
+                <div class="pedido-filter-group">
+
+                    <select>
+
+                        <option>
+                            Todos os status
+                        </option>
+
+                        <option>
+                            Pendente
+                        </option>
+
+                        <option>
+                            Processando
+                        </option>
+
+                        <option>
+                            Enviado
+                        </option>
+
+                        <option>
+                            Entregue
+                        </option>
+
+                        <option>
+                            Cancelado
+                        </option>
+
+                    </select>
+
+
+                    <select>
+
+                        <option>
+                            Todas as datas
+                        </option>
+
+                        <option>
+                            Hoje
+                        </option>
+
+                        <option>
+                            Últimos 7 dias
+                        </option>
+
+                        <option>
+                            Últimos 30 dias
+                        </option>
+
+                        <option>
+                            Este mês
+                        </option>
+
+                    </select>
+
+
+                    <button
+                        class="pedido-filter-button"
+                        type="button"
+                    >
+
+                        <i class="fa-solid fa-filter"></i>
+
+                        Filtrar
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 TABELA
+                 ================================================= -->
+
+            <div class="pedidos-table-card">
+
+
+                <div class="pedidos-table-header">
+
+                    <div>
+
+                        <h3>
+                            Pedidos recentes
+                        </h3>
+
+                        <span>
+                            248 pedidos encontrados
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="pedidos-table-wrapper">
+
+                    <table class="pedidos-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Pedido
+                                </th>
+
+                                <th>
+                                    Cliente
+                                </th>
+
+                                <th>
+                                    Data
+                                </th>
+
+                                <th>
+                                    Produtos
+                                </th>
+
+                                <th>
+                                    Total
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                                <th>
+                                    Ações
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+
+                            <!-- PEDIDO 1 -->
+
+                            <tr>
+
+                                <td>
+
+                                    <strong class="pedido-id">
+                                        #NVA-10248
+                                    </strong>
+
+                                </td>
+
+                                <td>
+
+                                    <div class="cliente-info">
+
+                                        <strong>
+                                            Lucas Almeida
+                                        </strong>
+
+                                        <span>
+                                            lucas@email.com
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="pedido-date">
+                                        06 Out, 2026
+                                    </span>
+
+                                    <small>
+                                        14:32
+                                    </small>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="produtos-count">
+                                        2 produtos
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <strong class="pedido-total">
+                                        R$ 289,80
+                                    </strong>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="pedido-status pendente">
+                                        Pendente
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <div class="pedido-actions">
+
+                                        <button
+                                            type="button"
+                                            title="Visualizar"
+                                        >
+
+                                            <i class="fa-regular fa-eye"></i>
+
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            title="Mais opções"
+                                        >
+
+                                            <i class="fa-solid fa-ellipsis"></i>
+
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+
+
+                            <!-- PEDIDO 2 -->
+
+                            <tr>
+
+                                <td>
+
+                                    <strong class="pedido-id">
+                                        #NVA-10247
+                                    </strong>
+
+                                </td>
+
+                                <td>
+
+                                    <div class="cliente-info">
+
+                                        <strong>
+                                            Gabriel Santos
+                                        </strong>
+
+                                        <span>
+                                            gabriel@email.com
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="pedido-date">
+                                        06 Out, 2026
+                                    </span>
+
+                                    <small>
+                                        13:18
+                                    </small>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="produtos-count">
+                                        3 produtos
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <strong class="pedido-total">
+                                        R$ 459,70
+                                    </strong>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="pedido-status processando">
+                                        Processando
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <div class="pedido-actions">
+
+                                        <button
+                                            type="button"
+                                            title="Visualizar"
+                                        >
+
+                                            <i class="fa-regular fa-eye"></i>
+
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            title="Mais opções"
+                                        >
+
+                                            <i class="fa-solid fa-ellipsis"></i>
+
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+
+
+                            <!-- PEDIDO 3 -->
+
+                            <tr>
+
+                                <td>
+
+                                    <strong class="pedido-id">
+                                        #NVA-10246
+                                    </strong>
+
+                                </td>
+
+                                <td>
+
+                                    <div class="cliente-info">
+
+                                        <strong>
+                                            Pedro Henrique
+                                        </strong>
+
+                                        <span>
+                                            pedro@email.com
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="pedido-date">
+                                        05 Out, 2026
+                                    </span>
+
+                                    <small>
+                                        18:45
+                                    </small>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="produtos-count">
+                                        1 produto
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <strong class="pedido-total">
+                                        R$ 109,90
+                                    </strong>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="pedido-status enviado">
+                                        Enviado
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <div class="pedido-actions">
+
+                                        <button
+                                            type="button"
+                                            title="Visualizar"
+                                        >
+
+                                            <i class="fa-regular fa-eye"></i>
+
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            title="Mais opções"
+                                        >
+
+                                            <i class="fa-solid fa-ellipsis"></i>
+
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+
+
+                            <!-- PEDIDO 4 -->
+
+                            <tr>
+
+                                <td>
+
+                                    <strong class="pedido-id">
+                                        #NVA-10245
+                                    </strong>
+
+                                </td>
+
+                                <td>
+
+                                    <div class="cliente-info">
+
+                                        <strong>
+                                            Rafael Oliveira
+                                        </strong>
+
+                                        <span>
+                                            rafael@email.com
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="pedido-date">
+                                        05 Out, 2026
+                                    </span>
+
+                                    <small>
+                                        16:21
+                                    </small>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="produtos-count">
+                                        4 produtos
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <strong class="pedido-total">
+                                        R$ 679,60
+                                    </strong>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="pedido-status entregue">
+                                        Entregue
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <div class="pedido-actions">
+
+                                        <button
+                                            type="button"
+                                            title="Visualizar"
+                                        >
+
+                                            <i class="fa-regular fa-eye"></i>
+
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            title="Mais opções"
+                                        >
+
+                                            <i class="fa-solid fa-ellipsis"></i>
+
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+
+
+                            <!-- PEDIDO 5 -->
+
+                            <tr>
+
+                                <td>
+
+                                    <strong class="pedido-id">
+                                        #NVA-10244
+                                    </strong>
+
+                                </td>
+
+                                <td>
+
+                                    <div class="cliente-info">
+
+                                        <strong>
+                                            Matheus Costa
+                                        </strong>
+
+                                        <span>
+                                            matheus@email.com
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="pedido-date">
+                                        04 Out, 2026
+                                    </span>
+
+                                    <small>
+                                        11:09
+                                    </small>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="produtos-count">
+                                        2 produtos
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <strong class="pedido-total">
+                                        R$ 269,80
+                                    </strong>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="pedido-status cancelado">
+                                        Cancelado
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <div class="pedido-actions">
+
+                                        <button
+                                            type="button"
+                                            title="Visualizar"
+                                        >
+
+                                            <i class="fa-regular fa-eye"></i>
+
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            title="Mais opções"
+                                        >
+
+                                            <i class="fa-solid fa-ellipsis"></i>
+
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     PAGINAÇÃO
+                     ================================================= -->
+
+                <div class="table-pagination">
+
+                    <span>
+                        Mostrando 1–5 de 248 pedidos
+                    </span>
+
+
+                    <div class="pagination-buttons">
+
+                        <button
+                            type="button"
+                            disabled
+                        >
+
+                            <i class="fa-solid fa-chevron-left"></i>
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="active"
+                        >
+                            1
+                        </button>
+
+
+                        <button
+                            type="button"
+                        >
+                            2
+                        </button>
+
+
+                        <button
+                            type="button"
+                        >
+                            3
+                        </button>
+
+
+                        <span>
+                            ...
+                        </span>
+
+
+                        <button
+                            type="button"
+                        >
+                            50
+                        </button>
+
+
+                        <button
+                            type="button"
+                        >
+
+                            <i class="fa-solid fa-chevron-right"></i>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script src="js/admin.js"></script>
+    <script src="js/pedidos.js"></script>
+
+</body>
+
+</html>

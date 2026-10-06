@@ -1,0 +1,659 @@
+/* =========================================
+   PRODUTOS
+========================================= */
+
+.produtos-content {
+    max-width: 1600px;
+}
+
+
+/* =========================================
+   TOPO
+========================================= */
+
+.produtos-top {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 30px;
+
+    margin-bottom: 24px;
+}
+
+.produtos-top h2 {
+    margin: 5px 0 6px;
+
+    font-family: "Montserrat", sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.produtos-top p {
+    color: var(--admin-text-secondary);
+
+    font-size: 11px;
+}
+
+
+/* =========================================
+   BOTÃO PRINCIPAL
+========================================= */
+
+.btn-admin-primary {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    padding: 11px 16px;
+
+    border: none;
+    border-radius: 7px;
+
+    background: var(--admin-purple);
+    color: #fff;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    white-space: nowrap;
+
+    transition: 0.2s ease;
+}
+
+.btn-admin-primary:hover {
+    background: var(--admin-purple-hover);
+}
+
+
+/* =========================================
+   ESTATÍSTICAS
+========================================= */
+
+.produto-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 15px;
+
+    margin-bottom: 18px;
+}
+
+.produto-stat {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+
+    padding: 18px;
+
+    border: 1px solid var(--admin-border);
+    border-radius: 10px;
+
+    background: var(--admin-card);
+}
+
+.produto-stat-icon {
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+}
+
+.produto-stat-icon.purple {
+    background: rgba(139, 92, 246, 0.12);
+    color: var(--admin-purple);
+}
+
+.produto-stat-icon.green {
+    background: rgba(34, 197, 94, 0.12);
+    color: var(--admin-green);
+}
+
+.produto-stat-icon.orange {
+    background: rgba(245, 158, 11, 0.12);
+    color: var(--admin-orange);
+}
+
+.produto-stat-icon.red {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--admin-red);
+}
+
+.produto-stat div:last-child {
+    display: flex;
+    flex-direction: column;
+}
+
+.produto-stat span {
+    margin-bottom: 4px;
+
+    color: var(--admin-text-secondary);
+
+    font-size: 10px;
+}
+
+.produto-stat strong {
+    font-family: "Montserrat", sans-serif;
+    font-size: 19px;
+}
+
+
+/* =========================================
+   FILTROS
+========================================= */
+
+.produtos-filtros {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) 180px 180px auto;
+
+    gap: 10px;
+
+    margin-bottom: 18px;
+}
+
+.produto-search {
+    position: relative;
+}
+
+.produto-search i {
+    position: absolute;
+
+    top: 50%;
+    left: 13px;
+
+    transform: translateY(-50%);
+
+    color: #69717f;
+
+    font-size: 12px;
+}
+
+.produto-search input,
+.produtos-filtros select {
+    width: 100%;
+    height: 42px;
+
+    border: 1px solid var(--admin-border);
+    border-radius: 7px;
+
+    outline: none;
+
+    background: var(--admin-card);
+    color: var(--admin-text);
+
+    font-size: 10px;
+}
+
+.produto-search input {
+    padding: 0 14px 0 36px;
+}
+
+.produto-search input::placeholder {
+    color: #69717f;
+}
+
+.produtos-filtros select {
+    padding: 0 12px;
+
+    cursor: pointer;
+}
+
+.filter-button {
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 0 15px;
+
+    border: 1px solid var(--admin-border);
+    border-radius: 7px;
+
+    background: var(--admin-card);
+    color: var(--admin-text-secondary);
+
+    font-size: 10px;
+}
+
+.filter-button:hover {
+    border-color: var(--admin-purple);
+    color: var(--admin-purple);
+}
+
+
+/* =========================================
+   TABELA
+========================================= */
+
+.produtos-table-card {
+    overflow: hidden;
+
+    border: 1px solid var(--admin-border);
+    border-radius: 12px;
+
+    background: var(--admin-card);
+}
+
+.table-top {
+    min-height: 75px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 16px 22px;
+
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.table-top h2 {
+    margin-bottom: 3px;
+
+    font-family: "Montserrat", sans-serif;
+    font-size: 15px;
+}
+
+.table-top span {
+    color: var(--admin-text-secondary);
+
+    font-size: 9px;
+}
+
+.table-top select {
+    padding: 8px 10px;
+
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+
+    outline: none;
+
+    background: var(--admin-bg);
+    color: var(--admin-text-secondary);
+
+    font-size: 9px;
+}
+
+
+/* =========================================
+   TABLE
+========================================= */
+
+.produtos-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.produtos-table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    min-width: 850px;
+}
+
+.produtos-table th {
+    height: 45px;
+
+    padding: 0 18px;
+
+    background: rgba(15, 17, 23, 0.45);
+
+    color: #707886;
+
+    text-align: left;
+
+    font-size: 9px;
+    font-weight: 600;
+
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+}
+
+.produtos-table td {
+    height: 75px;
+
+    padding: 10px 18px;
+
+    border-top: 1px solid var(--admin-border);
+
+    color: var(--admin-text-secondary);
+
+    font-size: 10px;
+}
+
+.produtos-table tbody tr {
+    transition: 0.2s ease;
+}
+
+.produtos-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.015);
+}
+
+
+/* =========================================
+   PRODUTO NA TABELA
+========================================= */
+
+.produto-table-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.produto-table-image {
+    width: 45px;
+    height: 50px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #292e38,
+            #11141b
+        );
+
+    color: #747b87;
+
+    font-family: "Montserrat", sans-serif;
+    font-size: 7px;
+    font-weight: 700;
+
+    letter-spacing: 1px;
+}
+
+.produto-table-info div:last-child {
+    display: flex;
+    flex-direction: column;
+}
+
+.produto-table-info strong {
+    margin-bottom: 4px;
+
+    color: var(--admin-text);
+
+    font-family: "Montserrat", sans-serif;
+    font-size: 11px;
+}
+
+.produto-table-info span {
+    color: #69717f;
+
+    font-size: 8px;
+}
+
+
+/* =========================================
+   PREÇO
+========================================= */
+
+.price {
+    color: var(--admin-text);
+
+    font-family: "Montserrat", sans-serif;
+    font-size: 10px;
+}
+
+
+/* =========================================
+   ESTOQUE
+========================================= */
+
+.stock {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    font-size: 9px;
+}
+
+.stock::before {
+    content: "";
+
+    width: 6px;
+    height: 6px;
+
+    border-radius: 50%;
+}
+
+.stock.normal {
+    color: var(--admin-green);
+}
+
+.stock.normal::before {
+    background: var(--admin-green);
+}
+
+.stock.low {
+    color: var(--admin-orange);
+}
+
+.stock.low::before {
+    background: var(--admin-orange);
+}
+
+.stock.out {
+    color: var(--admin-red);
+}
+
+.stock.out::before {
+    background: var(--admin-red);
+}
+
+
+/* =========================================
+   STATUS
+========================================= */
+
+.product-status {
+    display: inline-block;
+
+    padding: 5px 9px;
+
+    border-radius: 5px;
+
+    font-size: 9px;
+    font-weight: 600;
+}
+
+.product-status.active {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--admin-green);
+}
+
+.product-status.inactive {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--admin-red);
+}
+
+
+/* =========================================
+   AÇÕES
+========================================= */
+
+.table-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.table-actions button {
+    width: 29px;
+    height: 29px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid transparent;
+    border-radius: 6px;
+
+    background: transparent;
+    color: #737b88;
+
+    font-size: 10px;
+
+    transition: 0.2s ease;
+}
+
+.table-actions button:hover {
+    border-color: var(--admin-border);
+
+    background: var(--admin-bg);
+
+    color: var(--admin-purple);
+}
+
+
+/* =========================================
+   PAGINAÇÃO
+========================================= */
+
+.table-pagination {
+    min-height: 65px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 12px 22px;
+
+    border-top: 1px solid var(--admin-border);
+}
+
+.table-pagination > span {
+    color: #69717f;
+
+    font-size: 9px;
+}
+
+.pagination-buttons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pagination-buttons button {
+    width: 29px;
+    height: 29px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid var(--admin-border);
+    border-radius: 5px;
+
+    background: transparent;
+    color: var(--admin-text-secondary);
+
+    font-size: 9px;
+}
+
+.pagination-buttons button:hover {
+    border-color: var(--admin-purple);
+    color: var(--admin-purple);
+}
+
+.pagination-buttons button.active {
+    border-color: var(--admin-purple);
+
+    background: var(--admin-purple);
+    color: white;
+}
+
+.pagination-buttons button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.pagination-buttons > span {
+    padding: 0 3px;
+
+    color: #69717f;
+
+    font-size: 10px;
+}
+
+
+/* =========================================
+   RESPONSIVIDADE
+========================================= */
+
+@media (max-width: 1100px) {
+
+    .produto-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .produtos-filtros {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .produto-search {
+        grid-column: 1 / -1;
+    }
+}
+
+
+@media (max-width: 700px) {
+
+    .produtos-top {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .btn-admin-primary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .produto-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .produtos-filtros {
+        grid-template-columns: 1fr;
+    }
+
+    .produto-search {
+        grid-column: auto;
+    }
+
+    .table-top {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .table-top select {
+        width: 100%;
+    }
+
+    .table-pagination {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .pagination-buttons {
+        width: 100%;
+    }
+}
