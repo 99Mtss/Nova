@@ -657,3 +657,409 @@
         width: 100%;
     }
 }
+/* =====================================================
+   MODAL DE PRODUTO
+===================================================== */
+
+.produto-modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+
+    z-index: 99999 !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    padding: 20px;
+    box-sizing: border-box;
+
+    background: rgba(0, 0, 0, 0.75);
+
+    overflow-y: auto;
+}
+
+
+/* FUNDO ESCURO */
+
+.produto-modal-overlay {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background: rgba(0, 0, 0, 0.72);
+
+    backdrop-filter: blur(4px);
+}
+
+
+/* CAIXA DO MODAL */
+
+.produto-modal-content {
+    position: relative;
+
+    z-index: 2;
+
+    width: 100%;
+    max-width: 620px;
+
+    max-height: calc(100vh - 40px);
+
+    overflow-y: auto;
+
+    box-sizing: border-box;
+
+    background: #1e222b;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    border-radius: 14px;
+
+    box-shadow:
+        0 25px 80px rgba(0, 0, 0, 0.6);
+
+    color: #f5f7fa;
+
+    animation: produtoModalEntrada 0.25s ease;
+}
+
+
+/* ANIMAÇÃO */
+
+@keyframes produtoModalEntrada {
+
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+}
+
+
+/* CABEÇALHO */
+
+.produto-modal-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 20px 24px;
+
+    border-bottom:
+        1px solid rgba(255, 255, 255, 0.08);
+}
+
+
+.produto-modal-header h2 {
+    margin: 0;
+
+    color: #f5f7fa;
+
+    font-size: 20px;
+    font-weight: 600;
+}
+
+
+/* BOTÃO FECHAR */
+
+.produto-modal-close {
+    width: 36px;
+    height: 36px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 8px;
+
+    background: transparent;
+
+    color: #aaa;
+
+    font-size: 26px;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+
+.produto-modal-close:hover {
+    background: rgba(255, 255, 255, 0.08);
+
+    color: #fff;
+}
+
+
+/* FORMULÁRIO */
+
+.produto-form {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 18px;
+
+    padding: 24px;
+}
+
+
+/* GRUPO */
+
+.produto-form .form-group {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+
+/* LABEL */
+
+.produto-form label {
+
+    color: #d7d9df;
+
+    font-size: 13px;
+
+    font-weight: 500;
+}
+
+
+/* LINHA COM DOIS CAMPOS */
+
+.produto-form .form-row {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 16px;
+}
+
+
+/* INPUTS */
+
+.produto-form input,
+.produto-form select {
+
+    width: 100%;
+
+    height: 44px;
+
+    box-sizing: border-box;
+
+    padding: 0 13px;
+
+    border: 1px solid
+        rgba(255, 255, 255, 0.10);
+
+    border-radius: 8px;
+
+    background: #15181f;
+
+    color: #f5f7fa;
+
+    outline: none;
+
+    font-family: inherit;
+
+    transition: 0.2s;
+}
+
+
+/* PLACEHOLDER */
+
+.produto-form input::placeholder {
+    color: #777;
+}
+
+
+/* FOCO */
+
+.produto-form input:focus,
+.produto-form select:focus {
+
+    border-color: #8b5cf6;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(139, 92, 246, 0.12);
+}
+
+
+/* SELECT */
+
+.produto-form select {
+
+    cursor: pointer;
+}
+
+
+/* CHECKBOX */
+
+.produto-form input[type="checkbox"] {
+
+    width: 18px;
+    height: 18px;
+
+    margin: 0;
+
+    cursor: pointer;
+}
+
+
+/* GRUPO DO CHECKBOX */
+
+.produto-form .form-checkbox {
+
+    display: flex;
+
+    flex-direction: row;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+
+/* AÇÕES */
+
+.produto-form .form-actions {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 12px;
+
+    margin-top: 5px;
+
+    padding-top: 20px;
+
+    border-top:
+        1px solid rgba(255, 255, 255, 0.08);
+}
+
+
+/* BOTÕES */
+
+.produto-form .btn-cancelar,
+.produto-form .btn-salvar {
+
+    height: 42px;
+
+    padding: 0 20px;
+
+    border-radius: 8px;
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+
+/* CANCELAR */
+
+.produto-form .btn-cancelar {
+
+    border:
+        1px solid rgba(255, 255, 255, 0.10);
+
+    background: transparent;
+
+    color: #ccc;
+}
+
+
+.produto-form .btn-cancelar:hover {
+
+    background:
+        rgba(255, 255, 255, 0.06);
+
+    color: #fff;
+}
+
+
+/* SALVAR */
+
+.produto-form .btn-salvar {
+
+    border: none;
+
+    background: #8b5cf6;
+
+    color: #fff;
+}
+
+
+.produto-form .btn-salvar:hover {
+
+    background: #7c3aed;
+
+    transform: translateY(-1px);
+}
+
+
+/* =====================================================
+   RESPONSIVO
+===================================================== */
+
+@media (max-width: 600px) {
+
+    .produto-modal {
+
+        padding: 12px;
+
+    }
+
+    .produto-modal-content {
+
+        max-height: calc(100vh - 24px);
+
+    }
+
+    .produto-form .form-row {
+
+        grid-template-columns: 1fr;
+
+    }
+
+    .produto-form .form-actions {
+
+        flex-direction: column;
+
+    }
+
+    .produto-form .btn-cancelar,
+    .produto-form .btn-salvar {
+
+        width: 100%;
+
+    }
+
+}
