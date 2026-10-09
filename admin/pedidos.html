@@ -1090,6 +1090,22 @@
     <script src="js/admin.js"></script>
     <script src="js/pedidos.js"></script>
 
+    
+<script>
+    (async () => {
+        const autorizado = await window.verificarAdmin();
+
+        if (!autorizado) {
+            window.location.replace("login.html");
+        }
+    })().catch((erro) => {
+        console.error("Erro ao verificar acesso:", erro);
+        window.location.replace("login.html");
+    });
+</script>
+</body>
+</html>
+
 </body>
 
 </html>

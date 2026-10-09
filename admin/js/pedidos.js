@@ -1,409 +1,143 @@
-document.addEventListener("DOMContentLoaded", () => {
 
+document.addEventListener("DOMContentLoaded", () => {
     // =========================================================
     // CONFIGURAÇÕES
     // =========================================================
 
     const PEDIDOS_KEY = "novaPedidos";
     const PEDIDO_KEY = "novaPedido";
-
     const PEDIDOS_POR_PAGINA = 5;
 
     let pedidos = [];
     let pedidosFiltrados = [];
-
     let paginaAtual = 1;
 
+    const STATUS_VALIDOS = [
+        "Pendente",
+        "Processando",
+        "Enviado",
+        "Entregue",
+        "Cancelado"
+    ];
 
     // =========================================================
     // ELEMENTOS
     // =========================================================
 
     const tabela = document.querySelector(".pedidos-table tbody");
+    const campoBusca = document.querySelector(".pedido-search input");
 
-    const campoBusca =
-        document.querySelector(".pedido-search input");
+    const filtroStatus = document.querySelector(
+        ".pedidos-filters select:nth-of-type(1)"
+    );
 
-    const filtroStatus =
-        document.querySelector(
-            ".pedidos-filters select:nth-of-type(1)"
-        );
+    const filtroData = document.querySelector(
+        ".pedidos-filters select:nth-of-type(2)"
+    );
 
-    const filtroData =
-        document.querySelector(
-            ".pedidos-filters select:nth-of-type(2)"
-        );
-
-    const botaoFiltrar =
-        document.querySelector(".pedido-filter-button");
-
-    const paginacao =
-        document.querySelector(".pagination-buttons");
-
-    const textoEncontrados =
-        document.querySelector(
-            ".pedidos-table-header p"
-        );
-
+    const botaoFiltrar = document.querySelector(".pedido-filter-button");
+    const paginacao = document.querySelector(".pagination-buttons");
+    const textoEncontrados = document.querySelector(".pedidos-table-header p");
 
     // =========================================================
-    // NORMALIZAR ID
+    // UTILITÁRIOS
     // =========================================================
 
     function normalizarIdPedido(id) {
-
-        return String(id || "")
-            .trim()
-            .replace(/^#+/, "");
-
+        return String(id || "").trim().replace(/^#+/, "");
     }
 
-
-    // =========================================================
-    // CARREGAR PEDIDOS
-    // =========================================================
-
-    function obterPedidos() {
-
-        let pedidosSalvos = [];
-
-        try {
-
-            const dados =
-                localStorage.getItem(PEDIDOS_KEY);
-
-            if (dados) {
-
-                const parsed =
-                    JSON.parse(dados);
-
-                if (Array.isArray(parsed)) {
-
-                    pedidosSalvos = parsed;
-
-                }
-
-            }
-
-        } catch (erro) {
-
-            console.error(
-                "Erro ao carregar novaPedidos:",
-                erro
-            );
-
-        }
-
-
-        // =====================================================
-        // COMPATIBILIDADE
-        // =====================================================
-
-        let pedidoAtual = null;
-
-        try {
-
-            const dadosAtual =
-                localStorage.getItem(PEDIDO_KEY);
-
-            if (dadosAtual) {
-
-                pedidoAtual =
-                    JSON.parse(dadosAtual);
-
-            }
-
-        } catch (erro) {
-
-            console.error(
-                "Erro ao carregar novaPedido:",
-                erro
-            );
-
-        }
-
-
-        // =====================================================
-        // ADICIONAR PEDIDO ATUAL CASO AINDA NÃO EXISTA
-        // =====================================================
-
-        if (
-            pedidoAtual &&
-            pedidoAtual.id
-        ) {
-
-            const idAtual =
-                normalizarIdPedido(
-                    pedidoAtual.id
-                );
-
-            const existe =
-                pedidosSalvos.some(
-                    pedido =>
-                        normalizarIdPedido(
-                            pedido.id
-                        ) === idAtual
-                );
-
-            if (!existe) {
-
-                pedidosSalvos.push({
-                    ...pedidoAtual,
-                    id: idAtual
-                });
-
-            }
-
-        }
-
-
-        // =====================================================
-        // NORMALIZAR PEDIDOS
-        // =====================================================
-
-        pedidosSalvos =
-            pedidosSalvos
-                .filter(
-                    pedido =>
-                        pedido &&
-                        pedido.id
-                )
-                .map(pedido => ({
-                    ...pedido,
-                    id: normalizarIdPedido(
-                        pedido.id
-                    )
-                }));
-
-
-        // =====================================================
-        // REMOVER DUPLICADOS
-        // =====================================================
-
-        const mapa =
-            new Map();
-
-        pedidosSalvos.forEach(
-            pedido => {
-
-                mapa.set(
-                    normalizarIdPedido(
-                        pedido.id
-                    ),
-                    pedido
-                );
-
-            }
-        );
-
-
-        pedidosSalvos =
-            Array.from(
-                mapa.values()
-            );
-
-
-        // =====================================================
-        // SALVAR VERSÃO NORMALIZADA
-        // =====================================================
-
-        try {
-
-            localStorage.setItem(
-                PEDIDOS_KEY,
-                JSON.stringify(
-                    pedidosSalvos
-                )
-            );
-
-        } catch (erro) {
-
-            console.error(
-                "Erro ao salvar pedidos:",
-                erro
-            );
-
-        }
-
-
-        return pedidosSalvos;
-
+    function escaparHTML(valor) {
+        return String(valor ?? "").replace(/[&<>"']/g, caractere => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[caractere]);
     }
-
-
-    // =========================================================
-    // FORMATAR PREÇO
-    // =========================================================
 
     function formatarPreco(valor) {
+        const numero = Number(valor);
 
-        return Number(
-            valor || 0
-        ).toLocaleString(
+        return (Number.isFinite(numero) ? numero : 0).toLocaleString(
             "pt-BR",
             {
                 style: "currency",
                 currency: "BRL"
             }
         );
-
     }
 
-
-    // =========================================================
-    // FORMATAR DATA
-    // =========================================================
-
     function formatarData(data) {
-
         if (!data) {
-
-            return {
-                data: "-",
-                hora: ""
-            };
-
+            return { data: "-", hora: "" };
         }
 
-        const dataObj =
-            new Date(data);
+        const dataObj = new Date(data);
 
-        if (
-            Number.isNaN(
-                dataObj.getTime()
-            )
-        ) {
-
-            return {
-                data: "-",
-                hora: ""
-            };
-
+        if (Number.isNaN(dataObj.getTime())) {
+            return { data: "-", hora: "" };
         }
 
         return {
-
-            data:
-                dataObj.toLocaleDateString(
-                    "pt-BR",
-                    {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric"
-                    }
-                ),
-
-            hora:
-                dataObj.toLocaleTimeString(
-                    "pt-BR",
-                    {
-                        hour: "2-digit",
-                        minute: "2-digit"
-                    }
-                )
-
+            data: dataObj.toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric"
+            }),
+            hora: dataObj.toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit"
+            })
         };
-
     }
-
-
-    // =========================================================
-    // OBTER NOME DO CLIENTE
-    // =========================================================
 
     function obterNomeCliente(pedido) {
-
-        return (
-            pedido.cliente?.nome ||
+        return pedido.cliente?.nome ||
             pedido.nome ||
-            "Cliente não informado"
-        );
-
+            "Cliente não informado";
     }
-
-
-    // =========================================================
-    // OBTER EMAIL
-    // =========================================================
 
     function obterEmailCliente(pedido) {
-
-        return (
-            pedido.cliente?.email ||
+        return pedido.cliente?.email ||
             pedido.email ||
-            ""
-        );
-
+            "";
     }
 
-
-    // =========================================================
-    // OBTER ITENS
-    // =========================================================
-
     function obterItens(pedido) {
-
-        if (
-            Array.isArray(
-                pedido.itens
-            )
-        ) {
-
+        if (Array.isArray(pedido.itens)) {
             return pedido.itens;
-
         }
 
-        if (
-            Array.isArray(
-                pedido.produtos
-            )
-        ) {
-
+        if (Array.isArray(pedido.produtos)) {
             return pedido.produtos;
-
         }
 
         return [];
-
     }
-
-
-    // =========================================================
-    // QUANTIDADE DE PRODUTOS
-    // =========================================================
 
     function quantidadeProdutos(pedido) {
-
-        const itens =
-            obterItens(pedido);
-
-        return itens.reduce(
-            (total, item) =>
-                total +
-                Number(
-                    item.quantidade || 1
-                ),
-            0
-        );
-
+        return obterItens(pedido).reduce((total, item) => {
+            const quantidade = Number(item.quantidade || 1);
+            return total + (
+                Number.isFinite(quantidade) && quantidade > 0
+                    ? quantidade
+                    : 1
+            );
+        }, 0);
     }
-
 
     // =========================================================
     // STATUS
     // =========================================================
 
     function normalizarStatus(status) {
-
-        const valor =
-            String(
-                status || "pending"
-            )
-                .toLowerCase()
-                .trim();
+        const valor = String(status || "Pendente")
+            .trim()
+            .toLowerCase();
 
         const mapa = {
-
             pending: "Pendente",
             pendente: "Pendente",
 
@@ -419,1200 +153,691 @@ document.addEventListener("DOMContentLoaded", () => {
             cancelled: "Cancelado",
             canceled: "Cancelado",
             cancelado: "Cancelado"
-
         };
 
-        return (
-            mapa[valor] ||
-            "Pendente"
-        );
-
+        return mapa[valor] || "Pendente";
     }
-
-
-    // =========================================================
-    // CLASSE DO STATUS
-    // =========================================================
 
     function classeStatus(status) {
-
-        const valor =
-            normalizarStatus(status);
-
         const mapa = {
-
-            "Pendente": "pendente",
-            "Processando": "processando",
-            "Enviado": "enviado",
-            "Entregue": "entregue",
-            "Cancelado": "cancelado"
-
+            Pendente: "pendente",
+            Processando: "processando",
+            Enviado: "enviado",
+            Entregue: "entregue",
+            Cancelado: "cancelado"
         };
 
-        return (
-            mapa[valor] ||
-            "pendente"
-        );
-
+        return mapa[normalizarStatus(status)] || "pendente";
     }
 
+    function obterStatusValido(valor) {
+        const procurado = String(valor || "").trim().toLowerCase();
+
+        return STATUS_VALIDOS.find(
+            status => status.toLowerCase() === procurado
+        ) || null;
+    }
 
     // =========================================================
-    // ATUALIZAR ESTATÍSTICAS
+    // ARMAZENAMENTO
+    // =========================================================
+
+    function lerPedidosSalvos() {
+        try {
+            const dados = JSON.parse(
+                localStorage.getItem(PEDIDOS_KEY) || "[]"
+            );
+
+            return Array.isArray(dados) ? dados : [];
+        } catch (erro) {
+            console.error("Erro ao ler novaPedidos:", erro);
+            return [];
+        }
+    }
+
+    function lerPedidoAtual() {
+        try {
+            const dados = localStorage.getItem(PEDIDO_KEY);
+            return dados ? JSON.parse(dados) : null;
+        } catch (erro) {
+            console.error("Erro ao ler novaPedido:", erro);
+            return null;
+        }
+    }
+
+    function obterPedidos() {
+        const salvos = lerPedidosSalvos();
+        const pedidoAtual = lerPedidoAtual();
+
+        // Normaliza os pedidos sem apagar os dados originais.
+        const mapa = new Map();
+
+        salvos.forEach(pedido => {
+            if (!pedido || !pedido.id) return;
+
+            const id = normalizarIdPedido(pedido.id);
+
+            mapa.set(id, {
+                ...pedido,
+                id,
+                status: normalizarStatus(pedido.status)
+            });
+        });
+
+        // Compatibilidade com instalações que salvam
+        // o pedido mais recente somente em novaPedido.
+        if (pedidoAtual && pedidoAtual.id) {
+            const id = normalizarIdPedido(pedidoAtual.id);
+
+            if (!mapa.has(id)) {
+                mapa.set(id, {
+                    ...pedidoAtual,
+                    id,
+                    status: normalizarStatus(pedidoAtual.status)
+                });
+            }
+        }
+
+        return Array.from(mapa.values());
+    }
+
+    function salvarPedidos() {
+        try {
+            localStorage.setItem(
+                PEDIDOS_KEY,
+                JSON.stringify(pedidos)
+            );
+
+            // Atualiza também o pedido individual, caso seja
+            // o mesmo que acabou de ser alterado no painel.
+            const pedidoAtual = lerPedidoAtual();
+
+            if (pedidoAtual?.id) {
+                const idAtual = normalizarIdPedido(pedidoAtual.id);
+
+                const pedidoAtualizado = pedidos.find(
+                    pedido => normalizarIdPedido(pedido.id) === idAtual
+                );
+
+                if (pedidoAtualizado) {
+                    localStorage.setItem(
+                        PEDIDO_KEY,
+                        JSON.stringify(pedidoAtualizado)
+                    );
+                }
+            }
+
+            window.dispatchEvent(
+                new CustomEvent("novaPedidosAtualizados", {
+                    detail: pedidos
+                })
+            );
+
+            return true;
+        } catch (erro) {
+            console.error("Erro ao salvar os pedidos:", erro);
+            alert(
+                "Não foi possível salvar a alteração. " +
+                "Verifique o armazenamento do navegador."
+            );
+
+            return false;
+        }
+    }
+
+    // =========================================================
+    // ESTATÍSTICAS
     // =========================================================
 
     function atualizarEstatisticas() {
-
-        const cards =
-            document.querySelectorAll(
-                ".pedido-stat-card strong"
-            );
-
-        if (!cards.length) {
-            return;
-        }
-
-
-        const total =
-            pedidos.length;
-
-
-        const pendentes =
-            pedidos.filter(
-                pedido =>
-                    normalizarStatus(
-                        pedido.status
-                    ) === "Pendente"
-            ).length;
-
-
-        const processando =
-            pedidos.filter(
-                pedido =>
-                    normalizarStatus(
-                        pedido.status
-                    ) === "Processando"
-            ).length;
-
-
-        const entregues =
-            pedidos.filter(
-                pedido =>
-                    normalizarStatus(
-                        pedido.status
-                    ) === "Entregue"
-            ).length;
-
-
-        if (cards[0]) {
-            cards[0].textContent =
-                total;
-        }
-
-        if (cards[1]) {
-            cards[1].textContent =
-                pendentes;
-        }
-
-        if (cards[2]) {
-            cards[2].textContent =
-                processando;
-        }
-
-        if (cards[3]) {
-            cards[3].textContent =
-                entregues;
-        }
-
-    }
-
-
-    // =========================================================
-    // RENDERIZAR PEDIDOS
-    // =========================================================
-
-    function renderizarPedidos() {
-
-        if (!tabela) {
-            return;
-        }
-
-
-        tabela.innerHTML = "";
-
-
-        // =====================================================
-        // NENHUM PEDIDO
-        // =====================================================
-
-        if (!pedidosFiltrados.length) {
-
-            tabela.innerHTML = `
-
-                <tr>
-
-                    <td
-                        colspan="6"
-                        style="
-                            text-align:center;
-                            padding:50px 20px;
-                            color:#8b8f9a;
-                        "
-                    >
-
-                        <i
-                            class="fa-solid fa-box-open"
-                            style="
-                                font-size:32px;
-                                margin-bottom:15px;
-                                display:block;
-                            "
-                        ></i>
-
-                        Nenhum pedido encontrado.
-
-                    </td>
-
-                </tr>
-
-            `;
-
-            atualizarPaginacao();
-
-            if (textoEncontrados) {
-
-                textoEncontrados.textContent =
-                    "0 pedidos encontrados";
-
-            }
-
-            return;
-
-        }
-
-
-        // =====================================================
-        // PAGINAÇÃO
-        // =====================================================
-
-        const inicio =
-            (paginaAtual - 1) *
-            PEDIDOS_POR_PAGINA;
-
-        const fim =
-            inicio +
-            PEDIDOS_POR_PAGINA;
-
-        const pedidosPagina =
-            pedidosFiltrados.slice(
-                inicio,
-                fim
-            );
-
-
-        // =====================================================
-        // RENDER
-        // =====================================================
-
-        pedidosPagina.forEach(
-            pedido => {
-
-                const data =
-                    formatarData(
-                        pedido.criadoEm ||
-                        pedido.data
-                    );
-
-
-                const nome =
-                    obterNomeCliente(
-                        pedido
-                    );
-
-
-                const email =
-                    obterEmailCliente(
-                        pedido
-                    );
-
-
-                const quantidade =
-                    quantidadeProdutos(
-                        pedido
-                    );
-
-
-                const total =
-                    Number(
-                        pedido.total ||
-                        pedido.subtotal ||
-                        0
-                    );
-
-
-                const status =
-                    normalizarStatus(
-                        pedido.status
-                    );
-
-
-                const classe =
-                    classeStatus(
-                        status
-                    );
-
-
-                const tr =
-                    document.createElement(
-                        "tr"
-                    );
-
-
-                tr.innerHTML = `
-
-                    <td>
-
-                        <strong
-                            class="pedido-id"
-                        >
-                            #${normalizarIdPedido(
-                                pedido.id
-                            )}
-                        </strong>
-
-                    </td>
-
-
-                    <td>
-
-                        <div
-                            class="cliente-info"
-                        >
-
-                            <strong>
-                                ${nome}
-                            </strong>
-
-                            <span>
-                                ${email}
-                            </span>
-
-                        </div>
-
-                    </td>
-
-
-                    <td>
-
-                        <div
-                            class="pedido-date"
-                        >
-
-                            <span>
-                                ${data.data}
-                            </span>
-
-                            <small>
-                                ${data.hora}
-                            </small>
-
-                        </div>
-
-                    </td>
-
-
-                    <td>
-
-                        <span
-                            class="produtos-count"
-                        >
-                            ${quantidade}
-                            ${
-                                quantidade === 1
-                                    ? "produto"
-                                    : "produtos"
-                            }
-                        </span>
-
-                    </td>
-
-
-                    <td>
-
-                        <strong
-                            class="pedido-total"
-                        >
-                            ${formatarPreco(
-                                total
-                            )}
-                        </strong>
-
-                    </td>
-
-
-                    <td>
-
-                        <span
-                            class="pedido-status ${classe}"
-                        >
-
-                            <span></span>
-
-                            ${status}
-
-                        </span>
-
-                    </td>
-
-
-                    <td>
-
-                        <div
-                            class="pedido-actions"
-                        >
-
-                            <button
-                                type="button"
-                                class="view-order"
-                                data-id="${normalizarIdPedido(
-                                    pedido.id
-                                )}"
-                                title="Visualizar pedido"
-                            >
-
-                                <i
-                                    class="fa-regular fa-eye"
-                                ></i>
-
-                            </button>
-
-
-                            <button
-                                type="button"
-                                class="order-menu"
-                                data-id="${normalizarIdPedido(
-                                    pedido.id
-                                )}"
-                                title="Alterar status"
-                            >
-
-                                <i
-                                    class="fa-solid fa-ellipsis"
-                                ></i>
-
-                            </button>
-
-                        </div>
-
-                    </td>
-
-                `;
-
-
-                tabela.appendChild(
-                    tr
-                );
-
-            }
+        const cards = document.querySelectorAll(
+            ".pedido-stat-card strong"
         );
 
+        if (!cards.length) return;
 
-        // =====================================================
-        // TEXTO
-        // =====================================================
+        const total = pedidos.length;
 
-        if (textoEncontrados) {
+        const pendentes = pedidos.filter(
+            pedido => normalizarStatus(pedido.status) === "Pendente"
+        ).length;
 
-            textoEncontrados.textContent =
-                `${pedidosFiltrados.length} ${
-                    pedidosFiltrados.length === 1
-                        ? "pedido"
-                        : "pedidos"
-                } encontrados`;
+        const processando = pedidos.filter(
+            pedido => normalizarStatus(pedido.status) === "Processando"
+        ).length;
 
-        }
+        const entregues = pedidos.filter(
+            pedido => normalizarStatus(pedido.status) === "Entregue"
+        ).length;
 
-
-        atualizarPaginacao();
-
+        if (cards[0]) cards[0].textContent = total;
+        if (cards[1]) cards[1].textContent = pendentes;
+        if (cards[2]) cards[2].textContent = processando;
+        if (cards[3]) cards[3].textContent = entregues;
     }
-
 
     // =========================================================
     // PAGINAÇÃO
     // =========================================================
 
     function atualizarPaginacao() {
+        if (!paginacao) return;
 
-        if (!paginacao) {
+        const totalPaginas = Math.max(
+            1,
+            Math.ceil(pedidosFiltrados.length / PEDIDOS_POR_PAGINA)
+        );
+
+        // Mantém a página dentro do intervalo válido.
+        paginaAtual = Math.min(paginaAtual, totalPaginas);
+        paginacao.innerHTML = "";
+
+        const anterior = document.createElement("button");
+        anterior.type = "button";
+        anterior.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+        anterior.disabled = paginaAtual <= 1;
+
+        anterior.addEventListener("click", () => {
+            if (paginaAtual > 1) {
+                paginaAtual--;
+                renderizarPedidos();
+            }
+        });
+
+        paginacao.appendChild(anterior);
+
+        for (let i = 1; i <= totalPaginas; i++) {
+            const botao = document.createElement("button");
+            botao.type = "button";
+            botao.textContent = i;
+
+            if (i === paginaAtual) {
+                botao.classList.add("active");
+            }
+
+            botao.addEventListener("click", () => {
+                paginaAtual = i;
+                renderizarPedidos();
+            });
+
+            paginacao.appendChild(botao);
+        }
+
+        const proximo = document.createElement("button");
+        proximo.type = "button";
+        proximo.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+        proximo.disabled = paginaAtual >= totalPaginas;
+
+        proximo.addEventListener("click", () => {
+            if (paginaAtual < totalPaginas) {
+                paginaAtual++;
+                renderizarPedidos();
+            }
+        });
+
+        paginacao.appendChild(proximo);
+    }
+
+    // =========================================================
+    // RENDERIZAR PEDIDOS
+    // =========================================================
+
+    function renderizarPedidos() {
+        if (!tabela) return;
+
+        tabela.innerHTML = "";
+
+        if (!pedidosFiltrados.length) {
+            tabela.innerHTML = `
+                <tr>
+                    <td colspan="7" style="
+                        text-align: center;
+                        padding: 50px 20px;
+                        color: #8b8f9a;
+                    ">
+                        <i class="fa-solid fa-box-open" style="
+                            font-size: 32px;
+                            margin-bottom: 15px;
+                            display: block;
+                        "></i>
+                        Nenhum pedido encontrado.
+                    </td>
+                </tr>
+            `;
+
+            if (textoEncontrados) {
+                textoEncontrados.textContent = "0 pedidos encontrados";
+            }
+
+            atualizarPaginacao();
             return;
         }
 
-
-        const totalPaginas =
-            Math.max(
-                1,
-                Math.ceil(
-                    pedidosFiltrados.length /
-                    PEDIDOS_POR_PAGINA
-                )
-            );
-
-
-        paginacao.innerHTML = "";
-
-
-        // VOLTAR
-
-        const anterior =
-            document.createElement(
-                "button"
-            );
-
-        anterior.type =
-            "button";
-
-        anterior.innerHTML =
-            `<i class="fa-solid fa-chevron-left"></i>`;
-
-        anterior.disabled =
-            paginaAtual <= 1;
-
-        anterior.addEventListener(
-            "click",
-            () => {
-
-                if (
-                    paginaAtual > 1
-                ) {
-
-                    paginaAtual--;
-
-                    renderizarPedidos();
-
-                }
-
-            }
+        const inicio = (paginaAtual - 1) * PEDIDOS_POR_PAGINA;
+        const pedidosPagina = pedidosFiltrados.slice(
+            inicio,
+            inicio + PEDIDOS_POR_PAGINA
         );
 
-        paginacao.appendChild(
-            anterior
-        );
-
-
-        // PÁGINAS
-
-        for (
-            let i = 1;
-            i <= totalPaginas;
-            i++
-        ) {
-
-            const botao =
-                document.createElement(
-                    "button"
-                );
-
-            botao.type =
-                "button";
-
-            botao.textContent =
-                i;
-
-            if (
-                i === paginaAtual
-            ) {
-
-                botao.classList.add(
-                    "active"
-                );
-
-            }
-
-
-            botao.addEventListener(
-                "click",
-                () => {
-
-                    paginaAtual =
-                        i;
-
-                    renderizarPedidos();
-
-                }
+        pedidosPagina.forEach(pedido => {
+            const data = formatarData(
+                pedido.criadoEm || pedido.data
             );
 
+            const nome = escaparHTML(obterNomeCliente(pedido));
+            const email = escaparHTML(obterEmailCliente(pedido));
+            const id = escaparHTML(normalizarIdPedido(pedido.id));
+            const quantidade = quantidadeProdutos(pedido);
 
-            paginacao.appendChild(
-                botao
+            const valorTotal = Number(
+                pedido.total ?? pedido.subtotal ?? 0
             );
 
+            const total = Number.isFinite(valorTotal) ? valorTotal : 0;
+            const status = normalizarStatus(pedido.status);
+            const classe = classeStatus(status);
+
+            const tr = document.createElement("tr");
+
+            tr.innerHTML = `
+                <td>
+                    <strong class="pedido-id">#${id}</strong>
+                </td>
+
+                <td>
+                    <div class="cliente-info">
+                        <strong>${nome}</strong>
+                        <span>${email}</span>
+                    </div>
+                </td>
+
+                <td>
+                    <div class="pedido-date">
+                        <span>${escaparHTML(data.data)}</span>
+                        <small>${escaparHTML(data.hora)}</small>
+                    </div>
+                </td>
+
+                <td>
+                    <span class="produtos-count">
+                        ${quantidade}
+                        ${quantidade === 1 ? "produto" : "produtos"}
+                    </span>
+                </td>
+
+                <td>
+                    <strong class="pedido-total">
+                        ${formatarPreco(total)}
+                    </strong>
+                </td>
+
+                <td>
+                    <span class="pedido-status ${classe}">
+                        <span></span>
+                        ${status}
+                    </span>
+                </td>
+
+                <td>
+                    <div class="pedido-actions">
+                        <button
+                            type="button"
+                            class="view-order"
+                            data-id="${id}"
+                            title="Visualizar pedido"
+                            aria-label="Visualizar pedido ${id}"
+                        >
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+
+                        <button
+                            type="button"
+                            class="order-menu"
+                            data-id="${id}"
+                            title="Alterar status"
+                            aria-label="Alterar status do pedido ${id}"
+                        >
+                            <i class="fa-solid fa-ellipsis"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+
+            tabela.appendChild(tr);
+        });
+
+        if (textoEncontrados) {
+            const quantidade = pedidosFiltrados.length;
+
+            textoEncontrados.textContent =
+                `${quantidade} ${quantidade === 1 ? "pedido encontrado" : "pedidos encontrados"}`;
         }
 
-
-        // AVANÇAR
-
-        const proximo =
-            document.createElement(
-                "button"
-            );
-
-        proximo.type =
-            "button";
-
-        proximo.innerHTML =
-            `<i class="fa-solid fa-chevron-right"></i>`;
-
-        proximo.disabled =
-            paginaAtual >= totalPaginas;
-
-
-        proximo.addEventListener(
-            "click",
-            () => {
-
-                if (
-                    paginaAtual <
-                    totalPaginas
-                ) {
-
-                    paginaAtual++;
-
-                    renderizarPedidos();
-
-                }
-
-            }
-        );
-
-
-        paginacao.appendChild(
-            proximo
-        );
-
+        atualizarPaginacao();
     }
-
-
-    // =========================================================
-    // FILTRAR
-    // =========================================================
-
-    function aplicarFiltros() {
-
-        const busca =
-            campoBusca
-                ? campoBusca.value
-                    .toLowerCase()
-                    .trim()
-                : "";
-
-
-        const statusSelecionado =
-            filtroStatus
-                ? filtroStatus.value
-                : "";
-
-
-        const dataSelecionada =
-            filtroData
-                ? filtroData.value
-                : "";
-
-
-        pedidosFiltrados =
-            pedidos.filter(
-                pedido => {
-
-
-                    // -----------------------------------------
-                    // BUSCA
-                    // -----------------------------------------
-
-                    const id =
-                        normalizarIdPedido(
-                            pedido.id
-                        ).toLowerCase();
-
-
-                    const nome =
-                        obterNomeCliente(
-                            pedido
-                        ).toLowerCase();
-
-
-                    const email =
-                        obterEmailCliente(
-                            pedido
-                        ).toLowerCase();
-
-
-                    const correspondeBusca =
-                        !busca ||
-                        id.includes(busca) ||
-                        nome.includes(busca) ||
-                        email.includes(busca);
-
-
-                    if (
-                        !correspondeBusca
-                    ) {
-
-                        return false;
-
-                    }
-
-
-                    // -----------------------------------------
-                    // STATUS
-                    // -----------------------------------------
-
-                    if (
-                        statusSelecionado &&
-                        statusSelecionado !== "todos"
-                    ) {
-
-                        const status =
-                            normalizarStatus(
-                                pedido.status
-                            );
-
-
-                        const statusFiltro =
-                            statusSelecionado
-                                .toLowerCase();
-
-
-                        if (
-                            status.toLowerCase() !==
-                            statusFiltro
-                        ) {
-
-                            return false;
-
-                        }
-
-                    }
-
-
-                    // -----------------------------------------
-                    // DATA
-                    // -----------------------------------------
-
-                    if (
-                        dataSelecionada &&
-                        dataSelecionada !== "todas"
-                    ) {
-
-                        if (
-                            !correspondeFiltroData(
-                                pedido,
-                                dataSelecionada
-                            )
-                        ) {
-
-                            return false;
-
-                        }
-
-                    }
-
-
-                    return true;
-
-                }
-            );
-
-
-        paginaAtual = 1;
-
-        renderizarPedidos();
-
-    }
-
 
     // =========================================================
     // FILTRO DE DATA
     // =========================================================
 
-    function correspondeFiltroData(
-        pedido,
-        filtro
-    ) {
+    function correspondeFiltroData(pedido, filtro) {
+        const dataPedido = new Date(
+            pedido.criadoEm || pedido.data
+        );
 
-        const dataPedido =
-            new Date(
-                pedido.criadoEm ||
-                pedido.data
-            );
-
-
-        if (
-            Number.isNaN(
-                dataPedido.getTime()
-            )
-        ) {
-
+        if (Number.isNaN(dataPedido.getTime())) {
             return false;
-
         }
 
+        const agora = new Date();
 
-        const agora =
-            new Date();
+        const inicioHoje = new Date(
+            agora.getFullYear(),
+            agora.getMonth(),
+            agora.getDate()
+        );
 
+        const inicioAmanha = new Date(inicioHoje);
+        inicioAmanha.setDate(inicioAmanha.getDate() + 1);
 
-        const inicioHoje =
-            new Date(
-                agora.getFullYear(),
-                agora.getMonth(),
-                agora.getDate()
-            );
+        const valor = String(filtro).toLowerCase();
 
-
-        if (
-            filtro.toLowerCase() ===
-            "hoje"
-        ) {
-
-            return (
-                dataPedido >=
-                inicioHoje
-            );
-
+        if (valor === "hoje") {
+            return dataPedido >= inicioHoje &&
+                dataPedido < inicioAmanha;
         }
 
+        if (valor.includes("7")) {
+            const limite = new Date(agora);
+            limite.setDate(limite.getDate() - 7);
 
-        if (
-            filtro.toLowerCase()
-                .includes("7")
-        ) {
-
-            const limite =
-                new Date(
-                    agora
-                );
-
-            limite.setDate(
-                limite.getDate() - 7
-            );
-
-            return (
-                dataPedido >=
-                limite
-            );
-
+            return dataPedido >= limite && dataPedido <= agora;
         }
 
+        if (valor.includes("30")) {
+            const limite = new Date(agora);
+            limite.setDate(limite.getDate() - 30);
 
-        if (
-            filtro.toLowerCase()
-                .includes("30")
-        ) {
-
-            const limite =
-                new Date(
-                    agora
-                );
-
-            limite.setDate(
-                limite.getDate() - 30
-            );
-
-            return (
-                dataPedido >=
-                limite
-            );
-
+            return dataPedido >= limite && dataPedido <= agora;
         }
 
-
-        if (
-            filtro.toLowerCase()
-                .includes("mês") ||
-            filtro.toLowerCase()
-                .includes("mes")
-        ) {
-
-            return (
-                dataPedido.getMonth() ===
-                    agora.getMonth() &&
-                dataPedido.getFullYear() ===
-                    agora.getFullYear()
-            );
-
+        if (valor.includes("mês") || valor.includes("mes")) {
+            return dataPedido.getMonth() === agora.getMonth() &&
+                dataPedido.getFullYear() === agora.getFullYear();
         }
-
 
         return true;
-
     }
 
+    // =========================================================
+    // APLICAR FILTROS
+    // =========================================================
+
+    function aplicarFiltros() {
+        const busca = campoBusca
+            ? campoBusca.value.toLowerCase().trim()
+            : "";
+
+        const statusSelecionado = filtroStatus
+            ? filtroStatus.value
+            : "";
+
+        const dataSelecionada = filtroData
+            ? filtroData.value
+            : "";
+
+        pedidosFiltrados = pedidos.filter(pedido => {
+            const id = normalizarIdPedido(pedido.id).toLowerCase();
+            const nome = obterNomeCliente(pedido).toLowerCase();
+            const email = obterEmailCliente(pedido).toLowerCase();
+
+            const correspondeBusca = !busca ||
+                id.includes(busca) ||
+                nome.toLowerCase().includes(busca) ||
+                email.toLowerCase().includes(busca);
+
+            if (!correspondeBusca) return false;
+
+            if (
+                statusSelecionado &&
+                !["todos", "todas"].includes(statusSelecionado.toLowerCase())
+            ) {
+                if (
+                    normalizarStatus(pedido.status).toLowerCase() !==
+                    statusSelecionado.toLowerCase()
+                ) {
+                    return false;
+                }
+            }
+
+            if (
+                dataSelecionada &&
+                !["todas", "todos"].includes(dataSelecionada.toLowerCase())
+            ) {
+                if (!correspondeFiltroData(pedido, dataSelecionada)) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        paginaAtual = 1;
+        renderizarPedidos();
+        atualizarEstatisticas();
+    }
 
     // =========================================================
     // VISUALIZAR PEDIDO
     // =========================================================
 
     function visualizarPedido(id) {
-
-        const pedido =
-            pedidos.find(
-                item =>
-                    normalizarIdPedido(
-                        item.id
-                    ) ===
-                    normalizarIdPedido(
-                        id
-                    )
-            );
-
-
-        if (!pedido) {
-
-            return;
-
-        }
-
-
-        const itens =
-            obterItens(
-                pedido
-            );
-
-
-        const produtosTexto =
-            itens.length
-                ? itens.map(
-                    item =>
-                        `${item.nome || "Produto"} x${Number(item.quantidade || 1)}`
-                ).join("\n")
-                : "Nenhum produto";
-
-
-        alert(
-
-            `PEDIDO #${normalizarIdPedido(
-                pedido.id
-            )}\n\n` +
-
-            `Cliente: ${obterNomeCliente(
-                pedido
-            )}\n` +
-
-            `E-mail: ${obterEmailCliente(
-                pedido
-            )}\n\n` +
-
-            `Produtos:\n${produtosTexto}\n\n` +
-
-            `Total: ${formatarPreco(
-                pedido.total ||
-                pedido.subtotal ||
-                0
-            )}\n\n` +
-
-            `Status: ${normalizarStatus(
-                pedido.status
-            )}`
-
+        const pedido = pedidos.find(
+            item => normalizarIdPedido(item.id) === normalizarIdPedido(id)
         );
 
-    }
+        if (!pedido) {
+            alert("Pedido não encontrado.");
+            return;
+        }
 
+        const itens = obterItens(pedido);
+
+        const produtosTexto = itens.length
+            ? itens.map(item => {
+                const nome = item.nome || item.nomeProduto || "Produto";
+                const quantidade = Number(item.quantidade || 1);
+                const tamanho = item.tamanho
+                    ? ` | Tamanho: ${item.tamanho}`
+                    : "";
+                const cor = item.cor
+                    ? ` | Cor: ${item.cor}`
+                    : "";
+                const preco = item.preco != null
+                    ? ` | ${formatarPreco(item.preco)}`
+                    : "";
+
+                return `• ${nome} x${quantidade}${tamanho}${cor}${preco}`;
+            }).join("\n")
+            : "Nenhum produto informado";
+
+        const endereco = pedido.endereco || {};
+
+        const enderecoTexto = [
+            endereco.rua || endereco.logradouro,
+            endereco.numero,
+            endereco.complemento,
+            endereco.bairro,
+            endereco.cidade,
+            endereco.estado,
+            endereco.cep ? `CEP: ${endereco.cep}` : ""
+        ].filter(Boolean).join(", ") || "Endereço não informado";
+
+        const data = formatarData(pedido.criadoEm || pedido.data);
+
+        const mensagem =
+            `PEDIDO #${normalizarIdPedido(pedido.id)}\n\n` +
+            `Cliente: ${obterNomeCliente(pedido)}\n` +
+            `E-mail: ${obterEmailCliente(pedido) || "Não informado"}\n` +
+            `Data: ${data.data} ${data.hora}\n\n` +
+            `ENDEREÇO DE ENTREGA\n${enderecoTexto}\n\n` +
+            `PRODUTOS\n${produtosTexto}\n\n` +
+            `Pagamento: ${pedido.pagamento || "Não informado"}\n` +
+            `Subtotal: ${formatarPreco(pedido.subtotal ?? pedido.total ?? 0)}\n` +
+            `Frete: ${formatarPreco(pedido.frete ?? 0)}\n` +
+            `Total: ${formatarPreco(pedido.total ?? pedido.subtotal ?? 0)}\n\n` +
+            `Status: ${normalizarStatus(pedido.status)}`;
+
+        alert(mensagem);
+    }
 
     // =========================================================
     // ALTERAR STATUS
     // =========================================================
 
     function alterarStatus(id) {
-
-        const pedido =
-            pedidos.find(
-                item =>
-                    normalizarIdPedido(
-                        item.id
-                    ) ===
-                    normalizarIdPedido(
-                        id
-                    )
-            );
-
-
-        if (!pedido) {
-
-            return;
-
-        }
-
-
-        const novoStatus =
-            prompt(
-                "Digite o novo status:\n\n" +
-                "Pendente\n" +
-                "Processando\n" +
-                "Enviado\n" +
-                "Entregue\n" +
-                "Cancelado",
-                normalizarStatus(
-                    pedido.status
-                )
-            );
-
-
-        if (!novoStatus) {
-
-            return;
-
-        }
-
-
-        const status =
-            normalizarStatus(
-                novoStatus
-            );
-
-
-        pedido.status =
-            status;
-
-
-        localStorage.setItem(
-            PEDIDOS_KEY,
-            JSON.stringify(
-                pedidos
-            )
+        const indice = pedidos.findIndex(
+            item => normalizarIdPedido(item.id) === normalizarIdPedido(id)
         );
 
+        if (indice === -1) {
+            alert("Pedido não encontrado.");
+            return;
+        }
+
+        const pedido = pedidos[indice];
+
+        const novoStatus = prompt(
+            "Digite um dos status abaixo:\n\n" +
+            "Pendente\n" +
+            "Processando\n" +
+            "Enviado\n" +
+            "Entregue\n" +
+            "Cancelado\n\n" +
+            "Status atual: " + normalizarStatus(pedido.status),
+            normalizarStatus(pedido.status)
+        );
+
+        if (novoStatus === null) return;
+
+        const statusValidado = obterStatusValido(novoStatus);
+
+        if (!statusValidado) {
+            alert(
+                "Status inválido.\n\n" +
+                "Use: Pendente, Processando, Enviado, Entregue ou Cancelado."
+            );
+            return;
+        }
+
+        if (statusValidado === normalizarStatus(pedido.status)) {
+            return;
+        }
+
+        const statusAnterior = pedido.status;
+        pedido.status = statusValidado;
+
+        if (!salvarPedidos()) {
+            // Restaura na memória se o armazenamento falhar.
+            pedido.status = statusAnterior;
+            return;
+        }
 
         aplicarFiltros();
-
-
-        window.dispatchEvent(
-            new CustomEvent(
-                "novaPedidosAtualizados",
-                {
-                    detail: pedidos
-                }
-            )
-        );
-
+        atualizarEstatisticas();
     }
-
 
     // =========================================================
     // CLIQUES NA TABELA
     // =========================================================
 
     if (tabela) {
+        tabela.addEventListener("click", event => {
+            const visualizar = event.target.closest(".view-order");
 
-        tabela.addEventListener(
-            "click",
-            event => {
-
-                const visualizar =
-                    event.target.closest(
-                        ".view-order"
-                    );
-
-
-                if (visualizar) {
-
-                    visualizarPedido(
-                        visualizar.dataset.id
-                    );
-
-                    return;
-
-                }
-
-
-                const menu =
-                    event.target.closest(
-                        ".order-menu"
-                    );
-
-
-                if (menu) {
-
-                    alterarStatus(
-                        menu.dataset.id
-                    );
-
-                }
-
+            if (visualizar) {
+                visualizarPedido(visualizar.dataset.id);
+                return;
             }
-        );
 
+            const menu = event.target.closest(".order-menu");
+
+            if (menu) {
+                alterarStatus(menu.dataset.id);
+            }
+        });
     }
 
-
     // =========================================================
-    // BUSCA
+    // EVENTOS DE BUSCA E FILTROS
     // =========================================================
 
     if (campoBusca) {
-
-        campoBusca.addEventListener(
-            "input",
-            aplicarFiltros
-        );
-
+        campoBusca.addEventListener("input", aplicarFiltros);
     }
-
-
-    // =========================================================
-    // FILTRAR
-    // =========================================================
 
     if (botaoFiltrar) {
-
-        botaoFiltrar.addEventListener(
-            "click",
-            aplicarFiltros
-        );
-
+        botaoFiltrar.addEventListener("click", aplicarFiltros);
     }
-
-
-    // =========================================================
-    // SELECTS
-    // =========================================================
 
     if (filtroStatus) {
-
-        filtroStatus.addEventListener(
-            "change",
-            aplicarFiltros
-        );
-
+        filtroStatus.addEventListener("change", aplicarFiltros);
     }
-
 
     if (filtroData) {
-
-        filtroData.addEventListener(
-            "change",
-            aplicarFiltros
-        );
-
+        filtroData.addEventListener("change", aplicarFiltros);
     }
-
 
     // =========================================================
     // SINCRONIZAÇÃO
     // =========================================================
 
     function atualizarPedidos() {
-
-        pedidos =
-            obterPedidos();
-
+        pedidos = obterPedidos();
         aplicarFiltros();
-
         atualizarEstatisticas();
-
     }
 
-
-    // Outra aba/janela
-
-    window.addEventListener(
-        "storage",
-        event => {
-
-            if (
-                event.key === PEDIDOS_KEY ||
-                event.key === PEDIDO_KEY
-            ) {
-
-                atualizarPedidos();
-
-            }
-
-        }
-    );
-
-
-    // Evento interno da NØVA
-
-    window.addEventListener(
-        "novaPedidosAtualizados",
-        () => {
-
+    // Alterações feitas em outra aba do mesmo site.
+    window.addEventListener("storage", event => {
+        if (event.key === PEDIDOS_KEY || event.key === PEDIDO_KEY) {
             atualizarPedidos();
-
         }
-    );
+    });
 
+    // Alterações feitas por outros scripts na mesma página.
+    window.addEventListener("novaPedidosAtualizados", () => {
+        atualizarPedidos();
+    });
 
-    // Quando voltar para a página
-
-    document.addEventListener(
-        "visibilitychange",
-        () => {
-
-            if (
-                document.visibilityState ===
-                "visible"
-            ) {
-
-                atualizarPedidos();
-
-            }
-
+    // Atualiza quando o usuário volta à página do ADM.
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            atualizarPedidos();
         }
-    );
+    });
 
+    // Verifica periodicamente novos pedidos sem regravar
+    // o localStorage a cada verificação.
+    setInterval(() => {
+        const novosPedidos = obterPedidos();
 
-    // Verificação periódica
-
-    setInterval(
-        () => {
-
-            const novosPedidos =
-                obterPedidos();
-
-
-            if (
-                JSON.stringify(
-                    novosPedidos
-                ) !==
-                JSON.stringify(
-                    pedidos
-                )
-            ) {
-
-                pedidos =
-                    novosPedidos;
-
-                aplicarFiltros();
-
-                atualizarEstatisticas();
-
-            }
-
-        },
-        2000
-    );
-
+        if (JSON.stringify(novosPedidos) !== JSON.stringify(pedidos)) {
+            pedidos = novosPedidos;
+            aplicarFiltros();
+            atualizarEstatisticas();
+        }
+    }, 2000);
 
     // =========================================================
     // INICIALIZAÇÃO
     // =========================================================
 
-    pedidos =
-        obterPedidos();
-
-    pedidosFiltrados =
-        [...pedidos];
+    pedidos = obterPedidos();
+    pedidosFiltrados = [...pedidos];
 
     atualizarEstatisticas();
-
     renderizarPedidos();
 
-
-    console.log(
-        "NØVA ADM — Pedidos carregados:",
-        pedidos
-    );
-
+    console.log("NØVA ADM — Pedidos carregados:", pedidos);
 });
