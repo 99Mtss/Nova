@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -5,9 +6,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Pedidos | NØVA Admin</title>
+    <title>Pedidos | NØVA ADM</title>
 
-    <!-- GOOGLE FONTS -->
+    <!-- FONTES -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -16,7 +17,7 @@
         rel="stylesheet"
     >
 
-    <!-- FONT AWESOME -->
+    <!-- ÍCONES -->
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -29,171 +30,93 @@
 
 <body>
 
-
-    <!-- =====================================================
-         SIDEBAR
-         ===================================================== -->
-
-    <aside class="admin-sidebar">
+    <!-- MENU LATERAL -->
+    <aside class="admin-sidebar" id="admin-sidebar">
 
         <div class="admin-logo">
-
-            <a href="../index.html">
-                NØVA
-            </a>
-
-            <span>
-                ADMIN
-            </span>
-
+            <a href="index.html">NØVA</a>
+            <span>ADMIN</span>
         </div>
-
 
         <nav class="admin-nav">
 
-            <span class="nav-title">
-                GERAL
-            </span>
+            <span class="nav-title">GERAL</span>
 
-
-            <a
-                href="index.html"
-                class="admin-nav-link"
-            >
-
+            <a href="index.html" class="admin-nav-link">
                 <i class="fa-solid fa-chart-line"></i>
-
-                <span>
-                    Dashboard
-                </span>
-
+                <span>Dashboard</span>
             </a>
 
-
-            <a
-                href="pedidos.html"
-                class="admin-nav-link active"
-            >
-
+            <a href="pedidos.html" class="admin-nav-link active">
                 <i class="fa-solid fa-receipt"></i>
-
-                <span>
-                    Pedidos
-                </span>
-
+                <span>Pedidos</span>
             </a>
 
-
-            <a
-                href="produtos.html"
-                class="admin-nav-link"
-            >
-
+            <a href="produtos.html" class="admin-nav-link">
                 <i class="fa-solid fa-box"></i>
-
-                <span>
-                    Produtos
-                </span>
-
+                <span>Produtos</span>
             </a>
 
+            <span class="nav-title">LOJA</span>
 
-            <span class="nav-title">
-                LOJA
-            </span>
-
-
-            <a
-                href="../pages/loja.html"
-                class="admin-nav-link"
-            >
-
+            <a href="../pages/loja.html" class="admin-nav-link">
                 <i class="fa-solid fa-store"></i>
-
-                <span>
-                    Ver loja
-                </span>
-
+                <span>Ver loja</span>
             </a>
 
         </nav>
 
-
         <div class="sidebar-bottom">
 
-            <a
-                href="#"
-                class="admin-nav-link"
-            >
-
+            <a href="#" class="admin-nav-link" id="admin-settings-link">
                 <i class="fa-solid fa-gear"></i>
-
-                <span>
-                    Configurações
-                </span>
-
+                <span>Configurações</span>
             </a>
 
-
-            <a
-                href="../index.html"
+            <button
+                type="button"
                 class="admin-nav-link logout-link"
+                id="admin-logout"
             >
-
                 <i class="fa-solid fa-arrow-right-from-bracket"></i>
-
-                <span>
-                    Sair
-                </span>
-
-            </a>
+                <span>Sair</span>
+            </button>
 
         </div>
 
     </aside>
 
+    <!-- FUNDO DO MENU MOBILE -->
+    <div
+        class="admin-sidebar-overlay"
+        id="admin-sidebar-overlay"
+    ></div>
 
-
-    <!-- =====================================================
-         MAIN
-         ===================================================== -->
-
+    <!-- CONTEÚDO PRINCIPAL -->
     <main class="admin-main">
 
-
-        <!-- =================================================
-             HEADER
-             ================================================= -->
-
+        <!-- CABEÇALHO -->
         <header class="admin-header">
 
             <div class="admin-header-left">
 
                 <button
                     class="sidebar-toggle"
+                    id="sidebar-toggle"
                     type="button"
                     aria-label="Abrir menu"
+                    aria-controls="admin-sidebar"
+                    aria-expanded="false"
                 >
-
                     <i class="fa-solid fa-bars"></i>
-
                 </button>
 
-
                 <div>
-
-                    <span class="admin-page-label">
-                        GERENCIAMENTO
-                    </span>
-
-                    <h1>
-                        Pedidos
-                    </h1>
-
+                    <span class="admin-page-label">GERENCIAMENTO</span>
+                    <h1>Pedidos</h1>
                 </div>
 
             </div>
-
 
             <div class="admin-header-right">
 
@@ -202,30 +125,19 @@
                     type="button"
                     aria-label="Notificações"
                 >
-
                     <i class="fa-regular fa-bell"></i>
-
                     <span></span>
-
                 </button>
-
 
                 <div class="admin-user">
 
-                    <div class="admin-user-avatar">
+                    <div class="admin-user-avatar" id="admin-avatar">
                         A
                     </div>
 
                     <div class="admin-user-info">
-
-                        <strong>
-                            Administrador
-                        </strong>
-
-                        <small>
-                            ADM
-                        </small>
-
+                        <strong id="admin-user-name">Administrador</strong>
+                        <small id="admin-user-role">ADM</small>
                     </div>
 
                 </div>
@@ -234,771 +146,174 @@
 
         </header>
 
-
-
-        <!-- =================================================
-             CONTEÚDO
-             ================================================= -->
-
+        <!-- PÁGINA DE PEDIDOS -->
         <section class="pedidos-content">
 
-
-            <!-- CABEÇALHO -->
-
             <div class="pedidos-top">
-
                 <div>
-
-                    <span class="admin-section-label">
-                        VENDAS
-                    </span>
-
-                    <h2>
-                        Gerencie os pedidos da loja
-                    </h2>
-
+                    <span class="admin-section-label">VENDAS</span>
+                    <h2>Gerencie os pedidos da loja</h2>
                     <p>
-                        Acompanhe, organize e gerencie todos os pedidos realizados.
+                        Acompanhe, organize e gerencie os pedidos realizados.
                     </p>
-
                 </div>
-
             </div>
 
+            <!-- MENSAGENS -->
+            <div
+                id="pedidos-message"
+                class="pedidos-message"
+                role="status"
+                aria-live="polite"
+                hidden
+            ></div>
 
-
-            <!-- =================================================
-                 ESTATÍSTICAS
-                 ================================================= -->
-
+            <!-- ESTATÍSTICAS -->
             <div class="pedidos-stats">
 
-
                 <div class="pedido-stat-card">
-
                     <div class="pedido-stat-icon total">
-
                         <i class="fa-solid fa-receipt"></i>
-
                     </div>
 
                     <div>
-
-                        <span>
-                            Total de pedidos
-                        </span>
-
-                        <strong>
-                            248
-                        </strong>
-
+                        <span>Total de pedidos</span>
+                        <strong id="orders-total">—</strong>
                     </div>
-
                 </div>
 
-
-
                 <div class="pedido-stat-card">
-
                     <div class="pedido-stat-icon pendente">
-
                         <i class="fa-regular fa-clock"></i>
-
                     </div>
 
                     <div>
-
-                        <span>
-                            Pendentes
-                        </span>
-
-                        <strong>
-                            18
-                        </strong>
-
+                        <span>Pendentes</span>
+                        <strong id="orders-pending">—</strong>
                     </div>
-
                 </div>
 
-
-
                 <div class="pedido-stat-card">
-
                     <div class="pedido-stat-icon enviado">
-
                         <i class="fa-solid fa-truck"></i>
-
                     </div>
 
                     <div>
-
-                        <span>
-                            Enviados
-                        </span>
-
-                        <strong>
-                            42
-                        </strong>
-
+                        <span>Enviados</span>
+                        <strong id="orders-shipped">—</strong>
                     </div>
-
                 </div>
 
-
-
                 <div class="pedido-stat-card">
-
                     <div class="pedido-stat-icon cancelado">
-
                         <i class="fa-solid fa-xmark"></i>
-
                     </div>
 
                     <div>
-
-                        <span>
-                            Cancelados
-                        </span>
-
-                        <strong>
-                            7
-                        </strong>
-
+                        <span>Cancelados</span>
+                        <strong id="orders-cancelled">—</strong>
                     </div>
-
                 </div>
 
             </div>
 
-
-
-            <!-- =================================================
-                 FILTROS
-                 ================================================= -->
-
+            <!-- FILTROS -->
             <div class="pedidos-filters">
 
-
                 <div class="pedido-search">
-
                     <i class="fa-solid fa-magnifying-glass"></i>
 
                     <input
-                        type="text"
+                        type="search"
+                        id="order-search"
                         placeholder="Buscar por pedido ou cliente..."
+                        aria-label="Buscar pedidos"
                     >
-
                 </div>
-
 
                 <div class="pedido-filter-group">
 
-                    <select>
-
-                        <option>
-                            Todos os status
-                        </option>
-
-                        <option>
-                            Pendente
-                        </option>
-
-                        <option>
-                            Processando
-                        </option>
-
-                        <option>
-                            Enviado
-                        </option>
-
-                        <option>
-                            Entregue
-                        </option>
-
-                        <option>
-                            Cancelado
-                        </option>
-
+                    <select
+                        id="order-status-filter"
+                        aria-label="Filtrar por status"
+                    >
+                        <option value="">Todos os status</option>
+                        <option value="pendente">Pendente</option>
+                        <option value="processando">Processando</option>
+                        <option value="enviado">Enviado</option>
+                        <option value="entregue">Entregue</option>
+                        <option value="cancelado">Cancelado</option>
                     </select>
 
-
-                    <select>
-
-                        <option>
-                            Todas as datas
-                        </option>
-
-                        <option>
-                            Hoje
-                        </option>
-
-                        <option>
-                            Últimos 7 dias
-                        </option>
-
-                        <option>
-                            Últimos 30 dias
-                        </option>
-
-                        <option>
-                            Este mês
-                        </option>
-
+                    <select
+                        id="order-date-filter"
+                        aria-label="Filtrar por data"
+                    >
+                        <option value="">Todas as datas</option>
+                        <option value="hoje">Hoje</option>
+                        <option value="7dias">Últimos 7 dias</option>
+                        <option value="30dias">Últimos 30 dias</option>
+                        <option value="mes">Este mês</option>
                     </select>
-
 
                     <button
                         class="pedido-filter-button"
+                        id="order-filter-button"
                         type="button"
                     >
-
                         <i class="fa-solid fa-filter"></i>
-
                         Filtrar
+                    </button>
 
+                    <button
+                        class="pedido-filter-button"
+                        id="order-clear-filters"
+                        type="button"
+                    >
+                        Limpar
                     </button>
 
                 </div>
 
             </div>
 
-
-
-            <!-- =================================================
-                 TABELA
-                 ================================================= -->
-
+            <!-- TABELA -->
             <div class="pedidos-table-card">
 
-
                 <div class="pedidos-table-header">
-
                     <div>
-
-                        <h3>
-                            Pedidos recentes
-                        </h3>
-
-                        <span>
-                            248 pedidos encontrados
+                        <h3>Pedidos</h3>
+                        <span id="orders-results-count">
+                            Carregando pedidos...
                         </span>
-
                     </div>
-
                 </div>
-
-
 
                 <div class="pedidos-table-wrapper">
 
                     <table class="pedidos-table">
 
                         <thead>
-
                             <tr>
-
-                                <th>
-                                    Pedido
-                                </th>
-
-                                <th>
-                                    Cliente
-                                </th>
-
-                                <th>
-                                    Data
-                                </th>
-
-                                <th>
-                                    Produtos
-                                </th>
-
-                                <th>
-                                    Total
-                                </th>
-
-                                <th>
-                                    Status
-                                </th>
-
-                                <th>
-                                    Ações
-                                </th>
-
+                                <th>Pedido</th>
+                                <th>Cliente</th>
+                                <th>Data</th>
+                                <th>Produtos</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Ações</th>
                             </tr>
-
                         </thead>
 
-
-                        <tbody>
-
-
-                            <!-- PEDIDO 1 -->
+                        <tbody id="orders-table-body">
 
                             <tr>
-
-                                <td>
-
-                                    <strong class="pedido-id">
-                                        #NVA-10248
-                                    </strong>
-
-                                </td>
-
-                                <td>
-
-                                    <div class="cliente-info">
-
-                                        <strong>
-                                            Lucas Almeida
-                                        </strong>
-
-                                        <span>
-                                            lucas@email.com
-                                        </span>
-
+                                <td colspan="7">
+                                    <div class="orders-loading" id="orders-loading">
+                                        <i class="fa-solid fa-spinner fa-spin"></i>
+                                        Carregando pedidos...
                                     </div>
-
                                 </td>
-
-                                <td>
-
-                                    <span class="pedido-date">
-                                        06 Out, 2026
-                                    </span>
-
-                                    <small>
-                                        14:32
-                                    </small>
-
-                                </td>
-
-                                <td>
-
-                                    <span class="produtos-count">
-                                        2 produtos
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <strong class="pedido-total">
-                                        R$ 289,80
-                                    </strong>
-
-                                </td>
-
-                                <td>
-
-                                    <span class="pedido-status pendente">
-                                        Pendente
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <div class="pedido-actions">
-
-                                        <button
-                                            type="button"
-                                            title="Visualizar"
-                                        >
-
-                                            <i class="fa-regular fa-eye"></i>
-
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            title="Mais opções"
-                                        >
-
-                                            <i class="fa-solid fa-ellipsis"></i>
-
-                                        </button>
-
-                                    </div>
-
-                                </td>
-
-                            </tr>
-
-
-
-                            <!-- PEDIDO 2 -->
-
-                            <tr>
-
-                                <td>
-
-                                    <strong class="pedido-id">
-                                        #NVA-10247
-                                    </strong>
-
-                                </td>
-
-                                <td>
-
-                                    <div class="cliente-info">
-
-                                        <strong>
-                                            Gabriel Santos
-                                        </strong>
-
-                                        <span>
-                                            gabriel@email.com
-                                        </span>
-
-                                    </div>
-
-                                </td>
-
-                                <td>
-
-                                    <span class="pedido-date">
-                                        06 Out, 2026
-                                    </span>
-
-                                    <small>
-                                        13:18
-                                    </small>
-
-                                </td>
-
-                                <td>
-
-                                    <span class="produtos-count">
-                                        3 produtos
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <strong class="pedido-total">
-                                        R$ 459,70
-                                    </strong>
-
-                                </td>
-
-                                <td>
-
-                                    <span class="pedido-status processando">
-                                        Processando
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <div class="pedido-actions">
-
-                                        <button
-                                            type="button"
-                                            title="Visualizar"
-                                        >
-
-                                            <i class="fa-regular fa-eye"></i>
-
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            title="Mais opções"
-                                        >
-
-                                            <i class="fa-solid fa-ellipsis"></i>
-
-                                        </button>
-
-                                    </div>
-
-                                </td>
-
-                            </tr>
-
-
-
-                            <!-- PEDIDO 3 -->
-
-                            <tr>
-
-                                <td>
-
-                                    <strong class="pedido-id">
-                                        #NVA-10246
-                                    </strong>
-
-                                </td>
-
-                                <td>
-
-                                    <div class="cliente-info">
-
-                                        <strong>
-                                            Pedro Henrique
-                                        </strong>
-
-                                        <span>
-                                            pedro@email.com
-                                        </span>
-
-                                    </div>
-
-                                </td>
-
-                                <td>
-
-                                    <span class="pedido-date">
-                                        05 Out, 2026
-                                    </span>
-
-                                    <small>
-                                        18:45
-                                    </small>
-
-                                </td>
-
-                                <td>
-
-                                    <span class="produtos-count">
-                                        1 produto
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <strong class="pedido-total">
-                                        R$ 109,90
-                                    </strong>
-
-                                </td>
-
-                                <td>
-
-                                    <span class="pedido-status enviado">
-                                        Enviado
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <div class="pedido-actions">
-
-                                        <button
-                                            type="button"
-                                            title="Visualizar"
-                                        >
-
-                                            <i class="fa-regular fa-eye"></i>
-
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            title="Mais opções"
-                                        >
-
-                                            <i class="fa-solid fa-ellipsis"></i>
-
-                                        </button>
-
-                                    </div>
-
-                                </td>
-
-                            </tr>
-
-
-
-                            <!-- PEDIDO 4 -->
-
-                            <tr>
-
-                                <td>
-
-                                    <strong class="pedido-id">
-                                        #NVA-10245
-                                    </strong>
-
-                                </td>
-
-                                <td>
-
-                                    <div class="cliente-info">
-
-                                        <strong>
-                                            Rafael Oliveira
-                                        </strong>
-
-                                        <span>
-                                            rafael@email.com
-                                        </span>
-
-                                    </div>
-
-                                </td>
-
-                                <td>
-
-                                    <span class="pedido-date">
-                                        05 Out, 2026
-                                    </span>
-
-                                    <small>
-                                        16:21
-                                    </small>
-
-                                </td>
-
-                                <td>
-
-                                    <span class="produtos-count">
-                                        4 produtos
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <strong class="pedido-total">
-                                        R$ 679,60
-                                    </strong>
-
-                                </td>
-
-                                <td>
-
-                                    <span class="pedido-status entregue">
-                                        Entregue
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <div class="pedido-actions">
-
-                                        <button
-                                            type="button"
-                                            title="Visualizar"
-                                        >
-
-                                            <i class="fa-regular fa-eye"></i>
-
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            title="Mais opções"
-                                        >
-
-                                            <i class="fa-solid fa-ellipsis"></i>
-
-                                        </button>
-
-                                    </div>
-
-                                </td>
-
-                            </tr>
-
-
-
-                            <!-- PEDIDO 5 -->
-
-                            <tr>
-
-                                <td>
-
-                                    <strong class="pedido-id">
-                                        #NVA-10244
-                                    </strong>
-
-                                </td>
-
-                                <td>
-
-                                    <div class="cliente-info">
-
-                                        <strong>
-                                            Matheus Costa
-                                        </strong>
-
-                                        <span>
-                                            matheus@email.com
-                                        </span>
-
-                                    </div>
-
-                                </td>
-
-                                <td>
-
-                                    <span class="pedido-date">
-                                        04 Out, 2026
-                                    </span>
-
-                                    <small>
-                                        11:09
-                                    </small>
-
-                                </td>
-
-                                <td>
-
-                                    <span class="produtos-count">
-                                        2 produtos
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <strong class="pedido-total">
-                                        R$ 269,80
-                                    </strong>
-
-                                </td>
-
-                                <td>
-
-                                    <span class="pedido-status cancelado">
-                                        Cancelado
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <div class="pedido-actions">
-
-                                        <button
-                                            type="button"
-                                            title="Visualizar"
-                                        >
-
-                                            <i class="fa-regular fa-eye"></i>
-
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            title="Mais opções"
-                                        >
-
-                                            <i class="fa-solid fa-ellipsis"></i>
-
-                                        </button>
-
-                                    </div>
-
-                                </td>
-
                             </tr>
 
                         </tbody>
@@ -1007,71 +322,57 @@
 
                 </div>
 
+                <!-- ESTADO VAZIO -->
+                <div id="orders-empty" class="orders-empty" hidden>
+                    <i class="fa-solid fa-receipt"></i>
+                    <h3>Nenhum pedido encontrado</h3>
+                    <p>
+                        Quando houver pedidos cadastrados, eles aparecerão aqui.
+                    </p>
+                </div>
 
+                <!-- ERRO -->
+                <div id="orders-error" class="orders-error" hidden>
+                    <p id="orders-error-message">
+                        Não foi possível carregar os pedidos.
+                    </p>
 
-                <!-- =================================================
-                     PAGINAÇÃO
-                     ================================================= -->
+                    <button type="button" id="orders-retry-button">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        Tentar novamente
+                    </button>
+                </div>
 
-                <div class="table-pagination">
+                <!-- PAGINAÇÃO -->
+                <div class="table-pagination" id="orders-pagination">
 
-                    <span>
-                        Mostrando 1–5 de 248 pedidos
+                    <span id="orders-pagination-info">
+                        Nenhum pedido carregado
                     </span>
 
-
-                    <div class="pagination-buttons">
+                    <div
+                        class="pagination-buttons"
+                        id="orders-pagination-buttons"
+                    >
 
                         <button
                             type="button"
+                            id="orders-prev-page"
+                            aria-label="Página anterior"
                             disabled
                         >
-
                             <i class="fa-solid fa-chevron-left"></i>
-
                         </button>
 
+                        <span id="orders-current-page">1</span>
 
                         <button
                             type="button"
-                            class="active"
+                            id="orders-next-page"
+                            aria-label="Próxima página"
+                            disabled
                         >
-                            1
-                        </button>
-
-
-                        <button
-                            type="button"
-                        >
-                            2
-                        </button>
-
-
-                        <button
-                            type="button"
-                        >
-                            3
-                        </button>
-
-
-                        <span>
-                            ...
-                        </span>
-
-
-                        <button
-                            type="button"
-                        >
-                            50
-                        </button>
-
-
-                        <button
-                            type="button"
-                        >
-
                             <i class="fa-solid fa-chevron-right"></i>
-
                         </button>
 
                     </div>
@@ -1084,28 +385,18 @@
 
     </main>
 
+    <!--
+        Os scripts de autenticação e pedidos serão revisados
+        antes da integração final com o Supabase.
+    -->
 
-    <!-- JAVASCRIPT -->
+    <!-- BIBLIOTECA SUPABASE -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <!-- CONFIGURAÇÃO E SCRIPTS DO ADMIN -->
+    <script src="js/supabase.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/pedidos.js"></script>
 
-    
-<script>
-    (async () => {
-        const autorizado = await window.verificarAdmin();
-
-        if (!autorizado) {
-            window.location.replace("login.html");
-        }
-    })().catch((erro) => {
-        console.error("Erro ao verificar acesso:", erro);
-        window.location.replace("login.html");
-    });
-</script>
 </body>
-</html>
-
-</body>
-
 </html>

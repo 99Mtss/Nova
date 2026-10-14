@@ -1,12 +1,20 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0F1117">
+
+    <meta
+        name="description"
+        content="Confira seu carrinho NØVA, revise seus produtos e continue para finalizar sua compra."
+    >
 
     <title>Carrinho | NØVA</title>
 
+    <!-- FONTES -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -15,28 +23,27 @@
         rel="stylesheet"
     >
 
+    <!-- ÍCONES -->
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     >
 
+    <!-- CSS -->
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/carrinho.css">
 </head>
 
 <body>
 
-    <!-- ================= HEADER ================= -->
-
+    <!-- CABEÇALHO -->
     <header class="header">
 
         <div class="container header-container">
 
-            <a href="../index.html" class="logo">
-                NØVA
-            </a>
+            <a href="../index.html" class="logo">NØVA</a>
 
-            <nav class="nav">
+            <nav class="nav" id="nav-menu">
                 <a href="../index.html">Início</a>
                 <a href="loja.html">Loja</a>
                 <a href="loja.html#categorias">Categorias</a>
@@ -44,25 +51,41 @@
 
             <div class="header-actions">
 
-                <button class="header-icon" aria-label="Pesquisar">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </button>
+                <a
+                    href="loja.html"
+                    class="header-icon"
+                    aria-label="Pesquisar produtos"
+                >
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                </a>
 
-                <button class="header-icon" aria-label="Minha conta">
-                    <i class="fa-regular fa-user"></i>
-                </button>
+                <a
+                    href="loja.html"
+                    class="header-icon"
+                    aria-label="Continuar comprando"
+                >
+                    <i class="fa-regular fa-user" aria-hidden="true"></i>
+                </a>
 
                 <a
                     href="carrinho.html"
                     class="header-icon cart-icon active"
                     aria-label="Carrinho"
+                    aria-current="page"
                 >
-                    <i class="fa-solid fa-bag-shopping"></i>
-                    <span class="cart-count">0</span>
+                    <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
+                    <span class="cart-count" id="cart-count" data-cart-count>0</span>
                 </a>
 
-                <button class="menu-toggle" aria-label="Abrir menu">
-                    <i class="fa-solid fa-bars"></i>
+                <button
+                    class="menu-toggle"
+                    id="menu-mobile"
+                    type="button"
+                    aria-label="Abrir menu"
+                    aria-expanded="false"
+                    aria-controls="nav-menu"
+                >
+                    <i class="fa-solid fa-bars" aria-hidden="true"></i>
                 </button>
 
             </div>
@@ -71,9 +94,7 @@
 
     </header>
 
-
-    <!-- ================= CARRINHO ================= -->
-
+    <!-- CONTEÚDO PRINCIPAL -->
     <main>
 
         <section class="cart-page">
@@ -81,16 +102,11 @@
             <div class="container">
 
                 <!-- TÍTULO -->
-
                 <div class="cart-heading">
 
-                    <span class="section-label">
-                        SEU PEDIDO
-                    </span>
+                    <span class="section-label">SEU PEDIDO</span>
 
-                    <h1>
-                        Carrinho
-                    </h1>
+                    <h1>Carrinho</h1>
 
                     <p>
                         Confira suas peças antes de continuar para o checkout.
@@ -98,158 +114,91 @@
 
                 </div>
 
-
-                <!-- CONTEÚDO -->
-
+                <!-- CARRINHO -->
                 <div class="cart-layout">
 
-
-                    <!-- ================= PRODUTOS ================= -->
-
+                    <!-- LISTA DE PRODUTOS -->
                     <div class="cart-products">
 
                         <div class="cart-products-header">
 
-                            <h2>
-                                Produtos
-                            </h2>
+                            <h2>Produtos</h2>
 
-                            <span>
-                                2 itens
+                            <span id="cart-items-count" aria-live="polite">
+                                0 itens
                             </span>
 
                         </div>
 
+                        <!--
+                            O carrinho será preenchido pelo carrinho.js.
+                            Cada produto deverá conter nome, imagem, preço,
+                            quantidade e variações selecionadas.
+                        -->
+                        <div
+                            class="cart-items-list"
+                            id="cart-items-list"
+                            data-cart-list
+                            aria-live="polite"
+                            aria-busy="true"
+                        >
 
-                        <!-- PRODUTO 01 -->
+                            <p id="cart-loading">
+                                Carregando seu carrinho...
+                            </p>
 
-                        <article class="cart-item">
+                        </div>
 
-                            <div class="cart-item-image">
-                                <span>
-                                    IMAGEM
-                                </span>
-                            </div>
+                        <!-- CARRINHO VAZIO -->
+                        <div class="cart-empty" id="cart-empty" hidden>
 
-                            <div class="cart-item-info">
+                            <i
+                                class="fa-solid fa-bag-shopping"
+                                aria-hidden="true"
+                            ></i>
 
-                                <span class="cart-item-category">
-                                    CAMISETA
-                                </span>
+                            <h2>Seu carrinho está vazio</h2>
 
-                                <h3>
-                                    NØVA Essential Tee
-                                </h3>
+                            <p>
+                                Parece que você ainda não escolheu suas peças.
+                                Explore a loja e encontre seu próximo estilo.
+                            </p>
 
-                                <p class="cart-item-color">
-                                    Cor: Preto
-                                </p>
+                            <a href="loja.html" class="btn btn-primary">
+                                Explorar a loja
+                                <i
+                                    class="fa-solid fa-arrow-right"
+                                    aria-hidden="true"
+                                ></i>
+                            </a>
 
-                                <p class="cart-item-size">
-                                    Tamanho: M
-                                </p>
+                        </div>
 
-                                <button class="remove-item">
-                                    <i class="fa-regular fa-trash-can"></i>
-                                    Remover
-                                </button>
+                        <!-- ERRO AO CARREGAR -->
+                        <div id="cart-error" role="alert" hidden>
 
-                            </div>
+                            <p>
+                                Não foi possível carregar o carrinho.
+                                Tente novamente.
+                            </p>
 
-                            <div class="cart-item-right">
+                            <button
+                                type="button"
+                                class="btn btn-primary"
+                                id="retry-cart"
+                            >
+                                Tentar novamente
+                            </button>
 
-                                <div class="cart-item-price">
-                                    R$ 89,90
-                                </div>
-
-                                <div class="cart-quantity">
-
-                                    <button aria-label="Diminuir">
-                                        −
-                                    </button>
-
-                                    <span>
-                                        1
-                                    </span>
-
-                                    <button aria-label="Aumentar">
-                                        +
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                        </article>
-
-
-                        <!-- PRODUTO 02 -->
-
-                        <article class="cart-item">
-
-                            <div class="cart-item-image">
-                                <span>
-                                    IMAGEM
-                                </span>
-                            </div>
-
-                            <div class="cart-item-info">
-
-                                <span class="cart-item-category">
-                                    MOLETOM
-                                </span>
-
-                                <h3>
-                                    NØVA Heavy Hoodie
-                                </h3>
-
-                                <p class="cart-item-color">
-                                    Cor: Preto
-                                </p>
-
-                                <p class="cart-item-size">
-                                    Tamanho: G
-                                </p>
-
-                                <button class="remove-item">
-                                    <i class="fa-regular fa-trash-can"></i>
-                                    Remover
-                                </button>
-
-                            </div>
-
-                            <div class="cart-item-right">
-
-                                <div class="cart-item-price">
-                                    R$ 199,90
-                                </div>
-
-                                <div class="cart-quantity">
-
-                                    <button aria-label="Diminuir">
-                                        −
-                                    </button>
-
-                                    <span>
-                                        1
-                                    </span>
-
-                                    <button aria-label="Aumentar">
-                                        +
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                        </article>
-
+                        </div>
 
                         <!-- CONTINUAR COMPRANDO -->
-
                         <a href="loja.html" class="continue-shopping">
 
-                            <i class="fa-solid fa-arrow-left"></i>
+                            <i
+                                class="fa-solid fa-arrow-left"
+                                aria-hidden="true"
+                            ></i>
 
                             Continuar comprando
 
@@ -257,51 +206,55 @@
 
                     </div>
 
-
-                    <!-- ================= RESUMO ================= -->
-
+                    <!-- RESUMO DO PEDIDO -->
                     <aside class="cart-summary">
 
                         <div class="summary-header">
-
-                            <h2>
-                                Resumo do pedido
-                            </h2>
-
+                            <h2>Resumo do pedido</h2>
                         </div>
-
 
                         <div class="summary-items">
 
                             <div class="summary-row">
 
-                                <span>
-                                    Subtotal
-                                </span>
+                                <span>Subtotal</span>
 
-                                <strong>
-                                    R$ 289,80
+                                <strong id="cart-subtotal" data-cart-subtotal>
+                                    R$ 0,00
                                 </strong>
 
                             </div>
 
                             <div class="summary-row">
 
-                                <span>
-                                    Frete
-                                </span>
+                                <span>Frete</span>
 
-                                <span class="shipping-info">
+                                <span
+                                    class="shipping-info"
+                                    id="cart-shipping"
+                                >
                                     A calcular
                                 </span>
 
                             </div>
 
+                            <div
+                                class="summary-row"
+                                id="cart-discount-row"
+                                hidden
+                            >
+
+                                <span>Desconto</span>
+
+                                <strong id="cart-discount">
+                                    R$ 0,00
+                                </strong>
+
+                            </div>
+
                         </div>
 
-
                         <!-- CUPOM -->
-
                         <div class="coupon">
 
                             <label for="coupon">
@@ -313,58 +266,71 @@
                                 <input
                                     type="text"
                                     id="coupon"
+                                    name="coupon"
                                     placeholder="Digite seu cupom"
+                                    autocomplete="off"
+                                    maxlength="50"
                                 >
 
-                                <button>
+                                <button
+                                    type="button"
+                                    id="apply-coupon"
+                                >
                                     Aplicar
                                 </button>
 
                             </div>
 
+                            <p
+                                id="coupon-message"
+                                role="status"
+                                aria-live="polite"
+                                hidden
+                            ></p>
+
                         </div>
 
-
                         <!-- TOTAL -->
-
                         <div class="summary-total">
 
-                            <span>
-                                Total
-                            </span>
+                            <span>Total</span>
 
-                            <strong>
-                                R$ 289,80
+                            <strong id="cart-total" data-cart-total>
+                                R$ 0,00
                             </strong>
 
                         </div>
 
-
-                        <!-- CHECKOUT -->
-
+                        <!-- IR PARA O CHECKOUT -->
                         <a
                             href="checkout.html"
                             class="btn btn-primary checkout-button"
+                            id="checkout-button"
+                            aria-disabled="true"
                         >
                             Continuar para checkout
-                            <i class="fa-solid fa-arrow-right"></i>
+
+                            <i
+                                class="fa-solid fa-arrow-right"
+                                aria-hidden="true"
+                            ></i>
                         </a>
 
-
                         <!-- SEGURANÇA -->
-
                         <div class="secure-purchase">
 
-                            <i class="fa-solid fa-shield-halved"></i>
+                            <i
+                                class="fa-solid fa-shield-halved"
+                                aria-hidden="true"
+                            ></i>
 
                             <div>
 
-                                <strong>
-                                    Compra segura
-                                </strong>
+                                <strong>Compra segura</strong>
 
                                 <p>
-                                    Seus dados serão protegidos durante a compra.
+                                    Confira seus dados e os detalhes do pedido
+                                    antes de finalizar a compra.
                                 </p>
 
                             </div>
@@ -381,80 +347,57 @@
 
     </main>
 
-
-    <!-- ================= FOOTER ================= -->
-
+    <!-- RODAPÉ -->
     <footer class="footer">
 
         <div class="container footer-container">
 
             <div class="footer-brand">
 
-                <a href="../index.html" class="logo">
-                    NØVA
-                </a>
+                <a href="../index.html" class="logo">NØVA</a>
 
-                <p>
-                    Vista sua identidade.
-                </p>
+                <p>Vista sua identidade.</p>
 
             </div>
-
 
             <div class="footer-links">
 
-                <a href="../index.html">
-                    Início
-                </a>
-
-                <a href="loja.html">
-                    Loja
-                </a>
-
-                <a href="loja.html#categorias">
-                    Categorias
-                </a>
-
-                <a href="carrinho.html">
-                    Carrinho
-                </a>
+                <a href="../index.html">Início</a>
+                <a href="loja.html">Loja</a>
+                <a href="loja.html#categorias">Categorias</a>
+                <a href="carrinho.html">Carrinho</a>
 
             </div>
-
 
             <div class="footer-social">
 
                 <a href="#" aria-label="Instagram">
-                    <i class="fa-brands fa-instagram"></i>
+                    <i class="fa-brands fa-instagram" aria-hidden="true"></i>
                 </a>
 
                 <a href="#" aria-label="TikTok">
-                    <i class="fa-brands fa-tiktok"></i>
+                    <i class="fa-brands fa-tiktok" aria-hidden="true"></i>
                 </a>
 
             </div>
 
         </div>
 
-
         <div class="container footer-bottom">
 
-            <p>
-                © 2026 NØVA. Todos os direitos reservados.
-            </p>
+            <p>© 2026 NØVA. Todos os direitos reservados.</p>
 
-            <span>
-                Designed by Mtss
-            </span>
+            <span>Designed by Mtss</span>
 
         </div>
 
     </footer>
+
+    <!-- JAVASCRIPT -->
+    <script src="../js/supabase.js"></script>
     <script src="../js/app.js"></script>
     <script src="../js/carrinho.js"></script>
 
-
 </body>
-
 
 </html>

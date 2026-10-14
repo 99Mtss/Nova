@@ -1,16 +1,13 @@
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    "use strict";
+
     // =========================================================
     // CONFIGURAÇÕES
     // =========================================================
 
-    const PEDIDOS_KEY = "novaPedidos";
-    const PEDIDO_KEY = "novaPedido";
+    const TABELA_PEDIDOS = "pedidos_nova";
     const PEDIDOS_POR_PAGINA = 5;
-
-    let pedidos = [];
-    let pedidosFiltrados = [];
-    let paginaAtual = 1;
 
     const STATUS_VALIDOS = [
         "Pendente",
@@ -20,32 +17,50 @@ document.addEventListener("DOMContentLoaded", () => {
         "Cancelado"
     ];
 
+    const supabase = window.supabaseClient;
+
+    let pedidos = [];
+    let pedidosFiltrados = [];
+    let paginaAtual = 1;
+    let carregando = false;
+    let salvandoStatus = false;
+
     // =========================================================
-    // ELEMENTOS
+    // ELEMENTOS HTML
     // =========================================================
 
-    const tabela = document.querySelector(".pedidos-table tbody");
-    const campoBusca = document.querySelector(".pedido-search input");
+    const tabela = document.getElementById("orders-table-body");
+    const campoBusca = document.getElementById("order-search");
+    const filtroStatus = document.getElementById("order-status-filter");
+    const filtroData = document.getElementById("order-date-filter");
 
-    const filtroStatus = document.querySelector(
-        ".pedidos-filters select:nth-of-type(1)"
-    );
+    const botaoFiltrar = document.getElementById("order-filter-button");
+    const botaoLimpar = document.getElementById("order-clear-filters");
 
-    const filtroData = document.querySelector(
-        ".pedidos-filters select:nth-of-type(2)"
-    );
+    const textoEncontrados = document.getElementById("orders-results-count");
+    const textoPaginacao = document.getElementById("orders-pagination-info");
+    const paginacao = document.getElementById("orders-pagination-buttons");
 
-    const botaoFiltrar = document.querySelector(".pedido-filter-button");
-    const paginacao = document.querySelector(".pagination-buttons");
-    const textoEncontrados = document.querySelector(".pedidos-table-header p");
+    const botaoAnterior = document.getElementById("orders-prev-page");
+    const botaoProximo = document.getElementById("orders-next-page");
+    const paginaAtualElemento = document.getElementById("orders-current-page");
+
+    const estadoVazio = document.getElementById("orders-empty");
+    const estadoCarregamento = document.getElementById("orders-loading");
+    const estadoErro = document.getElementById("orders-error");
+    const mensagemErro = document.getElementById("orders-error-message");
+    const botaoTentarNovamente = document.getElementById("orders-retry-button");
+
+    const estatisticas = {
+        total: document.getElementById("orders-total"),
+        pendentes: document.getElementById("orders-pending"),
+        enviados: document.getElementById("orders-shipped"),
+        cancelados: document.getElementById("orders-cancelled")
+    };
 
     // =========================================================
     // UTILITÁRIOS
     // =========================================================
-
-    function normalizarIdPedido(id) {
-        return String(id || "").trim().replace(/^#+/, "");
-    }
 
     function escaparHTML(valor) {
         return String(valor ?? "").replace(/[&<>"']/g, caractere => ({
@@ -55,6 +70,10 @@ document.addEventListener("DOMContentLoaded", () => {
             '"': "&quot;",
             "'": "&#39;"
         })[caractere]);
+    }
+
+    function normalizarIdPedido(id) {
+        return String(id ?? "").trim().replace(/^#+/, "");
     }
 
     function formatarPreco(valor) {
@@ -69,24 +88,26 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
-    function formatarData(data) {
-        if (!data) {
-            return { data: "-", hora: "" };
-        }
+    function obterDataPedido(pedido) {
+        return pedido.criado_em ||
+            pedido.criadoEm ||
+            pedido.created_at ||
+            pedido.data ||
+            null;
+    }
 
-        const dataObj = new Date(data);
+    function formatarData(valor) {
+        if (!valor) return { data: "—", hora: "" };
 
-        if (Number.isNaN(dataObj.getTime())) {
-            return { data: "-", hora: "" };
+        const data = new Date(valor);
+
+        if (Number.isNaN(data.getTime())) {
+            return { data: "—", hora: "" };
         }
 
         return {
-            data: dataObj.toLocaleDateString("pt-BR", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric"
-            }),
-            hora: dataObj.toLocaleTimeString("pt-BR", {
+            data: data.toLocaleDateString("pt-BR"),
+            hora: data.toLocaleTimeString("pt-BR", {
                 hour: "2-digit",
                 minute: "2-digit"
             })
@@ -94,32 +115,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function obterNomeCliente(pedido) {
-        return pedido.cliente?.nome ||
-            pedido.nome ||
+        const cliente = pedido.cliente || {};
+
+        return cliente.nome ||
+            cliente.name ||
+            pedido.nomeCliente ||
+            pedido.customer_name ||
             "Cliente não informado";
     }
 
     function obterEmailCliente(pedido) {
-        return pedido.cliente?.email ||
+        const cliente = pedido.cliente || {};
+
+        return cliente.email ||
             pedido.email ||
+            pedido.customer_email ||
             "";
     }
 
     function obterItens(pedido) {
-        if (Array.isArray(pedido.itens)) {
-            return pedido.itens;
-        }
-
-        if (Array.isArray(pedido.produtos)) {
-            return pedido.produtos;
-        }
+        if (Array.isArray(pedido.itens)) return pedido.itens;
+        if (Array.isArray(pedido.produtos)) return pedido.produtos;
+        if (Array.isArray(pedido.items)) return pedido.items;
 
         return [];
     }
 
     function quantidadeProdutos(pedido) {
         return obterItens(pedido).reduce((total, item) => {
-            const quantidade = Number(item.quantidade || 1);
+            const quantidade = Number(item.quantidade ?? item.quantity ?? 1);
+
             return total + (
                 Number.isFinite(quantidade) && quantidade > 0
                     ? quantidade
@@ -128,31 +153,38 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 0);
     }
 
+    function obterTotalPedido(pedido) {
+        const total = Number(
+            pedido.total ??
+            pedido.valorTotal ??
+            pedido.total_amount ??
+            pedido.subtotal ??
+            0
+        );
+
+        return Number.isFinite(total) ? total : 0;
+    }
+
     // =========================================================
     // STATUS
     // =========================================================
 
     function normalizarStatus(status) {
-        const valor = String(status || "Pendente")
-            .trim()
-            .toLowerCase();
+        const valor = String(status || "Pendente").trim().toLowerCase();
 
         const mapa = {
             pending: "Pendente",
             pendente: "Pendente",
-
             processing: "Processando",
             processando: "Processando",
-
             shipped: "Enviado",
             enviado: "Enviado",
-
             delivered: "Entregue",
             entregue: "Entregue",
-
             cancelled: "Cancelado",
             canceled: "Cancelado",
-            cancelado: "Cancelado"
+            cancelado: "Cancelado",
+            cancelada: "Cancelado"
         };
 
         return mapa[valor] || "Pendente";
@@ -170,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return mapa[normalizarStatus(status)] || "pendente";
     }
 
-    function obterStatusValido(valor) {
+    function validarStatus(valor) {
         const procurado = String(valor || "").trim().toLowerCase();
 
         return STATUS_VALIDOS.find(
@@ -179,109 +211,122 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================================================
-    // ARMAZENAMENTO
+    // ESTADOS DA INTERFACE
     // =========================================================
 
-    function lerPedidosSalvos() {
-        try {
-            const dados = JSON.parse(
-                localStorage.getItem(PEDIDOS_KEY) || "[]"
+    function mostrarCarregamento(mostrar) {
+        if (estadoCarregamento) {
+            estadoCarregamento.hidden = !mostrar;
+        }
+    }
+
+    function mostrarErro(mensagem = "") {
+        if (estadoErro) estadoErro.hidden = !mensagem;
+        if (mensagemErro) mensagemErro.textContent = mensagem;
+    }
+
+    function mostrarVazio(mostrar) {
+        if (estadoVazio) estadoVazio.hidden = !mostrar;
+    }
+
+    // =========================================================
+    // AUTENTICAÇÃO
+    // =========================================================
+
+    async function verificarAcessoAdmin() {
+        if (!supabase || typeof window.verificarAdmin !== "function") {
+            console.error(
+                "Supabase ou verificarAdmin() não está disponível. " +
+                "Confira a ordem dos scripts no HTML."
             );
 
-            return Array.isArray(dados) ? dados : [];
-        } catch (erro) {
-            console.error("Erro ao ler novaPedidos:", erro);
-            return [];
+            mostrarErro("Não foi possível verificar a sessão administrativa.");
+            return false;
         }
-    }
 
-    function lerPedidoAtual() {
         try {
-            const dados = localStorage.getItem(PEDIDO_KEY);
-            return dados ? JSON.parse(dados) : null;
-        } catch (erro) {
-            console.error("Erro ao ler novaPedido:", erro);
-            return null;
-        }
-    }
+            const autorizado = await window.verificarAdmin();
 
-    function obterPedidos() {
-        const salvos = lerPedidosSalvos();
-        const pedidoAtual = lerPedidoAtual();
-
-        // Normaliza os pedidos sem apagar os dados originais.
-        const mapa = new Map();
-
-        salvos.forEach(pedido => {
-            if (!pedido || !pedido.id) return;
-
-            const id = normalizarIdPedido(pedido.id);
-
-            mapa.set(id, {
-                ...pedido,
-                id,
-                status: normalizarStatus(pedido.status)
-            });
-        });
-
-        // Compatibilidade com instalações que salvam
-        // o pedido mais recente somente em novaPedido.
-        if (pedidoAtual && pedidoAtual.id) {
-            const id = normalizarIdPedido(pedidoAtual.id);
-
-            if (!mapa.has(id)) {
-                mapa.set(id, {
-                    ...pedidoAtual,
-                    id,
-                    status: normalizarStatus(pedidoAtual.status)
-                });
+            if (!autorizado) {
+                window.location.replace("login.html");
+                return false;
             }
-        }
-
-        return Array.from(mapa.values());
-    }
-
-    function salvarPedidos() {
-        try {
-            localStorage.setItem(
-                PEDIDOS_KEY,
-                JSON.stringify(pedidos)
-            );
-
-            // Atualiza também o pedido individual, caso seja
-            // o mesmo que acabou de ser alterado no painel.
-            const pedidoAtual = lerPedidoAtual();
-
-            if (pedidoAtual?.id) {
-                const idAtual = normalizarIdPedido(pedidoAtual.id);
-
-                const pedidoAtualizado = pedidos.find(
-                    pedido => normalizarIdPedido(pedido.id) === idAtual
-                );
-
-                if (pedidoAtualizado) {
-                    localStorage.setItem(
-                        PEDIDO_KEY,
-                        JSON.stringify(pedidoAtualizado)
-                    );
-                }
-            }
-
-            window.dispatchEvent(
-                new CustomEvent("novaPedidosAtualizados", {
-                    detail: pedidos
-                })
-            );
 
             return true;
         } catch (erro) {
-            console.error("Erro ao salvar os pedidos:", erro);
-            alert(
-                "Não foi possível salvar a alteração. " +
-                "Verifique o armazenamento do navegador."
+            console.error("Erro ao verificar o administrador:", erro);
+            window.location.replace("login.html");
+            return false;
+        }
+    }
+
+    // =========================================================
+    // CARREGAR PEDIDOS DO SUPABASE
+    // =========================================================
+
+    async function buscarPedidosSupabase() {
+        let resultado = await supabase
+            .from(TABELA_PEDIDOS)
+            .select("*")
+            .order("criado_em", { ascending: false });
+
+        // Compatibilidade com registros ordenados por created_at.
+        if (resultado.error) {
+            resultado = await supabase
+                .from(TABELA_PEDIDOS)
+                .select("*")
+                .order("created_at", { ascending: false });
+        }
+
+        if (resultado.error) {
+            throw resultado.error;
+        }
+
+        pedidos = (resultado.data || []).map(pedido => ({
+            ...pedido,
+            id: normalizarIdPedido(pedido.id),
+            status: normalizarStatus(pedido.status)
+        }));
+
+        pedidos.sort((a, b) => {
+            const dataA = new Date(obterDataPedido(a) || 0).getTime();
+            const dataB = new Date(obterDataPedido(b) || 0).getTime();
+
+            return dataB - dataA;
+        });
+    }
+
+    async function carregarPedidos() {
+        if (carregando) return;
+
+        carregando = true;
+        mostrarCarregamento(true);
+        mostrarErro("");
+
+        try {
+            await buscarPedidosSupabase();
+
+            aplicarFiltros();
+            atualizarEstatisticas();
+        } catch (erro) {
+            console.error("Erro ao carregar pedidos do Supabase:", erro);
+
+            pedidos = [];
+            pedidosFiltrados = [];
+
+            if (tabela) tabela.replaceChildren();
+
+            mostrarVazio(false);
+            mostrarErro(
+                "Não foi possível carregar os pedidos. " +
+                "Verifique sua conexão, o login e as políticas RLS do Supabase."
             );
 
-            return false;
+            atualizarEstatisticas();
+            atualizarPaginacao();
+        } finally {
+            mostrarCarregamento(false);
+            carregando = false;
         }
     }
 
@@ -290,128 +335,133 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================
 
     function atualizarEstatisticas() {
-        const cards = document.querySelectorAll(
-            ".pedido-stat-card strong"
-        );
+        if (estatisticas.total) {
+            estatisticas.total.textContent = pedidos.length;
+        }
 
-        if (!cards.length) return;
+        if (estatisticas.pendentes) {
+            estatisticas.pendentes.textContent = pedidos.filter(
+                pedido => pedido.status === "Pendente"
+            ).length;
+        }
 
-        const total = pedidos.length;
+        if (estatisticas.enviados) {
+            estatisticas.enviados.textContent = pedidos.filter(
+                pedido => pedido.status === "Enviado"
+            ).length;
+        }
 
-        const pendentes = pedidos.filter(
-            pedido => normalizarStatus(pedido.status) === "Pendente"
-        ).length;
-
-        const processando = pedidos.filter(
-            pedido => normalizarStatus(pedido.status) === "Processando"
-        ).length;
-
-        const entregues = pedidos.filter(
-            pedido => normalizarStatus(pedido.status) === "Entregue"
-        ).length;
-
-        if (cards[0]) cards[0].textContent = total;
-        if (cards[1]) cards[1].textContent = pendentes;
-        if (cards[2]) cards[2].textContent = processando;
-        if (cards[3]) cards[3].textContent = entregues;
+        if (estatisticas.cancelados) {
+            estatisticas.cancelados.textContent = pedidos.filter(
+                pedido => pedido.status === "Cancelado"
+            ).length;
+        }
     }
 
     // =========================================================
     // PAGINAÇÃO
     // =========================================================
 
-    function atualizarPaginacao() {
-        if (!paginacao) return;
-
-        const totalPaginas = Math.max(
+    function obterTotalPaginas() {
+        return Math.max(
             1,
             Math.ceil(pedidosFiltrados.length / PEDIDOS_POR_PAGINA)
         );
+    }
 
-        // Mantém a página dentro do intervalo válido.
-        paginaAtual = Math.min(paginaAtual, totalPaginas);
-        paginacao.innerHTML = "";
+    function atualizarPaginacao() {
+        const total = pedidosFiltrados.length;
+        const totalPaginas = obterTotalPaginas();
 
-        const anterior = document.createElement("button");
-        anterior.type = "button";
-        anterior.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-        anterior.disabled = paginaAtual <= 1;
+        paginaAtual = Math.min(Math.max(1, paginaAtual), totalPaginas);
 
-        anterior.addEventListener("click", () => {
-            if (paginaAtual > 1) {
-                paginaAtual--;
-                renderizarPedidos();
-            }
-        });
+        const inicio = total === 0
+            ? 0
+            : (paginaAtual - 1) * PEDIDOS_POR_PAGINA + 1;
 
-        paginacao.appendChild(anterior);
+        const fim = Math.min(
+            paginaAtual * PEDIDOS_POR_PAGINA,
+            total
+        );
 
-        for (let i = 1; i <= totalPaginas; i++) {
+        if (textoPaginacao) {
+            textoPaginacao.textContent = total === 0
+                ? "Mostrando 0 de 0 pedidos"
+                : `Mostrando ${inicio}–${fim} de ${total} pedidos`;
+        }
+
+        if (paginaAtualElemento) {
+            paginaAtualElemento.textContent = paginaAtual;
+        }
+
+        if (botaoAnterior) {
+            botaoAnterior.disabled = paginaAtual <= 1;
+        }
+
+        if (botaoProximo) {
+            botaoProximo.disabled = paginaAtual >= totalPaginas;
+        }
+
+        if (!paginacao) return;
+
+        paginacao.replaceChildren();
+
+        const limite = 5;
+        let primeiro = Math.max(1, paginaAtual - 2);
+        let ultimo = Math.min(totalPaginas, primeiro + limite - 1);
+
+        if (ultimo - primeiro < limite - 1) {
+            primeiro = Math.max(1, ultimo - limite + 1);
+        }
+
+        for (let numero = primeiro; numero <= ultimo; numero++) {
             const botao = document.createElement("button");
-            botao.type = "button";
-            botao.textContent = i;
 
-            if (i === paginaAtual) {
-                botao.classList.add("active");
+            botao.type = "button";
+            botao.textContent = numero;
+            botao.className = numero === paginaAtual ? "active" : "";
+            botao.setAttribute("aria-label", `Ir para a página ${numero}`);
+
+            if (numero === paginaAtual) {
+                botao.setAttribute("aria-current", "page");
             }
 
             botao.addEventListener("click", () => {
-                paginaAtual = i;
+                paginaAtual = numero;
                 renderizarPedidos();
             });
 
             paginacao.appendChild(botao);
         }
-
-        const proximo = document.createElement("button");
-        proximo.type = "button";
-        proximo.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-        proximo.disabled = paginaAtual >= totalPaginas;
-
-        proximo.addEventListener("click", () => {
-            if (paginaAtual < totalPaginas) {
-                paginaAtual++;
-                renderizarPedidos();
-            }
-        });
-
-        paginacao.appendChild(proximo);
     }
 
     // =========================================================
-    // RENDERIZAR PEDIDOS
+    // RENDERIZAR TABELA
     // =========================================================
 
     function renderizarPedidos() {
-        if (!tabela) return;
+        if (!tabela) {
+            console.error('Elemento "orders-table-body" não encontrado.');
+            return;
+        }
 
-        tabela.innerHTML = "";
+        tabela.replaceChildren();
 
-        if (!pedidosFiltrados.length) {
-            tabela.innerHTML = `
-                <tr>
-                    <td colspan="7" style="
-                        text-align: center;
-                        padding: 50px 20px;
-                        color: #8b8f9a;
-                    ">
-                        <i class="fa-solid fa-box-open" style="
-                            font-size: 32px;
-                            margin-bottom: 15px;
-                            display: block;
-                        "></i>
-                        Nenhum pedido encontrado.
-                    </td>
-                </tr>
-            `;
+        const total = pedidosFiltrados.length;
 
-            if (textoEncontrados) {
-                textoEncontrados.textContent = "0 pedidos encontrados";
-            }
+        mostrarVazio(total === 0);
 
+        if (textoEncontrados) {
+            textoEncontrados.textContent =
+                `${total} ${total === 1 ? "pedido encontrado" : "pedidos encontrados"}`;
+        }
+
+        if (total === 0) {
             atualizarPaginacao();
             return;
         }
+
+        paginaAtual = Math.min(paginaAtual, obterTotalPaginas());
 
         const inicio = (paginaAtual - 1) * PEDIDOS_POR_PAGINA;
         const pedidosPagina = pedidosFiltrados.slice(
@@ -420,26 +470,17 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         pedidosPagina.forEach(pedido => {
-            const data = formatarData(
-                pedido.criadoEm || pedido.data
-            );
-
+            const data = formatarData(obterDataPedido(pedido));
+            const id = escaparHTML(pedido.id);
             const nome = escaparHTML(obterNomeCliente(pedido));
             const email = escaparHTML(obterEmailCliente(pedido));
-            const id = escaparHTML(normalizarIdPedido(pedido.id));
             const quantidade = quantidadeProdutos(pedido);
-
-            const valorTotal = Number(
-                pedido.total ?? pedido.subtotal ?? 0
-            );
-
-            const total = Number.isFinite(valorTotal) ? valorTotal : 0;
             const status = normalizarStatus(pedido.status);
             const classe = classeStatus(status);
 
-            const tr = document.createElement("tr");
+            const linha = document.createElement("tr");
 
-            tr.innerHTML = `
+            linha.innerHTML = `
                 <td>
                     <strong class="pedido-id">#${id}</strong>
                 </td>
@@ -447,7 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>
                     <div class="cliente-info">
                         <strong>${nome}</strong>
-                        <span>${email}</span>
+                        <span>${email || "E-mail não informado"}</span>
                     </div>
                 </td>
 
@@ -460,21 +501,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 <td>
                     <span class="produtos-count">
-                        ${quantidade}
-                        ${quantidade === 1 ? "produto" : "produtos"}
+                        ${quantidade} ${quantidade === 1 ? "produto" : "produtos"}
                     </span>
                 </td>
 
                 <td>
                     <strong class="pedido-total">
-                        ${formatarPreco(total)}
+                        ${formatarPreco(obterTotalPedido(pedido))}
                     </strong>
                 </td>
 
                 <td>
                     <span class="pedido-status ${classe}">
-                        <span></span>
-                        ${status}
+                        <span></span>${status}
                     </span>
                 </td>
 
@@ -485,8 +524,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             class="view-order"
                             data-id="${id}"
                             title="Visualizar pedido"
-                            aria-label="Visualizar pedido ${id}"
-                        >
+                            aria-label="Visualizar pedido ${id}">
                             <i class="fa-regular fa-eye"></i>
                         </button>
 
@@ -495,39 +533,33 @@ document.addEventListener("DOMContentLoaded", () => {
                             class="order-menu"
                             data-id="${id}"
                             title="Alterar status"
-                            aria-label="Alterar status do pedido ${id}"
-                        >
+                            aria-label="Alterar status do pedido ${id}">
                             <i class="fa-solid fa-ellipsis"></i>
                         </button>
                     </div>
                 </td>
             `;
 
-            tabela.appendChild(tr);
+            tabela.appendChild(linha);
         });
-
-        if (textoEncontrados) {
-            const quantidade = pedidosFiltrados.length;
-
-            textoEncontrados.textContent =
-                `${quantidade} ${quantidade === 1 ? "pedido encontrado" : "pedidos encontrados"}`;
-        }
 
         atualizarPaginacao();
     }
 
     // =========================================================
-    // FILTRO DE DATA
+    // FILTROS
     // =========================================================
 
     function correspondeFiltroData(pedido, filtro) {
-        const dataPedido = new Date(
-            pedido.criadoEm || pedido.data
-        );
+        const valor = String(filtro || "").trim().toLowerCase();
 
-        if (Number.isNaN(dataPedido.getTime())) {
-            return false;
+        if (!valor || ["todos", "todas", "all"].includes(valor)) {
+            return true;
         }
+
+        const dataPedido = new Date(obterDataPedido(pedido) || "");
+
+        if (Number.isNaN(dataPedido.getTime())) return false;
 
         const agora = new Date();
 
@@ -540,11 +572,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const inicioAmanha = new Date(inicioHoje);
         inicioAmanha.setDate(inicioAmanha.getDate() + 1);
 
-        const valor = String(filtro).toLowerCase();
-
-        if (valor === "hoje") {
-            return dataPedido >= inicioHoje &&
-                dataPedido < inicioAmanha;
+        if (valor.includes("hoje") || valor === "today") {
+            return dataPedido >= inicioHoje && dataPedido < inicioAmanha;
         }
 
         if (valor.includes("7")) {
@@ -569,22 +598,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return true;
     }
 
-    // =========================================================
-    // APLICAR FILTROS
-    // =========================================================
-
     function aplicarFiltros() {
-        const busca = campoBusca
-            ? campoBusca.value.toLowerCase().trim()
-            : "";
-
-        const statusSelecionado = filtroStatus
-            ? filtroStatus.value
-            : "";
-
-        const dataSelecionada = filtroData
-            ? filtroData.value
-            : "";
+        const busca = String(campoBusca?.value || "").trim().toLowerCase();
+        const statusSelecionado = String(filtroStatus?.value || "")
+            .trim()
+            .toLowerCase();
+        const dataSelecionada = String(filtroData?.value || "")
+            .trim()
+            .toLowerCase();
 
         pedidosFiltrados = pedidos.filter(pedido => {
             const id = normalizarIdPedido(pedido.id).toLowerCase();
@@ -593,42 +614,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const correspondeBusca = !busca ||
                 id.includes(busca) ||
-                nome.toLowerCase().includes(busca) ||
-                email.toLowerCase().includes(busca);
+                nome.includes(busca) ||
+                email.includes(busca);
 
             if (!correspondeBusca) return false;
 
             if (
                 statusSelecionado &&
-                !["todos", "todas"].includes(statusSelecionado.toLowerCase())
+                !["todos", "todas", "all"].includes(statusSelecionado) &&
+                normalizarStatus(pedido.status).toLowerCase() !== statusSelecionado
             ) {
-                if (
-                    normalizarStatus(pedido.status).toLowerCase() !==
-                    statusSelecionado.toLowerCase()
-                ) {
-                    return false;
-                }
+                return false;
             }
 
-            if (
-                dataSelecionada &&
-                !["todas", "todos"].includes(dataSelecionada.toLowerCase())
-            ) {
-                if (!correspondeFiltroData(pedido, dataSelecionada)) {
-                    return false;
-                }
-            }
-
-            return true;
+            return correspondeFiltroData(pedido, dataSelecionada);
         });
 
         paginaAtual = 1;
         renderizarPedidos();
-        atualizarEstatisticas();
+    }
+
+    function limparFiltros() {
+        if (campoBusca) campoBusca.value = "";
+        if (filtroStatus) filtroStatus.selectedIndex = 0;
+        if (filtroData) filtroData.selectedIndex = 0;
+
+        aplicarFiltros();
     }
 
     // =========================================================
-    // VISUALIZAR PEDIDO
+    // VISUALIZAR DETALHES
     // =========================================================
 
     function visualizarPedido(id) {
@@ -645,199 +660,181 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const produtosTexto = itens.length
             ? itens.map(item => {
-                const nome = item.nome || item.nomeProduto || "Produto";
-                const quantidade = Number(item.quantidade || 1);
-                const tamanho = item.tamanho
-                    ? ` | Tamanho: ${item.tamanho}`
-                    : "";
-                const cor = item.cor
-                    ? ` | Cor: ${item.cor}`
-                    : "";
+                const nome = item.nome ||
+                    item.nomeProduto ||
+                    item.name ||
+                    "Produto";
+
+                const quantidade = Number(item.quantidade ?? item.quantity ?? 1);
+                const tamanho = item.tamanho ? ` | Tamanho: ${item.tamanho}` : "";
+                const cor = item.cor ? ` | Cor: ${item.cor}` : "";
                 const preco = item.preco != null
                     ? ` | ${formatarPreco(item.preco)}`
                     : "";
 
                 return `• ${nome} x${quantidade}${tamanho}${cor}${preco}`;
             }).join("\n")
-            : "Nenhum produto informado";
+            : "Nenhum produto informado.";
 
-        const endereco = pedido.endereco || {};
+        const endereco = pedido.endereco || pedido.address || {};
 
         const enderecoTexto = [
-            endereco.rua || endereco.logradouro,
-            endereco.numero,
+            endereco.rua || endereco.logradouro || endereco.street,
+            endereco.numero || endereco.number,
             endereco.complemento,
-            endereco.bairro,
-            endereco.cidade,
-            endereco.estado,
-            endereco.cep ? `CEP: ${endereco.cep}` : ""
-        ].filter(Boolean).join(", ") || "Endereço não informado";
+            endereco.bairro || endereco.neighborhood,
+            endereco.cidade || endereco.city,
+            endereco.estado || endereco.state,
+            (endereco.cep || endereco.zipcode)
+                ? `CEP: ${endereco.cep || endereco.zipcode}`
+                : ""
+        ].filter(Boolean).join(", ") || "Endereço não informado.";
 
-        const data = formatarData(pedido.criadoEm || pedido.data);
+        const data = formatarData(obterDataPedido(pedido));
 
-        const mensagem =
+        alert(
             `PEDIDO #${normalizarIdPedido(pedido.id)}\n\n` +
             `Cliente: ${obterNomeCliente(pedido)}\n` +
             `E-mail: ${obterEmailCliente(pedido) || "Não informado"}\n` +
             `Data: ${data.data} ${data.hora}\n\n` +
-            `ENDEREÇO DE ENTREGA\n${enderecoTexto}\n\n` +
+            `ENDEREÇO\n${enderecoTexto}\n\n` +
             `PRODUTOS\n${produtosTexto}\n\n` +
             `Pagamento: ${pedido.pagamento || "Não informado"}\n` +
-            `Subtotal: ${formatarPreco(pedido.subtotal ?? pedido.total ?? 0)}\n` +
-            `Frete: ${formatarPreco(pedido.frete ?? 0)}\n` +
-            `Total: ${formatarPreco(pedido.total ?? pedido.subtotal ?? 0)}\n\n` +
-            `Status: ${normalizarStatus(pedido.status)}`;
-
-        alert(mensagem);
+            `Subtotal: ${formatarPreco(pedido.subtotal)}\n` +
+            `Frete: ${formatarPreco(pedido.frete)}\n` +
+            `Total: ${formatarPreco(obterTotalPedido(pedido))}\n\n` +
+            `Status: ${normalizarStatus(pedido.status)}`
+        );
     }
 
     // =========================================================
-    // ALTERAR STATUS
+    // ATUALIZAR STATUS NO SUPABASE
     // =========================================================
 
-    function alterarStatus(id) {
-        const indice = pedidos.findIndex(
+    async function alterarStatus(id) {
+        if (salvandoStatus) return;
+
+        const pedido = pedidos.find(
             item => normalizarIdPedido(item.id) === normalizarIdPedido(id)
         );
 
-        if (indice === -1) {
+        if (!pedido) {
             alert("Pedido não encontrado.");
             return;
         }
 
-        const pedido = pedidos[indice];
+        const statusAtual = normalizarStatus(pedido.status);
 
         const novoStatus = prompt(
-            "Digite um dos status abaixo:\n\n" +
-            "Pendente\n" +
-            "Processando\n" +
-            "Enviado\n" +
-            "Entregue\n" +
-            "Cancelado\n\n" +
-            "Status atual: " + normalizarStatus(pedido.status),
-            normalizarStatus(pedido.status)
+            "Digite o novo status do pedido:\n\n" +
+            STATUS_VALIDOS.join("\n") +
+            `\n\nStatus atual: ${statusAtual}`,
+            statusAtual
         );
 
         if (novoStatus === null) return;
 
-        const statusValidado = obterStatusValido(novoStatus);
+        const statusValidado = validarStatus(novoStatus);
 
         if (!statusValidado) {
+            alert("Status inválido. Use: " + STATUS_VALIDOS.join(", ") + ".");
+            return;
+        }
+
+        if (statusValidado === statusAtual) return;
+
+        salvandoStatus = true;
+
+        try {
+            const { data, error } = await supabase
+                .from(TABELA_PEDIDOS)
+                .update({ status: statusValidado })
+                .eq("id", pedido.id)
+                .select("id, status")
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (!data) {
+                throw new Error(
+                    "Nenhum pedido foi atualizado. Confira se sua sessão de administrador está válida e se a política RLS permite atualizar esse registro."
+                );
+            }
+
+            pedido.status = normalizarStatus(data.status);
+
+            aplicarFiltros();
+            atualizarEstatisticas();
+
+            alert("Status do pedido atualizado com sucesso!");
+        } catch (erro) {
+            console.error("Erro ao atualizar status:", erro);
+
             alert(
-                "Status inválido.\n\n" +
-                "Use: Pendente, Processando, Enviado, Entregue ou Cancelado."
+                "Não foi possível atualizar o status no Supabase.\n\n" +
+                (erro.message || "Verifique sua conexão e as permissões do administrador.")
             );
-            return;
+        } finally {
+            salvandoStatus = false;
         }
-
-        if (statusValidado === normalizarStatus(pedido.status)) {
-            return;
-        }
-
-        const statusAnterior = pedido.status;
-        pedido.status = statusValidado;
-
-        if (!salvarPedidos()) {
-            // Restaura na memória se o armazenamento falhar.
-            pedido.status = statusAnterior;
-            return;
-        }
-
-        aplicarFiltros();
-        atualizarEstatisticas();
     }
 
     // =========================================================
-    // CLIQUES NA TABELA
+    // EVENTOS DA TABELA
     // =========================================================
 
     if (tabela) {
         tabela.addEventListener("click", event => {
-            const visualizar = event.target.closest(".view-order");
+            const botaoVisualizar = event.target.closest(".view-order");
 
-            if (visualizar) {
-                visualizarPedido(visualizar.dataset.id);
+            if (botaoVisualizar) {
+                visualizarPedido(botaoVisualizar.dataset.id);
                 return;
             }
 
-            const menu = event.target.closest(".order-menu");
+            const botaoStatus = event.target.closest(".order-menu");
 
-            if (menu) {
-                alterarStatus(menu.dataset.id);
+            if (botaoStatus) {
+                alterarStatus(botaoStatus.dataset.id);
             }
         });
     }
 
     // =========================================================
-    // EVENTOS DE BUSCA E FILTROS
+    // EVENTOS DOS FILTROS E DA PAGINAÇÃO
     // =========================================================
 
-    if (campoBusca) {
-        campoBusca.addEventListener("input", aplicarFiltros);
-    }
+    campoBusca?.addEventListener("input", aplicarFiltros);
+    filtroStatus?.addEventListener("change", aplicarFiltros);
+    filtroData?.addEventListener("change", aplicarFiltros);
+    botaoFiltrar?.addEventListener("click", aplicarFiltros);
+    botaoLimpar?.addEventListener("click", limparFiltros);
 
-    if (botaoFiltrar) {
-        botaoFiltrar.addEventListener("click", aplicarFiltros);
-    }
-
-    if (filtroStatus) {
-        filtroStatus.addEventListener("change", aplicarFiltros);
-    }
-
-    if (filtroData) {
-        filtroData.addEventListener("change", aplicarFiltros);
-    }
-
-    // =========================================================
-    // SINCRONIZAÇÃO
-    // =========================================================
-
-    function atualizarPedidos() {
-        pedidos = obterPedidos();
-        aplicarFiltros();
-        atualizarEstatisticas();
-    }
-
-    // Alterações feitas em outra aba do mesmo site.
-    window.addEventListener("storage", event => {
-        if (event.key === PEDIDOS_KEY || event.key === PEDIDO_KEY) {
-            atualizarPedidos();
+    botaoAnterior?.addEventListener("click", () => {
+        if (paginaAtual > 1) {
+            paginaAtual--;
+            renderizarPedidos();
         }
     });
 
-    // Alterações feitas por outros scripts na mesma página.
-    window.addEventListener("novaPedidosAtualizados", () => {
-        atualizarPedidos();
-    });
-
-    // Atualiza quando o usuário volta à página do ADM.
-    document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") {
-            atualizarPedidos();
+    botaoProximo?.addEventListener("click", () => {
+        if (paginaAtual < obterTotalPaginas()) {
+            paginaAtual++;
+            renderizarPedidos();
         }
     });
 
-    // Verifica periodicamente novos pedidos sem regravar
-    // o localStorage a cada verificação.
-    setInterval(() => {
-        const novosPedidos = obterPedidos();
-
-        if (JSON.stringify(novosPedidos) !== JSON.stringify(pedidos)) {
-            pedidos = novosPedidos;
-            aplicarFiltros();
-            atualizarEstatisticas();
-        }
-    }, 2000);
+    botaoTentarNovamente?.addEventListener("click", carregarPedidos);
 
     // =========================================================
     // INICIALIZAÇÃO
     // =========================================================
 
-    pedidos = obterPedidos();
-    pedidosFiltrados = [...pedidos];
+    const autorizado = await verificarAcessoAdmin();
 
-    atualizarEstatisticas();
-    renderizarPedidos();
+    if (!autorizado) return;
 
-    console.log("NØVA ADM — Pedidos carregados:", pedidos);
+    await carregarPedidos();
+
+    console.log("NØVA ADM — Pedidos conectados ao Supabase.");
 });

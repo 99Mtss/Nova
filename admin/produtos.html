@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -5,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Produtos | NØVA ADM</title>
+    <meta name="robots" content="noindex, nofollow">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,36 +22,36 @@
 <body>
 
     <!-- SIDEBAR -->
-    <aside class="admin-sidebar">
+    <aside class="admin-sidebar" id="admin-sidebar">
 
         <div class="admin-logo">
             <a href="../index.html">NØVA</a>
             <span>ADMIN</span>
         </div>
 
-        <nav class="admin-nav">
+        <nav class="admin-nav" aria-label="Navegação administrativa">
 
             <span class="nav-title">GERAL</span>
 
             <a href="index.html" class="admin-nav-link">
-                <i class="fa-solid fa-chart-line"></i>
+                <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
                 <span>Dashboard</span>
             </a>
 
             <a href="pedidos.html" class="admin-nav-link">
-                <i class="fa-solid fa-receipt"></i>
+                <i class="fa-solid fa-receipt" aria-hidden="true"></i>
                 <span>Pedidos</span>
             </a>
 
-            <a href="produtos.html" class="admin-nav-link active">
-                <i class="fa-solid fa-box"></i>
+            <a href="produtos.html" class="admin-nav-link active" aria-current="page">
+                <i class="fa-solid fa-box" aria-hidden="true"></i>
                 <span>Produtos</span>
             </a>
 
             <span class="nav-title">LOJA</span>
 
             <a href="../pages/loja.html" class="admin-nav-link">
-                <i class="fa-solid fa-store"></i>
+                <i class="fa-solid fa-store" aria-hidden="true"></i>
                 <span>Ver loja</span>
             </a>
 
@@ -57,62 +59,65 @@
 
         <div class="sidebar-bottom">
 
-            <a href="#" class="admin-nav-link">
-                <i class="fa-solid fa-gear"></i>
+            <a href="#" class="admin-nav-link" id="admin-settings-link">
+                <i class="fa-solid fa-gear" aria-hidden="true"></i>
                 <span>Configurações</span>
             </a>
 
-            <a href="../index.html" class="admin-nav-link logout-link">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <button type="button" class="admin-nav-link logout-link" id="admin-logout">
+                <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
                 <span>Sair</span>
-            </a>
+            </button>
 
         </div>
 
     </aside>
 
-
-    <!-- MAIN -->
+    <!-- CONTEÚDO PRINCIPAL -->
     <main class="admin-main">
 
-        <!-- HEADER -->
+        <!-- CABEÇALHO -->
         <header class="admin-header">
 
             <div class="admin-header-left">
 
-                <button class="sidebar-toggle">
-                    <i class="fa-solid fa-bars"></i>
+                <button
+                    type="button"
+                    class="sidebar-toggle"
+                    id="sidebar-toggle"
+                    aria-label="Abrir menu"
+                    aria-controls="admin-sidebar"
+                    aria-expanded="false"
+                >
+                    <i class="fa-solid fa-bars" aria-hidden="true"></i>
                 </button>
 
                 <div>
-                    <span class="admin-page-label">
-                        GERENCIAMENTO
-                    </span>
-
-                    <h1>
-                        Produtos
-                    </h1>
+                    <span class="admin-page-label">GERENCIAMENTO</span>
+                    <h1>Produtos</h1>
                 </div>
 
             </div>
 
-
             <div class="admin-header-right">
 
-                <button class="admin-notification">
-                    <i class="fa-regular fa-bell"></i>
+                <button
+                    type="button"
+                    class="admin-notification"
+                    id="admin-notifications"
+                    aria-label="Notificações"
+                >
+                    <i class="fa-regular fa-bell" aria-hidden="true"></i>
                     <span></span>
                 </button>
 
                 <div class="admin-user">
 
-                    <div class="admin-avatar">
-                        M
-                    </div>
+                    <div class="admin-avatar" id="admin-avatar">A</div>
 
                     <div class="admin-user-info">
-                        <strong>Administrador</strong>
-                        <span>Admin</span>
+                        <strong id="admin-user-name">Administrador</strong>
+                        <span id="admin-user-role">Admin</span>
                     </div>
 
                 </div>
@@ -121,136 +126,142 @@
 
         </header>
 
-
-        <!-- CONTENT -->
+        <!-- CONTEÚDO -->
         <div class="admin-content produtos-content">
+
+            <!-- MENSAGEM DE ERRO -->
+            <div id="produtos-error" role="alert" hidden>
+                Não foi possível carregar os produtos.
+                Verifique sua conexão e tente novamente.
+
+                <button type="button" id="produtos-retry">
+                    Tentar novamente
+                </button>
+            </div>
 
             <!-- TOPO -->
             <section class="produtos-top">
 
                 <div>
-                    <span class="card-label">
-                        CATÁLOGO
-                    </span>
+                    <span class="card-label">CATÁLOGO</span>
 
-                    <h2>
-                        Gerencie seus produtos
-                    </h2>
+                    <h2>Gerencie seus produtos</h2>
 
                     <p>
                         Controle produtos, preços e estoque da NØVA.
                     </p>
                 </div>
 
-                <button class="btn-admin-primary">
-                    <i class="fa-solid fa-plus"></i>
+                <button
+                    type="button"
+                    class="btn-admin-primary"
+                    id="add-product-button"
+                >
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
                     Adicionar produto
                 </button>
 
             </section>
 
-
             <!-- ESTATÍSTICAS -->
-            <section class="produto-stats">
+            <section class="produto-stats" aria-label="Estatísticas dos produtos">
 
                 <div class="produto-stat">
 
                     <div class="produto-stat-icon purple">
-                        <i class="fa-solid fa-box"></i>
+                        <i class="fa-solid fa-box" aria-hidden="true"></i>
                     </div>
 
                     <div>
                         <span>Total de produtos</span>
-                        <strong>86</strong>
+                        <strong id="products-total">0</strong>
                     </div>
 
                 </div>
-
 
                 <div class="produto-stat">
 
                     <div class="produto-stat-icon green">
-                        <i class="fa-solid fa-circle-check"></i>
+                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
                     </div>
 
                     <div>
                         <span>Produtos ativos</span>
-                        <strong>78</strong>
+                        <strong id="products-active">0</strong>
                     </div>
 
                 </div>
-
 
                 <div class="produto-stat">
 
                     <div class="produto-stat-icon orange">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
                     </div>
 
                     <div>
                         <span>Estoque baixo</span>
-                        <strong>12</strong>
+                        <strong id="products-low-stock">0</strong>
                     </div>
 
                 </div>
-
 
                 <div class="produto-stat">
 
                     <div class="produto-stat-icon red">
-                        <i class="fa-solid fa-box-open"></i>
+                        <i class="fa-solid fa-box-open" aria-hidden="true"></i>
                     </div>
 
                     <div>
                         <span>Sem estoque</span>
-                        <strong>4</strong>
+                        <strong id="products-out-of-stock">0</strong>
                     </div>
 
                 </div>
 
             </section>
 
-
             <!-- FILTROS -->
-            <section class="produtos-filtros">
+            <section class="produtos-filtros" aria-label="Filtros de produtos">
 
                 <div class="produto-search">
 
-                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
 
                     <input
-                        type="text"
+                        type="search"
+                        id="product-search"
                         placeholder="Buscar produto..."
+                        aria-label="Buscar produto por nome ou código"
                     >
 
                 </div>
 
-
-                <select>
-                    <option>Todos os produtos</option>
-                    <option>Ativos</option>
-                    <option>Inativos</option>
-                    <option>Estoque baixo</option>
-                    <option>Sem estoque</option>
+                <select id="product-status-filter" aria-label="Filtrar por status">
+                    <option value="all">Todos os produtos</option>
+                    <option value="active">Ativos</option>
+                    <option value="inactive">Inativos</option>
+                    <option value="low-stock">Estoque baixo</option>
+                    <option value="out-of-stock">Sem estoque</option>
                 </select>
 
-
-                <select>
-                    <option>Todas as categorias</option>
-                    <option>Camisetas</option>
-                    <option>Moletons</option>
-                    <option>Calças</option>
-                    <option>Acessórios</option>
+                <select id="product-category-filter" aria-label="Filtrar por categoria">
+                    <option value="all">Todas as categorias</option>
+                    <option value="Camisetas">Camisetas</option>
+                    <option value="Moletons">Moletons</option>
+                    <option value="Calças">Calças</option>
+                    <option value="Acessórios">Acessórios</option>
                 </select>
 
-
-                <button class="filter-button">
-                    <i class="fa-solid fa-sliders"></i>
-                    Filtros
+                <button
+                    type="button"
+                    class="filter-button"
+                    id="product-clear-filters"
+                >
+                    <i class="fa-solid fa-filter-circle-xmark" aria-hidden="true"></i>
+                    Limpar filtros
                 </button>
 
             </section>
-
 
             <!-- TABELA -->
             <section class="produtos-table-card">
@@ -258,421 +269,50 @@
                 <div class="table-top">
 
                     <div>
-                        <h2>
-                            Produtos
-                        </h2>
+                        <h2>Produtos</h2>
 
-                        <span>
-                            86 produtos cadastrados
+                        <span id="products-results-count">
+                            Carregando produtos...
                         </span>
                     </div>
 
-                    <select>
-                        <option>Mais recentes</option>
-                        <option>Mais vendidos</option>
-                        <option>Menor preço</option>
-                        <option>Maior preço</option>
+                    <select id="product-sort" aria-label="Ordenar produtos">
+                        <option value="newest">Mais recentes</option>
+                        <option value="name">Nome: A–Z</option>
+                        <option value="price-asc">Menor preço</option>
+                        <option value="price-desc">Maior preço</option>
+                        <option value="stock-asc">Menor estoque</option>
                     </select>
 
                 </div>
-
 
                 <div class="produtos-table-wrapper">
 
                     <table class="produtos-table">
 
                         <thead>
-
                             <tr>
-                                <th>
-                                    Produto
-                                </th>
-
-                                <th>
-                                    Categoria
-                                </th>
-
-                                <th>
-                                    Preço
-                                </th>
-
-                                <th>
-                                    Estoque
-                                </th>
-
-                                <th>
-                                    Status
-                                </th>
-
-                                <th>
-                                    Ações
-                                </th>
+                                <th scope="col">Produto</th>
+                                <th scope="col">Categoria</th>
+                                <th scope="col">Preço</th>
+                                <th scope="col">Estoque</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Ações</th>
                             </tr>
-
                         </thead>
 
+                        <tbody id="products-table-body">
 
-                        <tbody>
-
-                            <!-- PRODUTO 1 -->
-                            <tr>
-
-                                <td>
-
-                                    <div class="produto-table-info">
-
-                                        <div class="produto-table-image">
-                                            NØVA
-                                        </div>
-
-                                        <div>
-                                            <strong>
-                                                Essential Tee
-                                            </strong>
-
-                                            <span>
-                                                SKU: NVA-TEE-001
-                                            </span>
-                                        </div>
-
-                                    </div>
-
+                            <tr id="products-loading-row">
+                                <td colspan="6">
+                                    Carregando produtos...
                                 </td>
-
-                                <td>
-                                    Camisetas
-                                </td>
-
-                                <td>
-                                    <strong class="price">
-                                        R$ 89,90
-                                    </strong>
-                                </td>
-
-                                <td>
-
-                                    <span class="stock normal">
-                                        42 unidades
-                                    </span>
-
-                                </td>
-
-                                <td>
-                                    <span class="product-status active">
-                                        Ativo
-                                    </span>
-                                </td>
-
-                                <td>
-
-                                    <div class="table-actions">
-
-                                        <button title="Editar">
-                                            <i class="fa-solid fa-pen"></i>
-                                        </button>
-
-                                        <button title="Visualizar">
-                                            <i class="fa-solid fa-eye"></i>
-                                        </button>
-
-                                        <button title="Mais opções">
-                                            <i class="fa-solid fa-ellipsis"></i>
-                                        </button>
-
-                                    </div>
-
-                                </td>
-
                             </tr>
 
-
-                            <!-- PRODUTO 2 -->
-                            <tr>
-
-                                <td>
-
-                                    <div class="produto-table-info">
-
-                                        <div class="produto-table-image">
-                                            NØVA
-                                        </div>
-
-                                        <div>
-                                            <strong>
-                                                Heavy Hoodie
-                                            </strong>
-
-                                            <span>
-                                                SKU: NVA-HOD-002
-                                            </span>
-                                        </div>
-
-                                    </div>
-
-                                </td>
-
-                                <td>
-                                    Moletons
-                                </td>
-
-                                <td>
-                                    <strong class="price">
-                                        R$ 199,90
-                                    </strong>
-                                </td>
-
-                                <td>
-
-                                    <span class="stock low">
-                                        7 unidades
-                                    </span>
-
-                                </td>
-
-                                <td>
-                                    <span class="product-status active">
-                                        Ativo
-                                    </span>
-                                </td>
-
-                                <td>
-
-                                    <div class="table-actions">
-
-                                        <button>
-                                            <i class="fa-solid fa-pen"></i>
-                                        </button>
-
-                                        <button>
-                                            <i class="fa-solid fa-eye"></i>
-                                        </button>
-
-                                        <button>
-                                            <i class="fa-solid fa-ellipsis"></i>
-                                        </button>
-
-                                    </div>
-
-                                </td>
-
-                            </tr>
-
-
-                            <!-- PRODUTO 3 -->
-                            <tr>
-
-                                <td>
-
-                                    <div class="produto-table-info">
-
-                                        <div class="produto-table-image">
-                                            NØVA
-                                        </div>
-
-                                        <div>
-                                            <strong>
-                                                Cargo Pants
-                                            </strong>
-
-                                            <span>
-                                                SKU: NVA-CAR-003
-                                            </span>
-                                        </div>
-
-                                    </div>
-
-                                </td>
-
-                                <td>
-                                    Calças
-                                </td>
-
-                                <td>
-                                    <strong class="price">
-                                        R$ 179,90
-                                    </strong>
-                                </td>
-
-                                <td>
-
-                                    <span class="stock normal">
-                                        25 unidades
-                                    </span>
-
-                                </td>
-
-                                <td>
-                                    <span class="product-status active">
-                                        Ativo
-                                    </span>
-                                </td>
-
-                                <td>
-
-                                    <div class="table-actions">
-
-                                        <button>
-                                            <i class="fa-solid fa-pen"></i>
-                                        </button>
-
-                                        <button>
-                                            <i class="fa-solid fa-eye"></i>
-                                        </button>
-
-                                        <button>
-                                            <i class="fa-solid fa-ellipsis"></i>
-                                        </button>
-
-                                    </div>
-
-                                </td>
-
-                            </tr>
-
-
-                            <!-- PRODUTO 4 -->
-                            <tr>
-
-                                <td>
-
-                                    <div class="produto-table-info">
-
-                                        <div class="produto-table-image">
-                                            NØVA
-                                        </div>
-
-                                        <div>
-                                            <strong>
-                                                Essential Cap
-                                            </strong>
-
-                                            <span>
-                                                SKU: NVA-CAP-004
-                                            </span>
-                                        </div>
-
-                                    </div>
-
-                                </td>
-
-                                <td>
-                                    Acessórios
-                                </td>
-
-                                <td>
-                                    <strong class="price">
-                                        R$ 69,90
-                                    </strong>
-                                </td>
-
-                                <td>
-
-                                    <span class="stock out">
-                                        0 unidades
-                                    </span>
-
-                                </td>
-
-                                <td>
-                                    <span class="product-status inactive">
-                                        Inativo
-                                    </span>
-                                </td>
-
-                                <td>
-
-                                    <div class="table-actions">
-
-                                        <button>
-                                            <i class="fa-solid fa-pen"></i>
-                                        </button>
-
-                                        <button>
-                                            <i class="fa-solid fa-eye"></i>
-                                        </button>
-
-                                        <button>
-                                            <i class="fa-solid fa-ellipsis"></i>
-                                        </button>
-
-                                    </div>
-
-                                </td>
-
-                            </tr>
-
-
-                            <!-- PRODUTO 5 -->
-                            <tr>
-
-                                <td>
-
-                                    <div class="produto-table-info">
-
-                                        <div class="produto-table-image">
-                                            NØVA
-                                        </div>
-
-                                        <div>
-                                            <strong>
-                                                Oversized Tee
-                                            </strong>
-
-                                            <span>
-                                                SKU: NVA-OVR-005
-                                            </span>
-
-                                        </div>
-
-                                    </div>
-
-                                </td>
-
-                                <td>
-                                    Camisetas
-                                </td>
-
-                                <td>
-                                    <strong class="price">
-                                        R$ 109,90
-                                    </strong>
-                                </td>
-
-                                <td>
-
-                                    <span class="stock normal">
-                                        31 unidades
-                                    </span>
-
-                                </td>
-
-                                <td>
-                                    <span class="product-status active">
-                                        Ativo
-                                    </span>
-                                </td>
-
-                                <td>
-
-                                    <div class="table-actions">
-
-                                        <button>
-                                            <i class="fa-solid fa-pen"></i>
-                                        </button>
-
-                                        <button>
-                                            <i class="fa-solid fa-eye"></i>
-                                        </button>
-
-                                        <button>
-                                            <i class="fa-solid fa-ellipsis"></i>
-                                        </button>
-
-                                    </div>
-
-                                </td>
-
-                            </tr>
+                            <!--
+                                O JavaScript preencherá esta tabela
+                                com os produtos retornados pelo Supabase.
+                            -->
 
                         </tbody>
 
@@ -680,40 +320,45 @@
 
                 </div>
 
+                <!-- ESTADO VAZIO -->
+                <div id="products-empty" hidden>
+                    <i class="fa-solid fa-box-open" aria-hidden="true"></i>
+
+                    <h3>Nenhum produto encontrado</h3>
+
+                    <p>
+                        Tente alterar os filtros ou cadastre um novo produto.
+                    </p>
+
+                </div>
 
                 <!-- PAGINAÇÃO -->
-                <div class="table-pagination">
+                <div class="table-pagination" id="products-pagination">
 
-                    <span>
-                        Mostrando 1–5 de 86 produtos
+                    <span id="products-pagination-info">
+                        Nenhum produto carregado
                     </span>
 
-                    <div class="pagination-buttons">
+                    <div class="pagination-buttons" id="products-pagination-buttons">
 
-                        <button disabled>
-                            <i class="fa-solid fa-chevron-left"></i>
+                        <button
+                            type="button"
+                            id="products-prev-page"
+                            aria-label="Página anterior"
+                            disabled
+                        >
+                            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
                         </button>
 
-                        <button class="active">
-                            1
-                        </button>
+                        <span id="products-current-page">1</span>
 
-                        <button>
-                            2
-                        </button>
-
-                        <button>
-                            3
-                        </button>
-
-                        <span>...</span>
-
-                        <button>
-                            18
-                        </button>
-
-                        <button>
-                            <i class="fa-solid fa-chevron-right"></i>
+                        <button
+                            type="button"
+                            id="products-next-page"
+                            aria-label="Próxima página"
+                            disabled
+                        >
+                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                         </button>
 
                     </div>
@@ -725,32 +370,19 @@
         </div>
 
     </main>
-    
-<!-- Biblioteca oficial do Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- Configuração centralizada -->
-<script src="js/supabase.js"></script>
 
-<!-- Scripts do painel -->
-<script src="js/admin.js"></script>
-<script src="js/produtos.js"></script>
+    <!-- CAMADA DO MENU MOBILE -->
+    <div id="admin-sidebar-overlay" hidden></div>
 
+    <!-- BIBLIOTECA SUPABASE -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<script>
-    (async () => {
-        const autorizado = await window.verificarAdmin();
+    <!-- CONFIGURAÇÃO DO SUPABASE -->
+    <script src="js/supabase.js"></script>
 
-        if (!autorizado) {
-            window.location.replace("login.html");
-        }
-    })().catch((erro) => {
-        console.error("Erro ao verificar acesso:", erro);
-        window.location.replace("login.html");
-    });
-</script>
-</body>
-</html>
-
+    <!-- SCRIPTS ADMINISTRATIVOS -->
+    <script src="js/admin.js"></script>
+    <script src="js/produtos.js"></script>
 
 </body>
 </html>

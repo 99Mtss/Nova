@@ -7,8 +7,12 @@
 
     <title>Login ADM | NØVA</title>
 
+    <!-- FONTES -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- ÍCONES -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <style>
@@ -123,7 +127,7 @@
             font-size: 14px;
             font-weight: 800;
             cursor: pointer;
-            transition: .2s;
+            transition: 0.2s;
         }
 
         button:hover {
@@ -133,7 +137,7 @@
 
         button:disabled {
             cursor: wait;
-            opacity: .65;
+            opacity: 0.65;
             transform: none;
         }
 
@@ -176,12 +180,14 @@
 
 <body>
     <main class="login-container">
+
         <div class="logo">
             <h1>NØVA</h1>
             <span>ADMINISTRAÇÃO</span>
         </div>
 
         <h2>Bem-vindo de volta</h2>
+
         <p class="description">
             Entre com sua conta autorizada para acessar o painel administrativo.
         </p>
@@ -189,11 +195,14 @@
         <form id="loginForm">
             <div class="field">
                 <label for="email">E-mail</label>
+
                 <div class="input-wrapper">
-                    <i class="fa-regular fa-envelope"></i>
+                    <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+
                     <input
                         type="email"
                         id="email"
+                        name="email"
                         autocomplete="username"
                         placeholder="seu@email.com"
                         required
@@ -203,11 +212,14 @@
 
             <div class="field">
                 <label for="senha">Senha</label>
+
                 <div class="input-wrapper">
-                    <i class="fa-solid fa-lock"></i>
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+
                     <input
                         type="password"
                         id="senha"
+                        name="senha"
                         autocomplete="current-password"
                         placeholder="Digite sua senha"
                         required
@@ -216,69 +228,28 @@
             </div>
 
             <button type="submit" id="btnLogin">
-                <i class="fa-solid fa-right-to-bracket"></i>
+                <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
                 Entrar no painel
             </button>
 
-            <div id="mensagem" role="status" aria-live="polite"></div>
+            <div
+                id="mensagem"
+                role="status"
+                aria-live="polite"
+            ></div>
         </form>
 
         <p class="footer">NØVA Store · Área restrita</p>
+
     </main>
 
+    <!-- SUPABASE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- CONFIGURAÇÃO E CONEXÃO COM O SUPABASE -->
     <script src="js/supabase.js"></script>
+    <!-- AUTENTICAÇÃO DO ADMINISTRADOR -->
+    <script src="js/login.js"></script>
 
-    <script>
-        const form = document.getElementById("loginForm");
-        const botao = document.getElementById("btnLogin");
-        const mensagem = document.getElementById("mensagem");
 
-        function mostrarMensagem(texto, tipo) {
-            mensagem.textContent = texto;
-            mensagem.className = tipo;
-        }
-
-        // Se já estiver autenticado, verifica se a conta é autorizada.
-        (async () => {
-            try {
-                if (await window.verificarAdmin()) {
-                    window.location.replace("index.html");
-                }
-            } catch (erro) {
-                console.error("Erro ao verificar sessão:", erro);
-            }
-        })();
-
-        form.addEventListener("submit", async (event) => {
-            event.preventDefault();
-
-            botao.disabled = true;
-            botao.textContent = "Verificando acesso...";
-            mensagem.className = "";
-            mensagem.textContent = "";
-
-            try {
-                await window.loginAdmin(
-                    document.getElementById("email").value.trim(),
-                    document.getElementById("senha").value
-                );
-
-                mostrarMensagem("Login realizado! Abrindo o painel...", "sucesso");
-                window.location.replace("index.html");
-            } catch (erro) {
-                console.error("Falha no login:", erro);
-
-                mostrarMensagem(
-                    erro.message || "Não foi possível entrar. Confira seu e-mail e senha.",
-                    "erro"
-                );
-            } finally {
-                botao.disabled = false;
-                botao.innerHTML =
-                    '<i class="fa-solid fa-right-to-bracket"></i> Entrar no painel';
-            }
-        });
-    </script>
 </body>
 </html>

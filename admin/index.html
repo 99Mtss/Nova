@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -5,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Dashboard | NØVA ADM</title>
+    <meta name="robots" content="noindex, nofollow">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,78 +14,80 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
     <link rel="stylesheet" href="css/admin.css">
 </head>
 
 <body>
 
     <!-- SIDEBAR -->
-    <aside class="admin-sidebar">
+    <aside class="admin-sidebar" id="admin-sidebar">
 
         <div class="admin-logo">
             <a href="../index.html">NØVA</a>
             <span>ADMIN</span>
         </div>
 
-
-        <nav class="admin-nav">
+        <nav class="admin-nav" aria-label="Navegação administrativa">
 
             <span class="nav-title">GERAL</span>
 
-            <a href="index.html" class="admin-nav-link active">
-                <i class="fa-solid fa-chart-line"></i>
+            <a href="index.html" class="admin-nav-link active" aria-current="page">
+                <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
                 <span>Dashboard</span>
             </a>
 
             <a href="pedidos.html" class="admin-nav-link">
-                <i class="fa-solid fa-receipt"></i>
+                <i class="fa-solid fa-receipt" aria-hidden="true"></i>
                 <span>Pedidos</span>
             </a>
 
             <a href="produtos.html" class="admin-nav-link">
-                <i class="fa-solid fa-box"></i>
+                <i class="fa-solid fa-box" aria-hidden="true"></i>
                 <span>Produtos</span>
             </a>
-
 
             <span class="nav-title">LOJA</span>
 
             <a href="../pages/loja.html" class="admin-nav-link">
-                <i class="fa-solid fa-store"></i>
+                <i class="fa-solid fa-store" aria-hidden="true"></i>
                 <span>Ver loja</span>
             </a>
 
         </nav>
 
-
         <div class="sidebar-bottom">
 
-            <a href="#" class="admin-nav-link">
-                <i class="fa-solid fa-gear"></i>
+            <a href="#" class="admin-nav-link" id="admin-settings-link">
+                <i class="fa-solid fa-gear" aria-hidden="true"></i>
                 <span>Configurações</span>
             </a>
 
-            <a href="../index.html" class="admin-nav-link logout-link">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <button type="button" class="admin-nav-link logout-link" id="admin-logout">
+                <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
                 <span>Sair</span>
-            </a>
+            </button>
 
         </div>
 
     </aside>
 
-
-    <!-- CONTEÚDO -->
+    <!-- CONTEÚDO PRINCIPAL -->
     <main class="admin-main">
 
-        <!-- HEADER -->
+        <!-- CABEÇALHO -->
         <header class="admin-header">
 
             <div class="admin-header-left">
 
-                <button class="sidebar-toggle">
-                    <i class="fa-solid fa-bars"></i>
+                <button
+                    type="button"
+                    class="sidebar-toggle"
+                    id="sidebar-toggle"
+                    aria-label="Abrir menu"
+                    aria-controls="admin-sidebar"
+                    aria-expanded="false"
+                >
+                    <i class="fa-solid fa-bars" aria-hidden="true"></i>
                 </button>
 
                 <div>
@@ -91,36 +95,30 @@
                         PAINEL ADMINISTRATIVO
                     </span>
 
-                    <h1>
-                        Dashboard
-                    </h1>
+                    <h1>Dashboard</h1>
                 </div>
 
             </div>
 
-
             <div class="admin-header-right">
 
-                <button class="admin-notification">
-                    <i class="fa-regular fa-bell"></i>
+                <button
+                    type="button"
+                    class="admin-notification"
+                    id="admin-notifications"
+                    aria-label="Notificações"
+                >
+                    <i class="fa-regular fa-bell" aria-hidden="true"></i>
                     <span></span>
                 </button>
 
-
                 <div class="admin-user">
 
-                    <div class="admin-avatar">
-                        M
-                    </div>
+                    <div class="admin-avatar" id="admin-avatar">A</div>
 
                     <div class="admin-user-info">
-                        <strong>
-                            Administrador
-                        </strong>
-
-                        <span>
-                            Admin
-                        </span>
+                        <strong id="admin-user-name">Administrador</strong>
+                        <span id="admin-user-role">Admin</span>
                     </div>
 
                 </div>
@@ -129,91 +127,82 @@
 
         </header>
 
-
         <!-- DASHBOARD -->
         <div class="admin-content">
 
-            <!-- CARDS -->
-            <section class="stats-grid">
+            <!-- MENSAGEM DE ERRO -->
+            <div id="dashboard-error" role="alert" hidden>
+                Não foi possível carregar todos os dados do Dashboard.
+                Verifique sua conexão e tente novamente.
+                <button type="button" id="dashboard-retry">
+                    Tentar novamente
+                </button>
+            </div>
+
+            <!-- INDICADORES -->
+            <section class="stats-grid" aria-label="Indicadores da loja">
 
                 <div class="stat-card">
 
                     <div class="stat-card-top">
-
                         <div class="stat-icon purple">
-                            <i class="fa-solid fa-sack-dollar"></i>
+                            <i class="fa-solid fa-sack-dollar" aria-hidden="true"></i>
                         </div>
-
-                        <span class="stat-growth positive">
-                            +12,5%
+                        <span class="stat-growth" id="dashboard-revenue-period">
+                            Período atual
                         </span>
-
                     </div>
 
-                    <span class="stat-label">
-                        Receita total
-                    </span>
+                    <span class="stat-label">Receita total</span>
 
-                    <strong class="stat-value">
-                        R$ 18.450,90
+                    <strong class="stat-value" id="dashboard-revenue">
+                        R$ 0,00
                     </strong>
 
                     <span class="stat-description">
-                        Comparado ao mês anterior
+                        Receita dos pedidos contabilizados
                     </span>
 
                 </div>
 
-
                 <div class="stat-card">
 
                     <div class="stat-card-top">
-
                         <div class="stat-icon green">
-                            <i class="fa-solid fa-cart-shopping"></i>
+                            <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
                         </div>
-
-                        <span class="stat-growth positive">
-                            +8,2%
+                        <span class="stat-growth" id="dashboard-orders-period">
+                            Total
                         </span>
-
                     </div>
 
-                    <span class="stat-label">
-                        Pedidos
-                    </span>
+                    <span class="stat-label">Pedidos</span>
 
-                    <strong class="stat-value">
-                        248
+                    <strong class="stat-value" id="dashboard-orders">
+                        0
                     </strong>
 
                     <span class="stat-description">
-                        Pedidos realizados
+                        Pedidos registrados
                     </span>
 
                 </div>
 
-
                 <div class="stat-card">
 
                     <div class="stat-card-top">
-
                         <div class="stat-icon orange">
-                            <i class="fa-solid fa-box"></i>
+                            <i class="fa-solid fa-box" aria-hidden="true"></i>
                         </div>
-
-                        <span class="stat-growth warning">
-                            12 itens
+                        <span class="stat-growth warning" id="dashboard-low-stock">
+                            Estoque baixo
                         </span>
-
                     </div>
 
-                    <span class="stat-label">
-                        Produtos
-                    </span>
+                    <span class="stat-label">Produtos</span>
 
-                    <strong class="stat-value">
-                        86
+                    <strong class="stat-value" id="dashboard-products">
+                        0
                     </strong>
 
                     <span class="stat-description">
@@ -222,45 +211,38 @@
 
                 </div>
 
-
                 <div class="stat-card">
 
                     <div class="stat-card-top">
-
                         <div class="stat-icon blue">
-                            <i class="fa-solid fa-users"></i>
+                            <i class="fa-solid fa-users" aria-hidden="true"></i>
                         </div>
-
-                        <span class="stat-growth positive">
-                            +15,4%
+                        <span class="stat-growth" id="dashboard-customers-period">
+                            Total
                         </span>
-
                     </div>
 
-                    <span class="stat-label">
-                        Clientes
-                    </span>
+                    <span class="stat-label">Clientes</span>
 
-                    <strong class="stat-value">
-                        1.284
+                    <strong class="stat-value" id="dashboard-customers">
+                        0
                     </strong>
 
                     <span class="stat-description">
-                        Clientes cadastrados
+                        Clientes registrados
                     </span>
 
                 </div>
 
             </section>
 
-
             <!-- ATALHOS -->
-            <section class="admin-shortcuts">
+            <section class="admin-shortcuts" aria-label="Atalhos">
 
-                <div class="shortcut-card">
+                <a href="produtos.html" class="shortcut-card">
 
                     <div class="shortcut-icon">
-                        <i class="fa-solid fa-plus"></i>
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
                     </div>
 
                     <div>
@@ -268,81 +250,80 @@
                         <span>Adicionar produto à loja</span>
                     </div>
 
-                    <i class="fa-solid fa-arrow-right shortcut-arrow"></i>
+                    <i class="fa-solid fa-arrow-right shortcut-arrow" aria-hidden="true"></i>
 
-                </div>
+                </a>
 
-
-                <div class="shortcut-card">
+                <a href="pedidos.html" class="shortcut-card">
 
                     <div class="shortcut-icon">
-                        <i class="fa-solid fa-receipt"></i>
+                        <i class="fa-solid fa-receipt" aria-hidden="true"></i>
                     </div>
 
                     <div>
                         <strong>Pedidos</strong>
-                        <span>Ver pedidos recentes</span>
+                        <span>Consultar pedidos da loja</span>
                     </div>
 
-                    <i class="fa-solid fa-arrow-right shortcut-arrow"></i>
+                    <i class="fa-solid fa-arrow-right shortcut-arrow" aria-hidden="true"></i>
 
-                </div>
+                </a>
 
-
-                <div class="shortcut-card">
+                <a href="produtos.html" class="shortcut-card">
 
                     <div class="shortcut-icon">
-                        <i class="fa-solid fa-boxes-stacked"></i>
+                        <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>
                     </div>
 
                     <div>
                         <strong>Estoque</strong>
-                        <span>Gerenciar produtos</span>
+                        <span>Gerenciar produtos e estoque</span>
                     </div>
 
-                    <i class="fa-solid fa-arrow-right shortcut-arrow"></i>
+                    <i class="fa-solid fa-arrow-right shortcut-arrow" aria-hidden="true"></i>
 
-                </div>
+                </a>
 
             </section>
 
-
-            <!-- GRÁFICO + RESUMO -->
+            <!-- GRÁFICO E CATEGORIAS -->
             <section class="dashboard-grid">
 
+                <!-- VENDAS -->
                 <div class="dashboard-card sales-card">
 
                     <div class="dashboard-card-header">
 
                         <div>
-                            <span class="card-label">
-                                VISÃO GERAL
-                            </span>
-
-                            <h2>
-                                Vendas
-                            </h2>
+                            <span class="card-label">VISÃO GERAL</span>
+                            <h2>Vendas</h2>
                         </div>
 
-                        <select>
-                            <option>Últimos 7 dias</option>
-                            <option>Últimos 30 dias</option>
-                            <option>Últimos 3 meses</option>
+                        <label for="dashboard-sales-period" class="sr-only">
+                            Período das vendas
+                        </label>
+
+                        <select id="dashboard-sales-period">
+                            <option value="7">Últimos 7 dias</option>
+                            <option value="30">Últimos 30 dias</option>
+                            <option value="90">Últimos 3 meses</option>
                         </select>
 
                     </div>
 
+                    <div
+                        class="fake-chart"
+                        id="dashboard-sales-chart"
+                        aria-label="Gráfico de vendas"
+                    >
 
-                    <!-- GRÁFICO VISUAL -->
-                    <div class="fake-chart">
-
-                        <div class="chart-y">
-                            <span>R$ 5k</span>
-                            <span>R$ 4k</span>
-                            <span>R$ 3k</span>
-                            <span>R$ 2k</span>
-                            <span>R$ 1k</span>
-                            <span>R$ 0</span>
+                        <div class="chart-y" id="dashboard-chart-y">
+                            <span>—</span>
+                            <span>—</span>
+                            <span>—</span>
+                            <span>—</span>
+                            <span>—</span>
+                            <span>—</span>
                         </div>
 
                         <div class="chart-area">
@@ -356,34 +337,27 @@
                                 <span></span>
                             </div>
 
-                            <div class="chart-bars">
-
-                                <div style="height: 45%"></div>
-                                <div style="height: 62%"></div>
-                                <div style="height: 50%"></div>
-                                <div style="height: 78%"></div>
-                                <div style="height: 68%"></div>
-                                <div style="height: 90%"></div>
-                                <div style="height: 82%"></div>
-
+                            <div
+                                class="chart-bars"
+                                id="dashboard-chart-bars"
+                                aria-live="polite"
+                            >
+                                <!-- As barras serão criadas pelo JavaScript. -->
                             </div>
 
-                            <div class="chart-x">
-                                <span>Seg</span>
-                                <span>Ter</span>
-                                <span>Qua</span>
-                                <span>Qui</span>
-                                <span>Sex</span>
-                                <span>Sáb</span>
-                                <span>Dom</span>
+                            <div class="chart-x" id="dashboard-chart-x">
+                                <span>Sem dados</span>
                             </div>
 
                         </div>
 
                     </div>
 
-                </div>
+                    <p id="dashboard-chart-message" aria-live="polite">
+                        O gráfico será exibido quando os dados de vendas forem carregados.
+                    </p>
 
+                </div>
 
                 <!-- CATEGORIAS -->
                 <div class="dashboard-card category-card">
@@ -391,89 +365,67 @@
                     <div class="dashboard-card-header">
 
                         <div>
-                            <span class="card-label">
-                                PRODUTOS
-                            </span>
-
-                            <h2>
-                                Categorias
-                            </h2>
+                            <span class="card-label">PRODUTOS</span>
+                            <h2>Categorias</h2>
                         </div>
 
                     </div>
 
-
-                    <div class="category-list">
+                    <div class="category-list" id="dashboard-categories">
 
                         <div class="category-row">
-
                             <div class="category-info">
                                 <span class="category-dot purple"></span>
-
                                 <div>
                                     <strong>Camisetas</strong>
-                                    <span>32 produtos</span>
+                                    <span data-category-count="Camisetas">0 produtos</span>
                                 </div>
                             </div>
-
-                            <strong>38%</strong>
-
+                            <strong data-category-percent="Camisetas">0%</strong>
                         </div>
 
-
                         <div class="category-row">
-
                             <div class="category-info">
                                 <span class="category-dot blue"></span>
-
                                 <div>
                                     <strong>Moletons</strong>
-                                    <span>18 produtos</span>
+                                    <span data-category-count="Moletons">0 produtos</span>
                                 </div>
                             </div>
-
-                            <strong>24%</strong>
-
+                            <strong data-category-percent="Moletons">0%</strong>
                         </div>
 
-
                         <div class="category-row">
-
                             <div class="category-info">
                                 <span class="category-dot orange"></span>
-
                                 <div>
                                     <strong>Calças</strong>
-                                    <span>14 produtos</span>
+                                    <span data-category-count="Calças">0 produtos</span>
                                 </div>
                             </div>
-
-                            <strong>18%</strong>
-
+                            <strong data-category-percent="Calças">0%</strong>
                         </div>
 
-
                         <div class="category-row">
-
                             <div class="category-info">
                                 <span class="category-dot green"></span>
-
                                 <div>
                                     <strong>Acessórios</strong>
-                                    <span>22 produtos</span>
+                                    <span data-category-count="Acessórios">0 produtos</span>
                                 </div>
                             </div>
-
-                            <strong>20%</strong>
-
+                            <strong data-category-percent="Acessórios">0%</strong>
                         </div>
 
                     </div>
+
+                    <p id="dashboard-categories-message" aria-live="polite">
+                        A distribuição será atualizada com os produtos cadastrados.
+                    </p>
 
                 </div>
 
             </section>
-
 
             <!-- PEDIDOS RECENTES -->
             <section class="dashboard-card recent-orders">
@@ -481,22 +433,16 @@
                 <div class="dashboard-card-header">
 
                     <div>
-                        <span class="card-label">
-                            PEDIDOS
-                        </span>
-
-                        <h2>
-                            Pedidos recentes
-                        </h2>
+                        <span class="card-label">PEDIDOS</span>
+                        <h2>Pedidos recentes</h2>
                     </div>
 
                     <a href="pedidos.html" class="view-all">
                         Ver todos
-                        <i class="fa-solid fa-arrow-right"></i>
+                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                     </a>
 
                 </div>
-
 
                 <div class="orders-table">
 
@@ -508,103 +454,13 @@
                         <span>Status</span>
                     </div>
 
+                    <div id="dashboard-recent-orders" aria-live="polite">
 
-                    <div class="order-row">
+                        <div class="order-row" id="dashboard-orders-empty">
+                            <span>Nenhum pedido carregado.</span>
+                        </div>
 
-                        <span class="order-id">
-                            #NVA-10248
-                        </span>
-
-                        <span>
-                            João Silva
-                        </span>
-
-                        <span>
-                            06 Out, 2026
-                        </span>
-
-                        <strong>
-                            R$ 289,80
-                        </strong>
-
-                        <span class="order-status confirmed">
-                            Confirmado
-                        </span>
-
-                    </div>
-
-
-                    <div class="order-row">
-
-                        <span class="order-id">
-                            #NVA-10247
-                        </span>
-
-                        <span>
-                            Lucas Santos
-                        </span>
-
-                        <span>
-                            06 Out, 2026
-                        </span>
-
-                        <strong>
-                            R$ 179,90
-                        </strong>
-
-                        <span class="order-status pending">
-                            Pendente
-                        </span>
-
-                    </div>
-
-
-                    <div class="order-row">
-
-                        <span class="order-id">
-                            #NVA-10246
-                        </span>
-
-                        <span>
-                            Pedro Henrique
-                        </span>
-
-                        <span>
-                            05 Out, 2026
-                        </span>
-
-                        <strong>
-                            R$ 399,80
-                        </strong>
-
-                        <span class="order-status shipped">
-                            Enviado
-                        </span>
-
-                    </div>
-
-
-                    <div class="order-row">
-
-                        <span class="order-id">
-                            #NVA-10245
-                        </span>
-
-                        <span>
-                            Gabriel Costa
-                        </span>
-
-                        <span>
-                            05 Out, 2026
-                        </span>
-
-                        <strong>
-                            R$ 89,90
-                        </strong>
-
-                        <span class="order-status cancelled">
-                            Cancelado
-                        </span>
+                        <!-- Os pedidos reais serão inseridos pelo JavaScript. -->
 
                     </div>
 
@@ -616,27 +472,13 @@
 
     </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js"></script>
-<script src="js/produtos.js"></script>
+    <!-- CAMADA PARA O MENU MOBILE -->
+    <div id="admin-sidebar-overlay" hidden></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js"></script>
-<script src="js/produtos.js"></script>
+    <!-- SUPABASE E SCRIPTS ADMINISTRATIVOS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/produtos.js"></script>
 
-<script>
-    (async () => {
-        const autorizado = await window.verificarAdmin();
-
-        if (!autorizado) {
-            window.location.replace("login.html");
-        }
-    })().catch((erro) => {
-        console.error("Erro ao verificar acesso:", erro);
-        window.location.replace("login.html");
-    });
-</script>
-</body>
-</html>
 </body>
 </html>

@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -5,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Pedido realizado | NØVA</title>
+    <meta name="description" content="Confira o resumo do seu pedido na NØVA Store.">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,281 +21,296 @@
 
 <body>
 
-    <!-- HEADER -->
+    <!-- CABEÇALHO -->
     <header class="pedido-header">
         <div class="container pedido-header-content">
 
-            <a href="../index.html" class="logo">
+            <a href="../index.html" class="logo" aria-label="NØVA - Página inicial">
                 NØVA
             </a>
 
             <div class="pedido-seguranca">
-                <i class="fa-solid fa-lock"></i>
+                <i class="fa-solid fa-lock" aria-hidden="true"></i>
                 Compra segura
             </div>
 
         </div>
     </header>
 
-
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="pedido-page">
-
         <div class="container">
 
-            <!-- CONFIRMAÇÃO -->
-            <section class="pedido-confirmacao">
-
+            <!-- ESTADO DE CARREGAMENTO -->
+            <section
+                id="pedido-loading"
+                class="pedido-confirmacao"
+                aria-live="polite"
+            >
                 <div class="pedido-sucesso">
-                    <i class="fa-solid fa-check"></i>
+                    <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
                 </div>
 
-                <span class="pedido-label">
-                    PEDIDO CONFIRMADO
-                </span>
-
-                <h1>
-                    Pedido realizado<br>
-                    com sucesso!
-                </h1>
+                <h1>Carregando seu pedido...</h1>
 
                 <p class="pedido-descricao">
-                    Obrigado por comprar na NØVA.
-                    Seu pedido foi recebido e está sendo preparado.
+                    Estamos buscando os detalhes da sua compra.
+                </p>
+            </section>
+
+            <!-- ESTADO DE ERRO -->
+            <section
+                id="pedido-erro"
+                class="pedido-confirmacao"
+                role="alert"
+                hidden
+            >
+                <div class="pedido-sucesso">
+                    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                </div>
+
+                <span class="pedido-label">PEDIDO INDISPONÍVEL</span>
+
+                <h1>Não encontramos os dados do pedido.</h1>
+
+                <p class="pedido-descricao" id="pedido-erro-mensagem">
+                    Não foi possível carregar os detalhes da sua compra.
                 </p>
 
-                <div class="pedido-numero">
-                    <span>Número do pedido</span>
-                    <strong>#NVA-10248</strong>
-                </div>
+                <div class="pedido-acoes">
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        id="pedido-tentar-novamente"
+                    >
+                        Tentar novamente
+                    </button>
 
+                    <a href="loja.html" class="btn btn-secondary">
+                        Voltar para a loja
+                    </a>
+                </div>
             </section>
 
+            <!-- CONTEÚDO DO PEDIDO -->
+            <div id="pedido-conteudo" hidden>
 
-            <!-- GRID -->
-            <section class="pedido-grid">
+                <!-- CONFIRMAÇÃO -->
+                <section class="pedido-confirmacao">
 
-                <!-- RESUMO -->
-                <div class="pedido-resumo">
-
-                    <div class="pedido-card">
-
-                        <div class="pedido-card-header">
-                            <div>
-                                <span class="pedido-card-label">
-                                    SEU PEDIDO
-                                </span>
-
-                                <h2>
-                                    Resumo da compra
-                                </h2>
-                            </div>
-
-                            <span class="pedido-status">
-                                Confirmado
-                            </span>
-                        </div>
-
-
-                        <!-- PRODUTO -->
-                        <div class="pedido-produto">
-
-                            <div class="pedido-produto-imagem">
-                                <span>NØVA</span>
-                            </div>
-
-                            <div class="pedido-produto-info">
-
-                                <h3>
-                                    NØVA Essential Tee
-                                </h3>
-
-                                <p>
-                                    Preto · M
-                                </p>
-
-                                <span>
-                                    Quantidade: 1
-                                </span>
-
-                            </div>
-
-                            <strong>
-                                R$ 89,90
-                            </strong>
-
-                        </div>
-
-
-                        <!-- PRODUTO -->
-                        <div class="pedido-produto">
-
-                            <div class="pedido-produto-imagem">
-                                <span>NØVA</span>
-                            </div>
-
-                            <div class="pedido-produto-info">
-
-                                <h3>
-                                    NØVA Heavy Hoodie
-                                </h3>
-
-                                <p>
-                                    Preto · G
-                                </p>
-
-                                <span>
-                                    Quantidade: 1
-                                </span>
-
-                            </div>
-
-                            <strong>
-                                R$ 199,90
-                            </strong>
-
-                        </div>
-
-
-                        <!-- TOTAIS -->
-                        <div class="pedido-totais">
-
-                            <div>
-                                <span>Subtotal</span>
-                                <strong>R$ 289,80</strong>
-                            </div>
-
-                            <div>
-                                <span>Frete</span>
-                                <strong>A calcular</strong>
-                            </div>
-
-                            <div class="pedido-total-final">
-                                <span>Total</span>
-                                <strong>R$ 289,80</strong>
-                            </div>
-
-                        </div>
-
+                    <div class="pedido-sucesso">
+                        <i class="fa-solid fa-check" aria-hidden="true"></i>
                     </div>
 
-                </div>
+                    <span class="pedido-label" id="pedido-label-status">
+                        PEDIDO RECEBIDO
+                    </span>
 
+                    <h1>
+                        Pedido realizado
+                        <br>
+                        com sucesso!
+                    </h1>
 
-                <!-- PRÓXIMOS PASSOS -->
-                <aside class="pedido-lateral">
+                    <p class="pedido-descricao" id="pedido-mensagem">
+                        Obrigado por comprar na NØVA. Confira abaixo os
+                        detalhes da sua compra.
+                    </p>
 
-                    <div class="pedido-card">
+                    <div class="pedido-numero">
+                        <span>Número do pedido</span>
 
-                        <span class="pedido-card-label">
-                            PRÓXIMOS PASSOS
-                        </span>
-
-                        <h2>
-                            O que acontece agora?
-                        </h2>
-
-
-                        <div class="pedido-etapa">
-
-                            <div class="etapa-icon">
-                                <i class="fa-solid fa-box"></i>
-                            </div>
-
-                            <div>
-                                <h3>
-                                    Preparação
-                                </h3>
-
-                                <p>
-                                    Seu pedido será separado e preparado para envio.
-                                </p>
-                            </div>
-
-                        </div>
-
-
-                        <div class="pedido-etapa">
-
-                            <div class="etapa-icon">
-                                <i class="fa-solid fa-truck-fast"></i>
-                            </div>
-
-                            <div>
-                                <h3>
-                                    Envio
-                                </h3>
-
-                                <p>
-                                    Assim que enviado, você receberá as informações de acompanhamento.
-                                </p>
-                            </div>
-
-                        </div>
-
-
-                        <div class="pedido-etapa">
-
-                            <div class="etapa-icon">
-                                <i class="fa-solid fa-house"></i>
-                            </div>
-
-                            <div>
-                                <h3>
-                                    Entrega
-                                </h3>
-
-                                <p>
-                                    Seu pedido chegará no endereço informado no checkout.
-                                </p>
-                            </div>
-
-                        </div>
-
+                        <strong id="pedido-numero">
+                            Aguardando identificação...
+                        </strong>
                     </div>
 
+                </section>
 
-                    <!-- EMAIL -->
-                    <div class="pedido-info">
+                <!-- RESUMO E PRÓXIMOS PASSOS -->
+                <section class="pedido-grid">
 
-                        <i class="fa-regular fa-envelope"></i>
+                    <!-- RESUMO DA COMPRA -->
+                    <div class="pedido-resumo">
+                        <div class="pedido-card">
 
-                        <div>
-                            <h3>
-                                Confira seu e-mail
-                            </h3>
+                            <div class="pedido-card-header">
+                                <div>
+                                    <span class="pedido-card-label">
+                                        SEU PEDIDO
+                                    </span>
 
-                            <p>
-                                Enviamos os detalhes do seu pedido para o e-mail informado no checkout.
+                                    <h2>Resumo da compra</h2>
+                                </div>
+
+                                <span
+                                    class="pedido-status"
+                                    id="pedido-status"
+                                >
+                                    Recebido
+                                </span>
+                            </div>
+
+                            <!-- PRODUTOS INSERIDOS PELO JAVASCRIPT -->
+                            <div
+                                id="pedido-produtos"
+                                aria-live="polite"
+                            >
+                                <div class="pedido-produto">
+                                    <div class="pedido-produto-info">
+                                        <p>Carregando produtos...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- MENSAGEM PARA PEDIDO SEM ITENS -->
+                            <p id="pedido-sem-produtos" hidden>
+                                Não foi possível encontrar os produtos
+                                deste pedido.
                             </p>
-                        </div>
 
+                            <!-- TOTAIS -->
+                            <div class="pedido-totais">
+
+                                <div>
+                                    <span>Subtotal</span>
+                                    <strong id="pedido-subtotal">R$ 0,00</strong>
+                                </div>
+
+                                <div>
+                                    <span>Frete</span>
+                                    <strong id="pedido-frete">R$ 0,00</strong>
+                                </div>
+
+                                <div id="pedido-desconto-linha" hidden>
+                                    <span>Desconto</span>
+                                    <strong id="pedido-desconto">R$ 0,00</strong>
+                                </div>
+
+                                <div class="pedido-total-final">
+                                    <span>Total</span>
+                                    <strong id="pedido-total">R$ 0,00</strong>
+                                </div>
+
+                            </div>
+
+                            <!-- PAGAMENTO -->
+                            <div class="pedido-pagamento" id="pedido-pagamento-container">
+                                <h3>Forma de pagamento</h3>
+
+                                <p id="pedido-pagamento">
+                                    Informação indisponível
+                                </p>
+
+                                <p id="pedido-pagamento-status" hidden></p>
+                            </div>
+
+                        </div>
                     </div>
 
-                </aside>
+                    <!-- PRÓXIMOS PASSOS -->
+                    <aside class="pedido-lateral">
 
-            </section>
+                        <div class="pedido-card">
 
+                            <span class="pedido-card-label">
+                                PRÓXIMOS PASSOS
+                            </span>
 
-            <!-- BOTÕES -->
-            <section class="pedido-acoes">
+                            <h2>O que acontece agora?</h2>
 
-                <a href="loja.html" class="btn btn-primary">
-                    Continuar comprando
-                </a>
+                            <div class="pedido-etapa">
 
-                <a href="../index.html" class="btn btn-secondary">
-                    Voltar para o início
-                </a>
+                                <div class="etapa-icon">
+                                    <i class="fa-solid fa-box" aria-hidden="true"></i>
+                                </div>
 
-            </section>
+                                <div>
+                                    <h3>Preparação</h3>
+
+                                    <p>
+                                        Após a confirmação necessária,
+                                        seu pedido seguirá para preparação.
+                                    </p>
+                                </div>
+
+                            </div>
+
+                            <div class="pedido-etapa">
+
+                                <div class="etapa-icon">
+                                    <i class="fa-solid fa-truck-fast" aria-hidden="true"></i>
+                                </div>
+
+                                <div>
+                                    <h3>Envio</h3>
+
+                                    <p>
+                                        As informações de envio poderão ser
+                                        disponibilizadas quando o pedido for enviado.
+                                    </p>
+                                </div>
+
+                            </div>
+
+                            <div class="pedido-etapa">
+
+                                <div class="etapa-icon">
+                                    <i class="fa-solid fa-house" aria-hidden="true"></i>
+                                </div>
+
+                                <div>
+                                    <h3>Entrega</h3>
+
+                                    <p>
+                                        A entrega será realizada no endereço
+                                        informado durante o checkout.
+                                    </p>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- INFORMAÇÕES -->
+                        <div class="pedido-info">
+
+                            <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+
+                            <div>
+                                <h3>Confira seu e-mail</h3>
+
+                                <p>
+                                    A confirmação por e-mail dependerá da
+                                    configuração do serviço de envio de mensagens.
+                                </p>
+                            </div>
+
+                        </div>
+
+                    </aside>
+
+                </section>
+
+                <!-- AÇÕES -->
+                <section class="pedido-acoes">
+
+                    <a href="loja.html" class="btn btn-primary">
+                        Continuar comprando
+                    </a>
+
+                    <a href="../index.html" class="btn btn-secondary">
+                        Voltar para o início
+                    </a>
+
+                </section>
+
+            </div>
 
         </div>
-
     </main>
 
-
-    <!-- FOOTER -->
+    <!-- RODAPÉ -->
     <footer class="footer">
 
         <div class="container footer-content">
@@ -305,11 +322,10 @@
                 </a>
 
                 <p>
-                    Estilo que representa você.
+                    Vista sua identidade.
                 </p>
 
             </div>
-
 
             <div class="footer-links">
 
@@ -323,14 +339,18 @@
                 <div>
                     <h3>Suporte</h3>
 
-                    <a href="#">Contato</a>
-                    <a href="#">Trocas e devoluções</a>
+                    <a href="#" aria-label="Contato: link a configurar">
+                        Contato
+                    </a>
+
+                    <a href="#" aria-label="Trocas e devoluções: link a configurar">
+                        Trocas e devoluções
+                    </a>
                 </div>
 
             </div>
 
         </div>
-
 
         <div class="container footer-bottom">
 
@@ -345,6 +365,11 @@
         </div>
 
     </footer>
+
+    <!-- INTEGRAÇÃO -->
+    <script src="../js/supabase.js"></script>
+    <script src="../js/app.js"></script>
     <script src="../js/pedido.js"></script>
+
 </body>
 </html>

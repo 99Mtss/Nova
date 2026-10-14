@@ -1,9 +1,15 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+        content="Explore a coleção NØVA. Roupas streetwear com atitude, conforto e identidade.">
+
+    <meta name="theme-color" content="#0f1117">
 
     <title>Loja | NØVA</title>
 
@@ -13,14 +19,12 @@
 
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap"
-        rel="stylesheet"
-    >
+        rel="stylesheet">
 
     <!-- Font Awesome -->
     <link
         rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <!-- CSS -->
     <link rel="stylesheet" href="../css/style.css">
@@ -29,39 +33,75 @@
 
 <body>
 
-    <!-- ================= HEADER ================= -->
-
+    <!-- CABEÇALHO -->
     <header class="header">
 
         <div class="container header-container">
 
-            <a href="../index.html" class="logo">
+            <a href="../index.html" class="logo" aria-label="NØVA - Página inicial">
                 NØVA
             </a>
 
-            <nav class="nav">
-                <a href="../index.html">Início</a>
-                <a href="loja.html" class="active">Loja</a>
-                <a href="#categorias">Categorias</a>
+            <nav class="nav" aria-label="Navegação principal">
+
+                <a href="../index.html" class="nav-link">
+                    Início
+                </a>
+
+                <a href="loja.html" class="nav-link active" aria-current="page">
+                    Loja
+                </a>
+
+                <a href="#categorias" class="nav-link">
+                    Categorias
+                </a>
+
             </nav>
 
             <div class="header-actions">
 
-                <button class="header-icon" aria-label="Pesquisar">
+                <a
+                    href="#busca-produtos"
+                    class="header-icon"
+                    aria-label="Pesquisar produtos">
+
                     <i class="fa-solid fa-magnifying-glass"></i>
-                </button>
 
-                <button class="header-icon" aria-label="Minha conta">
-                    <i class="fa-regular fa-user"></i>
-                </button>
-
-                <a href="carrinho.html" class="header-icon cart-icon" aria-label="Carrinho">
-                    <i class="fa-solid fa-bag-shopping"></i>
-                    <span class="cart-count">0</span>
                 </a>
 
-                <button class="menu-toggle" aria-label="Abrir menu">
+                <a
+                    href="../admin/login.html"
+                    class="header-icon"
+                    aria-label="Minha conta">
+
+                    <i class="fa-regular fa-user"></i>
+
+                </a>
+
+                <a
+                    href="carrinho.html"
+                    class="header-icon cart-icon"
+                    aria-label="Carrinho">
+
+                    <i class="fa-solid fa-bag-shopping"></i>
+
+                    <span
+                        class="cart-count"
+                        id="cart-count"
+                        data-cart-count
+                        aria-live="polite">0</span>
+
+                </a>
+
+                <button
+                    class="menu-toggle"
+                    id="menu-mobile"
+                    type="button"
+                    aria-label="Abrir menu"
+                    aria-expanded="false">
+
                     <i class="fa-solid fa-bars"></i>
+
                 </button>
 
             </div>
@@ -70,11 +110,9 @@
 
     </header>
 
-
-    <!-- ================= PAGE HERO ================= -->
-
     <main>
 
+        <!-- BANNER DA LOJA -->
         <section class="shop-hero">
 
             <div class="container">
@@ -92,50 +130,95 @@
                     para quem não segue padrões.
                 </p>
 
-                <!-- Busca visual -->
+                <!-- BUSCA -->
+                <form
+                    class="shop-search"
+                    id="busca-produtos"
+                    role="search"
+                    onsubmit="return false;">
 
-                <div class="shop-search">
-
-                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <i class="fa-solid fa-magnifying-glass"
+                        aria-hidden="true"></i>
 
                     <input
-                        type="text"
+                        type="search"
+                        id="search-products"
+                        name="busca"
                         placeholder="Buscar produtos..."
-                    >
+                        aria-label="Buscar produtos pelo nome"
+                        autocomplete="off">
 
-                </div>
+                    <button
+                        type="button"
+                        id="clear-search"
+                        aria-label="Limpar busca">
+
+                        <i class="fa-solid fa-xmark"></i>
+
+                    </button>
+
+                </form>
 
             </div>
 
         </section>
 
-
-        <!-- ================= CATEGORIAS ================= -->
-
+        <!-- CATEGORIAS -->
         <section class="shop-categories" id="categorias">
 
             <div class="container">
 
-                <div class="category-tabs">
+                <div class="category-tabs" role="group"
+                    aria-label="Filtrar por categoria">
 
-                    <button class="category-tab active">
+                    <button
+                        type="button"
+                        class="category-tab active"
+                        data-category="todos"
+                        aria-pressed="true">
+
                         Todos
+
                     </button>
 
-                    <button class="category-tab">
+                    <button
+                        type="button"
+                        class="category-tab"
+                        data-category="Camisetas"
+                        aria-pressed="false">
+
                         Camisetas
+
                     </button>
 
-                    <button class="category-tab">
+                    <button
+                        type="button"
+                        class="category-tab"
+                        data-category="Moletons"
+                        aria-pressed="false">
+
                         Moletons
+
                     </button>
 
-                    <button class="category-tab">
+                    <button
+                        type="button"
+                        class="category-tab"
+                        data-category="Calças"
+                        aria-pressed="false">
+
                         Calças
+
                     </button>
 
-                    <button class="category-tab">
+                    <button
+                        type="button"
+                        class="category-tab"
+                        data-category="Acessórios"
+                        aria-pressed="false">
+
                         Acessórios
+
                     </button>
 
                 </div>
@@ -144,137 +227,181 @@
 
         </section>
 
-
-        <!-- ================= LOJA ================= -->
-
+        <!-- PRODUTOS E FILTROS -->
         <section class="shop-products">
 
             <div class="container shop-layout">
 
-
-                <!-- ================= FILTROS ================= -->
-
-                <aside class="filters">
+                <!-- FILTROS -->
+                <aside class="filters" aria-label="Filtros de produtos">
 
                     <div class="filters-header">
 
-                        <h2>
-                            Filtros
-                        </h2>
+                        <h2>Filtros</h2>
 
-                        <button class="clear-filters">
+                        <button
+                            type="button"
+                            class="clear-filters"
+                            id="clear-filters">
+
                             Limpar
+
                         </button>
 
                     </div>
 
-
-                    <!-- Categoria -->
-
+                    <!-- FILTRO POR CATEGORIA -->
                     <div class="filter-group">
 
-                        <h3>
-                            Categoria
-                        </h3>
+                        <h3>Categoria</h3>
 
                         <label class="filter-option">
-                            <input type="checkbox">
+                            <input
+                                type="checkbox"
+                                name="categoria"
+                                value="Camisetas"
+                                data-filter-category>
+
                             <span>Camisetas</span>
                         </label>
 
                         <label class="filter-option">
-                            <input type="checkbox">
+                            <input
+                                type="checkbox"
+                                name="categoria"
+                                value="Moletons"
+                                data-filter-category>
+
                             <span>Moletons</span>
                         </label>
 
                         <label class="filter-option">
-                            <input type="checkbox">
+                            <input
+                                type="checkbox"
+                                name="categoria"
+                                value="Calças"
+                                data-filter-category>
+
                             <span>Calças</span>
                         </label>
 
                         <label class="filter-option">
-                            <input type="checkbox">
+                            <input
+                                type="checkbox"
+                                name="categoria"
+                                value="Acessórios"
+                                data-filter-category>
+
                             <span>Acessórios</span>
                         </label>
 
                     </div>
 
-
-                    <!-- Tamanho -->
-
+                    <!-- FILTRO POR TAMANHO -->
                     <div class="filter-group">
 
-                        <h3>
-                            Tamanho
-                        </h3>
+                        <h3>Tamanho</h3>
 
                         <div class="size-options">
 
-                            <button>PP</button>
-                            <button>P</button>
-                            <button>M</button>
-                            <button>G</button>
-                            <button>GG</button>
+                            <button type="button" data-filter-size="PP"
+                                aria-pressed="false">PP</button>
+
+                            <button type="button" data-filter-size="P"
+                                aria-pressed="false">P</button>
+
+                            <button type="button" data-filter-size="M"
+                                aria-pressed="false">M</button>
+
+                            <button type="button" data-filter-size="G"
+                                aria-pressed="false">G</button>
+
+                            <button type="button" data-filter-size="GG"
+                                aria-pressed="false">GG</button>
 
                         </div>
 
                     </div>
 
-
-                    <!-- Preço -->
-
+                    <!-- FILTRO POR PREÇO -->
                     <div class="filter-group">
 
-                        <h3>
-                            Faixa de preço
-                        </h3>
+                        <h3>Faixa de preço</h3>
 
                         <div class="price-inputs">
 
                             <input
                                 type="number"
+                                id="price-min"
+                                name="preco-minimo"
+                                min="0"
+                                step="0.01"
                                 placeholder="Mín."
-                            >
+                                aria-label="Preço mínimo">
 
-                            <span>—</span>
+                            <span aria-hidden="true">—</span>
 
                             <input
                                 type="number"
+                                id="price-max"
+                                name="preco-maximo"
+                                min="0"
+                                step="0.01"
                                 placeholder="Máx."
-                            >
+                                aria-label="Preço máximo">
 
                         </div>
 
                     </div>
 
+                    <button
+                        type="button"
+                        id="apply-filters"
+                        class="btn btn-primary">
+
+                        Aplicar filtros
+
+                    </button>
+
                 </aside>
 
-
-                <!-- ================= PRODUTOS ================= -->
-
+                <!-- LISTAGEM -->
                 <div class="shop-content">
 
+                    <!-- BARRA DE ORDENAÇÃO -->
                     <div class="shop-toolbar">
 
-                        <span class="products-count">
-                            12 produtos
+                        <span
+                            class="products-count"
+                            id="products-count"
+                            aria-live="polite">
+
+                            Carregando produtos...
+
                         </span>
 
-                        <select class="sort-products">
+                        <label for="sort-products">
+                            Ordenar por
+                        </label>
 
-                            <option>
+                        <select
+                            class="sort-products"
+                            id="sort-products"
+                            name="ordenacao">
+
+                            <option value="relevancia">
                                 Mais relevantes
                             </option>
 
-                            <option>
+                            <option value="preco-menor">
                                 Menor preço
                             </option>
 
-                            <option>
+                            <option value="preco-maior">
                                 Maior preço
                             </option>
 
-                            <option>
+                            <option value="recentes">
                                 Mais recentes
                             </option>
 
@@ -282,251 +409,115 @@
 
                     </div>
 
-
-                    <div class="shop-grid">
-
-
-                        <!-- PRODUTO 01 -->
-
-                        <article class="shop-product-card">
-
-                            <div class="shop-product-image">
-
-                                <span class="product-tag">
-                                    NOVO
-                                </span>
-
-                                <span class="image-placeholder">
-                                    IMAGEM
-                                </span>
-
-                                <button
-                                    class="favorite-button"
-                                    aria-label="Favoritar produto"
-                                >
-                                    <i class="fa-regular fa-heart"></i>
-                                </button>
-
-                            </div>
-
-                            <div class="shop-product-info">
-
-                                <span class="product-category">
-                                    CAMISETA
-                                </span>
-
-                                <h3>
-                                    NØVA Essential Tee
-                                </h3>
-
-                                <p class="product-price">
-                                    R$ 89,90
-                                </p>
-
-                            </div>
-
-                        </article>
-
-
-                        <!-- PRODUTO 02 -->
-
-                        <article class="shop-product-card">
-
-                            <div class="shop-product-image">
-
-                                <span class="image-placeholder">
-                                    IMAGEM
-                                </span>
-
-                                <button
-                                    class="favorite-button"
-                                    aria-label="Favoritar produto"
-                                >
-                                    <i class="fa-regular fa-heart"></i>
-                                </button>
-
-                            </div>
-
-                            <div class="shop-product-info">
-
-                                <span class="product-category">
-                                    CAMISETA
-                                </span>
-
-                                <h3>
-                                    Oversized Black
-                                </h3>
-
-                                <p class="product-price">
-                                    R$ 119,90
-                                </p>
-
-                            </div>
-
-                        </article>
-
-
-                        <!-- PRODUTO 03 -->
-
-                        <article class="shop-product-card">
-
-                            <div class="shop-product-image">
-
-                                <span class="product-tag">
-                                    DESTAQUE
-                                </span>
-
-                                <span class="image-placeholder">
-                                    IMAGEM
-                                </span>
-
-                                <button
-                                    class="favorite-button"
-                                    aria-label="Favoritar produto"
-                                >
-                                    <i class="fa-regular fa-heart"></i>
-                                </button>
-
-                            </div>
-
-                            <div class="shop-product-info">
-
-                                <span class="product-category">
-                                    MOLETOM
-                                </span>
-
-                                <h3>
-                                    NØVA Heavy Hoodie
-                                </h3>
-
-                                <p class="product-price">
-                                    R$ 199,90
-                                </p>
-
-                            </div>
-
-                        </article>
-
-
-                        <!-- PRODUTO 04 -->
-
-                        <article class="shop-product-card">
-
-                            <div class="shop-product-image">
-
-                                <span class="image-placeholder">
-                                    IMAGEM
-                                </span>
-
-                                <button
-                                    class="favorite-button"
-                                    aria-label="Favoritar produto"
-                                >
-                                    <i class="fa-regular fa-heart"></i>
-                                </button>
-
-                            </div>
-
-                            <div class="shop-product-info">
-
-                                <span class="product-category">
-                                    CALÇA
-                                </span>
-
-                                <h3>
-                                    Urban Cargo
-                                </h3>
-
-                                <p class="product-price">
-                                    R$ 179,90
-                                </p>
-
-                            </div>
-
-                        </article>
-
-
-                        <!-- PRODUTO 05 -->
-
-                        <article class="shop-product-card">
-
-                            <div class="shop-product-image">
-
-                                <span class="image-placeholder">
-                                    IMAGEM
-                                </span>
-
-                                <button
-                                    class="favorite-button"
-                                    aria-label="Favoritar produto"
-                                >
-                                    <i class="fa-regular fa-heart"></i>
-                                </button>
-
-                            </div>
-
-                            <div class="shop-product-info">
-
-                                <span class="product-category">
-                                    CAMISETA
-                                </span>
-
-                                <h3>
-                                    Purple Signal Tee
-                                </h3>
-
-                                <p class="product-price">
-                                    R$ 99,90
-                                </p>
-
-                            </div>
-
-                        </article>
-
-
-                        <!-- PRODUTO 06 -->
-
-                        <article class="shop-product-card">
-
-                            <div class="shop-product-image">
-
-                                <span class="product-tag">
-                                    NOVO
-                                </span>
-
-                                <span class="image-placeholder">
-                                    IMAGEM
-                                </span>
-
-                                <button
-                                    class="favorite-button"
-                                    aria-label="Favoritar produto"
-                                >
-                                    <i class="fa-regular fa-heart"></i>
-                                </button>
-
-                            </div>
-
-                            <div class="shop-product-info">
-
-                                <span class="product-category">
-                                    ACESSÓRIO
-                                </span>
-
-                                <h3>
-                                    NØVA Cap
-                                </h3>
-
-                                <p class="product-price">
-                                    R$ 79,90
-                                </p>
-
-                            </div>
-
-                        </article>
-
+                    <!--
+                        LISTA DINÂMICA DE PRODUTOS
+
+                        O JavaScript deverá consultar o Supabase,
+                        criar os cartões e inseri-los neste elemento.
+
+                        Cada produto deverá utilizar seu ID real
+                        para abrir a página de detalhes.
+
+                        As imagens deverão utilizar as URLs salvas
+                        no Supabase Storage.
+                    -->
+                    <div
+                        class="shop-grid"
+                        id="shop-products-list"
+                        data-product-list="shop"
+                        aria-live="polite"
+                        aria-busy="true">
+
+                        <div class="products-loading" role="status">
+                            <i class="fa-solid fa-spinner fa-spin"
+                                aria-hidden="true"></i>
+
+                            <p>Carregando produtos...</p>
+                        </div>
 
                     </div>
+
+                    <!-- MENSAGEM DE ERRO -->
+                    <div
+                        class="products-error"
+                        id="products-error"
+                        role="alert"
+                        hidden>
+
+                        <i class="fa-solid fa-circle-exclamation"
+                            aria-hidden="true"></i>
+
+                        <p>
+                            Não foi possível carregar os produtos.
+                            Tente novamente.
+                        </p>
+
+                        <button
+                            type="button"
+                            id="retry-products">
+
+                            Tentar novamente
+
+                        </button>
+
+                    </div>
+
+                    <!-- NENHUM PRODUTO ENCONTRADO -->
+                    <div
+                        class="products-empty"
+                        id="products-empty"
+                        hidden>
+
+                        <i class="fa-solid fa-box-open"
+                            aria-hidden="true"></i>
+
+                        <h2>Nenhum produto encontrado</h2>
+
+                        <p>
+                            Tente alterar sua busca ou remover alguns filtros.
+                        </p>
+
+                        <button
+                            type="button"
+                            id="reset-search-filters">
+
+                            Limpar busca e filtros
+
+                        </button>
+
+                    </div>
+
+                    <!-- PAGINAÇÃO -->
+                    <nav
+                        class="shop-pagination"
+                        id="shop-pagination"
+                        aria-label="Paginação dos produtos"
+                        hidden>
+
+                        <button
+                            type="button"
+                            id="previous-page"
+                            aria-label="Página anterior"
+                            disabled>
+
+                            <i class="fa-solid fa-chevron-left"></i>
+
+                        </button>
+
+                        <span id="pagination-info" aria-live="polite">
+                            Página 1
+                        </span>
+
+                        <button
+                            type="button"
+                            id="next-page"
+                            aria-label="Próxima página">
+
+                            <i class="fa-solid fa-chevron-right"></i>
+
+                        </button>
+
+                    </nav>
 
                 </div>
 
@@ -536,9 +527,7 @@
 
     </main>
 
-
-    <!-- ================= FOOTER ================= -->
-
+    <!-- RODAPÉ -->
     <footer class="footer">
 
         <div class="container footer-container">
@@ -554,7 +543,6 @@
                 </p>
 
             </div>
-
 
             <div class="footer-links">
 
@@ -576,21 +564,25 @@
 
             </div>
 
-
             <div class="footer-social">
 
-                <a href="#" aria-label="Instagram">
+                <a href="#"
+                    aria-label="Instagram da NØVA">
+
                     <i class="fa-brands fa-instagram"></i>
+
                 </a>
 
-                <a href="#" aria-label="TikTok">
+                <a href="#"
+                    aria-label="TikTok da NØVA">
+
                     <i class="fa-brands fa-tiktok"></i>
+
                 </a>
 
             </div>
 
         </div>
-
 
         <div class="container footer-bottom">
 
@@ -605,8 +597,10 @@
         </div>
 
     </footer>
+
+    <!-- JAVASCRIPT -->
     <script src="../js/app.js"></script>
     <script src="../js/loja.js"></script>
-</body>
 
+</body>
 </html>
