@@ -1,4 +1,3 @@
-
 /* =========================================================
    NØVA — CHECKOUT
    Finalização da compra e integração com o ADM
@@ -6,7 +5,6 @@
 
 document.addEventListener("DOMContentLoaded", () => {
     const CART_KEY = "novaCarrinho";
-    const PEDIDOS_KEY = "novaPedidos";
     const ORDER_KEY = "novaPedido";
 
     let carrinho = [];
@@ -139,7 +137,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function calcularSubtotal() {
         return carrinho.reduce((total, produto) => {
-            const preco = Math.max(0, Number(produto.preco) || 0);
+            const preco = Math.max(
+                0,
+                Number(produto.preco) || 0
+            );
+
             const quantidade = Math.max(
                 0,
                 Number(produto.quantidade) || 0
@@ -173,6 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (produto.imagem) {
                 const imagem = document.createElement("img");
+
                 imagem.src = produto.imagem;
                 imagem.alt = produto.nome || "Produto NØVA";
                 imagem.loading = "lazy";
@@ -181,13 +184,16 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 const placeholder = document.createElement("span");
                 placeholder.textContent = "IMG";
+
                 imagemContainer.appendChild(placeholder);
             }
 
             const quantidade = document.createElement("b");
+
             quantidade.textContent = String(
                 Number(produto.quantidade) || 1
             );
+
             imagemContainer.appendChild(quantidade);
 
             const info = document.createElement("div");
@@ -197,10 +203,12 @@ document.addEventListener("DOMContentLoaded", () => {
             nome.textContent = produto.nome || "Produto NØVA";
 
             const detalhes = document.createElement("span");
-
             const caracteristicas = [];
 
-            if (produto.cor) caracteristicas.push(produto.cor);
+            if (produto.cor) {
+                caracteristicas.push(produto.cor);
+            }
+
             if (produto.tamanho) {
                 caracteristicas.push(`Tam. ${produto.tamanho}`);
             }
@@ -212,6 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
             info.append(nome, detalhes);
 
             const preco = document.createElement("strong");
+
             preco.textContent = formatarPreco(
                 (Number(produto.preco) || 0) *
                 (Number(produto.quantidade) || 1)
@@ -301,7 +310,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (cep) {
         cep.addEventListener("input", () => {
-            let valor = cep.value.replace(/\D/g, "").slice(0, 8);
+            let valor = cep.value
+                .replace(/\D/g, "")
+                .slice(0, 8);
 
             if (valor.length > 5) {
                 valor = `${valor.slice(0, 5)}-${valor.slice(5)}`;
@@ -386,20 +397,27 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!elemento || !elemento.value.trim()) {
                 mostrarMensagem(mensagem);
                 elemento?.focus();
+
                 return false;
             }
         }
 
-        const email = document.querySelector("#email").value.trim();
+        const email = document
+            .querySelector("#email")
+            .value.trim();
 
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             mostrarMensagem("Digite um e-mail válido.");
             document.querySelector("#email").focus();
+
             return false;
         }
 
         if (!termsCheckbox || !termsCheckbox.checked) {
-            mostrarMensagem("Aceite os termos de compra para continuar.");
+            mostrarMensagem(
+                "Aceite os termos de compra para continuar."
+            );
+
             return false;
         }
 
@@ -424,17 +442,27 @@ document.addEventListener("DOMContentLoaded", () => {
             const cvv = document.querySelector("#cvv");
 
             if (
-                !numero || numero.value.replace(/\D/g, "").length < 13 ||
-                !nome || !nome.value.trim() ||
-                !validade || !/^\d{2}\/\d{2}$/.test(validade.value) ||
-                !cvv || cvv.value.replace(/\D/g, "").length < 3
+                !numero ||
+                numero.value.replace(/\D/g, "").length < 13 ||
+                !nome ||
+                !nome.value.trim() ||
+                !validade ||
+                !/^\d{2}\/\d{2}$/.test(validade.value) ||
+                !cvv ||
+                cvv.value.replace(/\D/g, "").length < 3
             ) {
-                mostrarMensagem("Confira os dados preenchidos do cartão.");
+                mostrarMensagem(
+                    "Confira os dados preenchidos do cartão."
+                );
+
                 return false;
             }
 
-            // Este protótipo não processa pagamentos.
-            // Nunca salve dados de cartão no localStorage.
+            /*
+             * Este protótipo não processa pagamentos.
+             * Não armazene dados de cartão.
+             */
+
             mostrarMensagem(
                 "O pagamento por cartão ainda precisa de um serviço de pagamento integrado."
             );
@@ -467,63 +495,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* =====================================================
-       CRIAR E SALVAR PEDIDO
-       ===================================================== */
-
-    function salvarPedido(pedido) {
-        // Usa a integração disponibilizada pelo app.js,
-        // quando ele estiver carregado na página.
-        if (
-            window.NovaPedidos &&
-            typeof window.NovaPedidos.salvarPedido === "function"
-        ) {
-            return window.NovaPedidos.salvarPedido(pedido);
-        }
-
-        // Alternativa compatível caso app.js não esteja na página.
-        let pedidos = [];
-
-        try {
-            const dados = JSON.parse(
-                localStorage.getItem(PEDIDOS_KEY) || "[]"
-            );
-
-            pedidos = Array.isArray(dados) ? dados : [];
-        } catch (erro) {
-            console.error("Erro ao carregar pedidos:", erro);
-        }
-
-        const duplicado = pedidos.some(
-            (item) => String(item.id) === String(pedido.id)
-        );
-
-        if (!duplicado) {
-            pedidos.unshift(pedido);
-        }
-
-        localStorage.setItem(PEDIDOS_KEY, JSON.stringify(pedidos));
-        localStorage.setItem(ORDER_KEY, JSON.stringify(pedido));
-
-        window.dispatchEvent(
-            new CustomEvent("nova:pedido-criado", {
-                detail: pedido
-            })
-        );
-
-        return pedido;
-    }
-
-    /* =====================================================
-       FINALIZAR PEDIDO
+       FINALIZAR PEDIDO — SUPABASE
        ===================================================== */
 
     if (finishButton) {
-        finishButton.addEventListener("click", (event) => {
+        finishButton.addEventListener("click", async (event) => {
             event.preventDefault();
 
             if (finalizando) return;
 
             if (!validarFormulario()) return;
+
+            if (
+                !window.NovaPedidos ||
+                typeof window.NovaPedidos.salvarPedido !== "function"
+            ) {
+                mostrarMensagem(
+                    "Sistema de pedidos indisponível. Atualize a página e tente novamente."
+                );
+
+                console.error(
+                    "window.NovaPedidos.salvarPedido não está disponível."
+                );
+
+                return;
+            }
 
             const pagamento = document.querySelector(
                 'input[name="payment"]:checked'
@@ -536,13 +532,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const subtotal = calcularSubtotal();
 
-            const pedido = {
-                id: gerarIdPedido(),
-
-                cliente: {
-                    nome: document.querySelector("#name").value.trim(),
-                    email: document.querySelector("#email").value.trim()
-                },
+            const cliente = {
+                nome: document.querySelector("#name").value.trim(),
+                email: document.querySelector("#email").value.trim(),
 
                 endereco: {
                     cep: document.querySelector("#cep").value.trim(),
@@ -554,7 +546,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         document.querySelector("#neighborhood").value.trim(),
                     cidade: document.querySelector("#city").value.trim(),
                     estado: document.querySelector("#state").value
-                },
+                }
+            };
+
+            const pedido = {
+                id: gerarIdPedido(),
+
+                cliente,
 
                 pagamento: formaPagamento,
 
@@ -574,35 +572,77 @@ document.addEventListener("DOMContentLoaded", () => {
                 subtotal,
                 frete: 0,
                 total: subtotal,
-
-                // Padronizado com o painel.
                 status: "Pendente",
-
                 criadoEm: new Date().toISOString()
             };
 
-            try {
-                salvarPedido(pedido);
-            } catch (erro) {
-                console.error("Erro ao salvar pedido:", erro);
-                mostrarMensagem(
-                    "Não foi possível registrar o pedido. Tente novamente."
-                );
-                return;
-            }
+            /* Bloquear cliques repetidos durante o salvamento. */
 
             finalizando = true;
             finishButton.disabled = true;
             finishButton.setAttribute("aria-busy", "true");
+            finishButton.textContent = "Salvando pedido...";
 
-            finishButton.textContent = "Pedido registrado...";
+            try {
+                /*
+                 * Aguarda a confirmação do Supabase.
+                 * Não limpar o carrinho antes deste passo.
+                 */
 
-            // Só limpa o carrinho depois que o pedido foi salvo.
-            localStorage.removeItem(CART_KEY);
+                const pedidoSalvo =
+                    await window.NovaPedidos.salvarPedido(pedido);
 
-            setTimeout(() => {
-                window.location.href = "pedido-realizado.html";
-            }, 800);
+                if (!pedidoSalvo || !pedidoSalvo.id) {
+                    throw new Error(
+                        "O sistema não confirmou o salvamento do pedido."
+                    );
+                }
+
+                /*
+                 * Salvar o último pedido localmente para a página
+                 * de confirmação, somente depois do sucesso.
+                 */
+
+                localStorage.setItem(
+                    ORDER_KEY,
+                    JSON.stringify(pedidoSalvo)
+                );
+
+                /*
+                 * Limpar o carrinho apenas depois que o Supabase
+                 * confirmar a inserção.
+                 */
+
+                localStorage.removeItem(CART_KEY);
+
+                finishButton.textContent = "Pedido registrado!";
+
+                mostrarMensagem("Pedido registrado com sucesso!");
+
+                setTimeout(() => {
+                    window.location.href = "pedido-realizado.html";
+                }, 800);
+
+            } catch (erro) {
+                console.error(
+                    "Erro ao registrar pedido:",
+                    erro
+                );
+
+                mostrarMensagem(
+                    erro.message ||
+                    "Não foi possível registrar o pedido. Tente novamente."
+                );
+
+                /*
+                 * Preservar o carrinho e liberar nova tentativa.
+                 */
+
+                finalizando = false;
+                finishButton.disabled = false;
+                finishButton.removeAttribute("aria-busy");
+                finishButton.textContent = "Finalizar pedido";
+            }
         });
     }
 

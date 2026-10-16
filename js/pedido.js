@@ -1,51 +1,45 @@
+
 document.addEventListener("DOMContentLoaded", () => {
+    "use strict";
 
     const ORDER_KEY = "novaPedido";
 
-    const pedido = JSON.parse(
-        localStorage.getItem(ORDER_KEY)
-    );
+    // =========================================
+    // ELEMENTOS DA PÁGINA
+    // =========================================
 
-    /* =========================
-       VERIFICAR PEDIDO
-    ========================= */
+    const loading = document.getElementById("pedido-loading");
+    const erro = document.getElementById("pedido-erro");
+    const erroMensagem = document.getElementById("pedido-erro-mensagem");
+    const conteudo = document.getElementById("pedido-conteudo");
+    const tentarNovamente = document.getElementById("pedido-tentar-novamente");
 
-    if (!pedido) {
+    const numeroPedido = document.getElementById("pedido-numero");
+    const labelStatus = document.getElementById("pedido-label-status");
+    const mensagemPedido = document.getElementById("pedido-mensagem");
+    const statusPedido = document.getElementById("pedido-status");
 
-        mostrarMensagem(
-            "Nenhum pedido encontrado."
-        );
+    const produtosContainer = document.getElementById("pedido-produtos");
+    const semProdutos = document.getElementById("pedido-sem-produtos");
 
-        setTimeout(() => {
-            window.location.href = "loja.html";
-        }, 1500);
+    const subtotalElemento = document.getElementById("pedido-subtotal");
+    const freteElemento = document.getElementById("pedido-frete");
+    const totalElemento = document.getElementById("pedido-total");
 
-        return;
-    }
+    const pagamentoElemento = document.getElementById("pedido-pagamento");
+    const pagamentoStatus = document.getElementById("pedido-pagamento-status");
 
-    /* =========================
-       ELEMENTOS
-    ========================= */
+    const descontoLinha = document.getElementById("pedido-desconto-linha");
+    const descontoElemento = document.getElementById("pedido-desconto");
 
-    const numeroPedido =
-        document.querySelector(".pedido-numero strong");
-
-    const produtosContainer =
-        document.querySelector(".pedido-resumo .pedido-card");
-
-    const totais =
-        document.querySelector(".pedido-totais");
-
-    const emailTexto =
-        document.querySelector(".pedido-info p");
-
-    /* =========================
-       FORMATAR PREÇO
-    ========================= */
+    // =========================================
+    // FORMATAÇÃO
+    // =========================================
 
     function formatarPreco(valor) {
+        const numero = Number(valor);
 
-        return Number(valor || 0).toLocaleString(
+        return (Number.isFinite(numero) ? numero : 0).toLocaleString(
             "pt-BR",
             {
                 style: "currency",
@@ -54,316 +48,289 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
-    /* =========================
-       MOSTRAR ID DO PEDIDO
-    ========================= */
-
-    if (numeroPedido && pedido.id) {
-
-        numeroPedido.textContent =
-            `#${pedido.id}`;
+    function obterNumero(valor, padrao = 0) {
+        const numero = Number(valor);
+        return Number.isFinite(numero) ? numero : padrao;
     }
 
-    /* =========================
-       RENDERIZAR PRODUTOS
-    ========================= */
+    function obterTexto(valor, padrao = "") {
+        return typeof valor === "string" ? valor.trim() : padrao;
+    }
 
-    function renderizarProdutos() {
+    // =========================================
+    // ESTADOS DA PÁGINA
+    // =========================================
 
+    function mostrarCarregamento() {
+        if (loading) loading.hidden = false;
+        if (erro) erro.hidden = true;
+        if (conteudo) conteudo.hidden = true;
+    }
+
+    function mostrarErro(texto) {
+        if (loading) loading.hidden = true;
+        if (conteudo) conteudo.hidden = true;
+        if (erro) erro.hidden = false;
+
+        if (erroMensagem) {
+            erroMensagem.textContent = texto;
+        }
+    }
+
+    function mostrarConteudo() {
+        if (loading) loading.hidden = true;
+        if (erro) erro.hidden = true;
+        if (conteudo) conteudo.hidden = false;
+    }
+
+    // =========================================
+    // CARREGAR PEDIDO LOCAL
+    // =========================================
+
+    function carregarPedidoLocal() {
+        try {
+            const dados = localStorage.getItem(ORDER_KEY);
+
+            if (!dados) {
+                return null;
+            }
+
+            return JSON.parse(dados);
+        } catch (error) {
+            console.error("Erro ao ler os dados do pedido:", error);
+            return null;
+        }
+    }
+
+    function validarPedido(pedido) {
+        if (!pedido || typeof pedido !== "object") {
+            return false;
+        }
+
+        if (!obterTexto(pedido.id)) {
+            return false;
+        }
+
+        const itens = Array.isArray(pedido.itens)
+            ? pedido.itens
+            : Array.isArray(pedido.produtos)
+                ? pedido.produtos
+                : [];
+
+        if (itens.length === 0) {
+            return false;
+        }
+
+        return itens.every(item => {
+            if (!item || typeof item !== "object") {
+                return false;
+            }
+
+            const quantidade = Number(item.quantidade);
+            const preco = Number(item.preco);
+
+            return (
+                obterTexto(item.nome).length > 0 &&
+                Number.isFinite(quantidade) &&
+                quantidade > 0 &&
+                Number.isFinite(preco) &&
+                preco >= 0
+            );
+        });
+    }
+
+    // =========================================
+    // RENDERIZAR PRODUTOS
+    // =========================================
+
+    function renderizarProdutos(pedido) {
         if (!produtosContainer) return;
 
-        // Remove produtos fixos do HTML
-        const produtosExistentes =
-            produtosContainer.querySelectorAll(
-                ".pedido-produto"
-            );
+        produtosContainer.replaceChildren();
 
-        produtosExistentes.forEach(produto => {
-            produto.remove();
-        });
+        const itens = Array.isArray(pedido.itens)
+            ? pedido.itens
+            : Array.isArray(pedido.produtos)
+                ? pedido.produtos
+                : [];
 
-        // Local onde os produtos serão inseridos
-        const elementoTotais =
-            produtosContainer.querySelector(
-                ".pedido-totais"
-            );
+        if (semProdutos) {
+            semProdutos.hidden = itens.length > 0;
+        }
 
-        /*
-            O checkout atual salva os produtos
-            dentro de "itens".
+        itens.forEach(produto => {
+            const item = document.createElement("article");
+            item.className = "pedido-produto";
 
-            "produtos" é mantido como compatibilidade
-            com versões anteriores.
-        */
+            const imagemContainer = document.createElement("div");
+            imagemContainer.className = "pedido-produto-imagem";
 
-        const produtos =
-            pedido.itens ||
-            pedido.produtos ||
-            [];
+            const imagemUrl = obterTexto(produto.imagem);
 
-        produtos.forEach(produto => {
+            if (imagemUrl) {
+                const imagem = document.createElement("img");
+                imagem.src = imagemUrl;
+                imagem.alt = obterTexto(produto.nome, "Produto NØVA");
+                imagem.loading = "lazy";
 
-            const item =
-                document.createElement("div");
+                imagem.addEventListener("error", () => {
+                    imagem.remove();
 
-            item.className =
-                "pedido-produto";
+                    const fallback = document.createElement("span");
+                    fallback.textContent = "NØVA";
+                    imagemContainer.appendChild(fallback);
+                }, { once: true });
 
-            /* =========================
-               COR E TAMANHO
-            ========================= */
-
-            const detalhes = [];
-
-            if (produto.cor) {
-                detalhes.push(produto.cor);
-            }
-
-            if (produto.tamanho) {
-                detalhes.push(produto.tamanho);
-            }
-
-            const detalhesTexto =
-                detalhes.length > 0
-                    ? detalhes.join(" · ")
-                    : "Produto";
-
-            /* =========================
-               HTML DO PRODUTO
-            ========================= */
-
-            item.innerHTML = `
-                <div class="pedido-produto-imagem">
-                    ${
-                        produto.imagem
-                            ? `<img 
-                                src="${produto.imagem}" 
-                                alt="${produto.nome || "Produto NØVA"}"
-                              >`
-                            : `<span>NØVA</span>`
-                    }
-                </div>
-
-                <div class="pedido-produto-info">
-
-                    <h3>
-                        ${produto.nome || "Produto NØVA"}
-                    </h3>
-
-                    <p>
-                        ${detalhesTexto}
-                    </p>
-
-                    <span>
-                        Quantidade: ${produto.quantidade || 1}
-                    </span>
-
-                </div>
-
-                <strong>
-                    ${formatarPreco(
-                        Number(produto.preco || 0) *
-                        Number(produto.quantidade || 1)
-                    )}
-                </strong>
-            `;
-
-            // Insere o produto antes dos totais
-            if (elementoTotais) {
-
-                produtosContainer.insertBefore(
-                    item,
-                    elementoTotais
-                );
-
+                imagemContainer.appendChild(imagem);
             } else {
-
-                produtosContainer.appendChild(item);
-
+                const fallback = document.createElement("span");
+                fallback.textContent = "NØVA";
+                imagemContainer.appendChild(fallback);
             }
 
+            const informacoes = document.createElement("div");
+            informacoes.className = "pedido-produto-info";
+
+            const nome = document.createElement("h3");
+            nome.textContent = obterTexto(produto.nome, "Produto NØVA");
+
+            const detalhes = document.createElement("p");
+            const opcoes = [];
+
+            if (produto.cor) opcoes.push(obterTexto(produto.cor));
+            if (produto.tamanho) opcoes.push(obterTexto(produto.tamanho));
+
+            detalhes.textContent = opcoes.length
+                ? opcoes.join(" · ")
+                : "Produto";
+
+            const quantidade = document.createElement("span");
+            quantidade.textContent =
+                `Quantidade: ${obterNumero(produto.quantidade, 1)}`;
+
+            informacoes.append(nome, detalhes, quantidade);
+
+            const preco = document.createElement("strong");
+            preco.textContent = formatarPreco(
+                obterNumero(produto.preco) *
+                obterNumero(produto.quantidade, 1)
+            );
+
+            item.append(imagemContainer, informacoes, preco);
+            produtosContainer.appendChild(item);
         });
     }
 
-    /* =========================
-       ATUALIZAR TOTAIS
-    ========================= */
+    // =========================================
+    // ATUALIZAR TOTAIS
+    // =========================================
 
-    function atualizarTotais() {
+    function atualizarTotais(pedido) {
+        const subtotal = obterNumero(pedido.subtotal);
+        const frete = obterNumero(pedido.frete);
+        const total = obterNumero(pedido.total);
 
-        if (!totais) return;
-
-        const linhas =
-            totais.querySelectorAll(
-                ":scope > div"
-            );
-
-        /* =========================
-           SUBTOTAL
-        ========================= */
-
-        if (linhas.length >= 1) {
-
-            const subtotal =
-                linhas[0].querySelector("strong");
-
-            if (subtotal) {
-
-                subtotal.textContent =
-                    formatarPreco(
-                        pedido.subtotal || 0
-                    );
-            }
+        if (subtotalElemento) {
+            subtotalElemento.textContent = formatarPreco(subtotal);
         }
 
-        /* =========================
-           FRETE
-        ========================= */
-
-        if (linhas.length >= 2) {
-
-            const frete =
-                linhas[1].querySelector("strong");
-
-            if (frete) {
-
-                const valorFrete =
-                    Number(pedido.frete || 0);
-
-                frete.textContent =
-                    valorFrete > 0
-                        ? formatarPreco(valorFrete)
-                        : "Grátis";
-            }
+        if (freteElemento) {
+            freteElemento.textContent = frete > 0
+                ? formatarPreco(frete)
+                : "Grátis";
         }
 
-        /* =========================
-           TOTAL FINAL
-        ========================= */
+        if (totalElemento) {
+            totalElemento.textContent = formatarPreco(total);
+        }
 
-        const totalFinal =
-            document.querySelector(
-                ".pedido-total-final strong"
-            );
+        const desconto = obterNumero(pedido.desconto);
 
-        if (totalFinal) {
-
-            totalFinal.textContent =
-                formatarPreco(
-                    pedido.total || 0
-                );
+        if (descontoLinha && descontoElemento) {
+            descontoLinha.hidden = desconto <= 0;
+            descontoElemento.textContent = formatarPreco(desconto);
         }
     }
 
-    /* =========================
-       ATUALIZAR E-MAIL
-    ========================= */
+    // =========================================
+    // ATUALIZAR PAGAMENTO
+    // =========================================
 
-    if (
-        emailTexto &&
-        pedido.cliente &&
-        pedido.cliente.email
-    ) {
-
-        emailTexto.textContent =
-            `Enviamos os detalhes do seu pedido para ${pedido.cliente.email}.`;
-    }
-
-    /* =========================
-       MOSTRAR PAGAMENTO
-    ========================= */
-
-    const resumoHeader =
-        document.querySelector(
-            ".pedido-card-header"
-        );
-
-    if (
-        resumoHeader &&
-        pedido.pagamento
-    ) {
-
-        const pagamentoExistente =
-            resumoHeader.querySelector(
-                ".pedido-pagamento"
+    function atualizarPagamento(pedido) {
+        if (pagamentoElemento) {
+            const pagamento = obterTexto(
+                pedido.pagamento,
+                "Informação indisponível"
             );
 
-        if (!pagamentoExistente) {
+            pagamentoElemento.textContent = pagamento;
+        }
 
-            const pagamento =
-                document.createElement("span");
-
-            pagamento.className =
-                "pedido-pagamento";
-
-            pagamento.textContent =
-                `Pagamento: ${pedido.pagamento}`;
-
-            resumoHeader.appendChild(
-                pagamento
-            );
+        if (pagamentoStatus) {
+            // O site ainda não possui confirmação de pagamento
+            // por um provedor externo.
+            pagamentoStatus.hidden = true;
+            pagamentoStatus.textContent = "";
         }
     }
 
-    /* =========================
-       RENDERIZAÇÃO
-    ========================= */
+    // =========================================
+    // EXIBIR PEDIDO
+    // =========================================
 
-    renderizarProdutos();
-
-    atualizarTotais();
-
-    /* =========================
-       MENSAGEM
-    ========================= */
-
-    function mostrarMensagem(texto) {
-
-        const mensagemExistente =
-            document.querySelector(
-                ".nova-mensagem"
-            );
-
-        if (mensagemExistente) {
-            mensagemExistente.remove();
+    function renderizarPedido(pedido) {
+        if (numeroPedido) {
+            numeroPedido.textContent = `#${pedido.id}`;
         }
 
-        const mensagem =
-            document.createElement("div");
+        if (labelStatus) {
+            labelStatus.textContent = "PEDIDO RECEBIDO";
+        }
 
-        mensagem.className =
-            "nova-mensagem";
+        if (statusPedido) {
+            statusPedido.textContent = obterTexto(
+                pedido.status,
+                "Pendente"
+            );
+        }
 
-        mensagem.textContent =
-            texto;
+        if (mensagemPedido) {
+            mensagemPedido.textContent =
+                "Os dados deste pedido estão disponíveis abaixo. " +
+                "O pagamento ainda depende da forma de pagamento escolhida.";
+        }
 
-        Object.assign(
-            mensagem.style,
-            {
-                position: "fixed",
-                bottom: "25px",
-                right: "25px",
-                zIndex: "9999",
-                padding: "14px 20px",
-                background: "#1E222B",
-                color: "#F5F7FA",
-                border: "1px solid #8B5CF6",
-                borderRadius: "8px",
-                fontSize: "14px",
-                boxShadow:
-                    "0 10px 30px rgba(0,0,0,0.3)"
-            }
-        );
+        renderizarProdutos(pedido);
+        atualizarTotais(pedido);
+        atualizarPagamento(pedido);
 
-        document.body.appendChild(
-            mensagem
-        );
-
-        setTimeout(() => {
-
-            mensagem.remove();
-
-        }, 3000);
+        // Só exibe os detalhes depois de validar os dados locais.
+        mostrarConteudo();
     }
 
+    // =========================================
+    // INICIALIZAÇÃO
+    // =========================================
+
+    function inicializar() {
+        mostrarCarregamento();
+
+        const pedido = carregarPedidoLocal();
+
+        if (!validarPedido(pedido)) {
+            mostrarErro(
+                "Não encontramos um pedido válido neste navegador. " +
+                "Se você acabou de finalizar uma compra, confira se ela foi salva antes de tentar novamente."
+            );
+            return;
+        }
+
+        renderizarPedido(pedido);
+    }
+
+    if (tentarNovamente) {
+        tentarNovamente.addEventListener("click", inicializar);
+    }
+
+    inicializar();
 });
