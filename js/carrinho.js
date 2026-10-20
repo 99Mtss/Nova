@@ -1,502 +1,679 @@
+
 /* =========================================================
-   NØVA — CARRINHO
+   NØVA — CARRINHO DE COMPRAS
+   Integração com produtos e configurações do Supabase
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
+    "use strict";
 
     const CART_KEY = "novaCarrinho";
+    const CONFIG_TABLE = "configuracoes_nova";
+    const PRODUCTS_TABLE = "produtos_nova";
 
+    /* ELEMENTOS DO HTML */
     const cartProducts = document.querySelector(".cart-products");
-    const cartProductsHeader = document.querySelector(".cart-products-header");
-    const summaryTotal = document.querySelector(".summary-total strong");
-    const cartCount = document.querySelector(".cart-count");
+    const cartList = document.querySelector("#cart-items-list");
+    const cartEmpty = document.querySelector("#cart-empty");
+    const cartError = document.querySelector("#cart-error");
+    const cartLoading = document.querySelector("#cart-loading");
+    const cartCount = document.querySelector("#cart-count");
+    const cartItemsCount = document.querySelector("#cart-items-count");
+    const subtotalElement = document.querySelector("#cart-subtotal");
+    const shippingElement = document.querySelector("#cart-shipping");
+    const discountRow = document.querySelector("#cart-discount-row");
+    const discountElement = document.querySelector("#cart-discount");
+    const totalElement = document.querySelector("#cart-total");
+    const checkoutButton = document.querySelector("#checkout-button");
+    const retryButton = document.querySelector("#retry-cart");
+    const couponInput = document.querySelector("#coupon");
+    const couponButton = document.querySelector("#apply-coupon");
+    const couponMessage = document.querySelector("#coupon-message");
 
     let carrinho = carregarCarrinho();
-
+    let configuracoes = {};
+    let produtosBanco = {};
+    let carregando = false;
 
     /* =====================================================
-       CARREGAR CARRINHO
+       SUPABASE
        ===================================================== */
 
-    function carregarCarrinho() {
-        try {
-            const dados = localStorage.getItem(CART_KEY);
-
-            if (!dados) {
-                return [];
-            }
-
-            const produtos = JSON.parse(dados);
-
-            if (!Array.isArray(produtos)) {
-                return [];
-            }
-
-            return produtos.map(produto => ({
-                ...produto,
-                quantidade: Number(produto.quantidade) || 1,
-                preco: Number(produto.preco) || 0
-            }));
-
-        } catch (erro) {
-            console.error("Erro ao carregar carrinho:", erro);
-            return [];
-        }
+    function obterClienteSupabase() {
+        return window.supabaseClient || null;
     }
 
-
     /* =====================================================
-       FORMATAR PREÇO
+       UTILITÁRIOS
        ===================================================== */
 
     function formatarPreco(valor) {
-        return Number(valor).toLocaleString("pt-BR", {
+        return Number(valor || 0).toLocaleString("pt-BR", {
             style: "currency",
             currency: "BRL"
         });
     }
 
+    function numeroValido(valor, padrao = 0) {
+        const numero = Number(valor);
+        return Number.isFinite(numero) ? numero : padrao;
+    }
 
-    /* =====================================================
-       SALVAR CARRINHO
-       ===================================================== */
+    function escaparTexto(valor) {
+        return String(valor ?? "");
+    }
+
+    function carregarCarrinho() {
+        try {
+            const dados = localStorage.getItem(CART_KEY);
+            const produtos = dados ? JSON.parse(dados) : [];
+
+            if (!Array.isArray(produtos)) {
+                return [];
+            }
+
+            return produtos
+                .filter(produto => produto && typeof produto === "object")
+                .map(produto => ({
+                    ...produto,
+                    id: produto.id ?? produto.produtoId ?? null,
+                    nome: produto.nome || "Produto NØVA",
+                    categoria: produto.categoria || "Produto",
+                    quantidade: Math.max(
+                        1,
+                        Math.floor(numeroValido(produto.quantidade, 1))
+                    ),
+                    preco: Math.max(0, numeroValido(produto.preco)),
+                    precoOriginal: Math.max(
+                        0,
+                        numeroValido(produto.precoOriginal, numeroValido(produto.preco))
+                    )
+                }));
+        } catch (erro) {
+            console.error("Erro ao ler o carrinho:", erro);
+            return [];
+        }
+    }
 
     function salvarCarrinho() {
-        localStorage.setItem(
-            CART_KEY,
-            JSON.stringify(carrinho)
+        try {
+            localStorage.setItem(CART_KEY, JSON.stringify(carrinho));
+        } catch (erro) {
+            console.error("Erro ao salvar o carrinho:", erro);
+            mostrarErro("Não foi possível salvar as alterações do carrinho.");
+        }
+    }
+
+    function quantidadeTotal() {
+        return carrinho.reduce(
+            (total, produto) => total + numeroValido(produto.quantidade),
+            0
         );
     }
 
+    function precoOriginal(produto) {
+        return Math.max(
+            0,
+            numeroValido(produto.precoOriginal, numeroValido(produto.preco))
+        );
+    }
+
+    function precoAtual(produto) {
+        return Math.max(0, numeroValido(produto.preco));
+    }
+
+    function subtotalOriginal() {
+        return carrinho.reduce(
+            (total, produto) =>
+                total + precoOriginal(produto) * numeroValido(produto.quantidade),
+            0
+        );
+    }
+
+    function valorTotal() {
+        return carrinho.reduce(
+            (total, produto) =>
+                total + precoAtual(produto) * numeroValido(produto.quantidade),
+            0
+        );
+    }
+
+    function valorDesconto() {
+        return Math.max(0, subtotalOriginal() - valorTotal());
+    }
 
     /* =====================================================
-       ATUALIZAR CONTADOR
+       CONFIGURAÇÕES E PROMOÇÕES
        ===================================================== */
 
-    function atualizarContador() {
+    async function carregarConfiguracoes() {
+        const supabase = obterClienteSupabase();
 
-        if (!cartCount) {
+        if (!supabase) {
+            console.warn("Cliente Supabase não encontrado. Usando dados locais.");
             return;
         }
 
-        const quantidade = carrinho.reduce(
-            (total, produto) => {
-                return total + Number(produto.quantidade || 0);
-            },
-            0
-        );
+        try {
+            const { data, error } = await supabase
+                .from(CONFIG_TABLE)
+                .select("configuracoes")
+                .eq("id", "loja")
+                .maybeSingle();
 
-        cartCount.textContent = quantidade;
+            if (error) {
+                console.warn("Não foi possível carregar as configurações:", error.message);
+                return;
+            }
+
+            configuracoes = data?.configuracoes || {};
+        } catch (erro) {
+            console.warn("Erro ao consultar configurações:", erro);
+        }
     }
 
+    function obterPromocao(id) {
+        const promocoes = configuracoes?.promocoes;
+
+        if (!Array.isArray(promocoes)) {
+            return null;
+        }
+
+        return promocoes.find(promocao =>
+            String(promocao.id) === String(id)
+        ) || null;
+    }
 
     /* =====================================================
-       ATUALIZAR RESUMO
+       ATUALIZAR DADOS COM O SUPABASE
+       ===================================================== */
+
+    async function atualizarProdutosDoBanco() {
+        const supabase = obterClienteSupabase();
+
+        if (!supabase || carrinho.length === 0) {
+            return;
+        }
+
+        const ids = [
+            ...new Set(
+                carrinho
+                    .map(produto => produto.id)
+                    .filter(id => id !== null && id !== undefined && String(id).trim() !== "")
+                    .map(String)
+            )
+        ];
+
+        if (ids.length === 0) {
+            return;
+        }
+
+        try {
+            const { data, error } = await supabase
+                .from(PRODUCTS_TABLE)
+                .select("id,nome,categoria,descricao,preco,estoque,ativo,imagem,imagens")
+                .in("id", ids);
+
+            if (error) {
+                console.warn("Não foi possível atualizar os produtos:", error.message);
+                return;
+            }
+
+            produtosBanco = {};
+
+            (data || []).forEach(produto => {
+                produtosBanco[String(produto.id)] = produto;
+            });
+
+            carrinho = carrinho.map(item => {
+                const produtoBanco = produtosBanco[String(item.id)];
+
+                if (!produtoBanco) {
+                    return item;
+                }
+
+                const precoBanco = Math.max(0, numeroValido(produtoBanco.preco));
+                const promocao = obterPromocao(produtoBanco.id);
+                const precoPromocional = promocao
+                    ? numeroValido(promocao.preco, precoBanco)
+                    : precoBanco;
+
+                const imagens = Array.isArray(produtoBanco.imagens)
+                    ? produtoBanco.imagens
+                    : [];
+
+                const imagemBanco =
+                    produtoBanco.imagem ||
+                    imagens.find(imagem => typeof imagem === "string" && imagem.trim()) ||
+                    item.imagem ||
+                    "";
+
+                return {
+                    ...item,
+                    nome: produtoBanco.nome || item.nome,
+                    categoria: produtoBanco.categoria || item.categoria,
+                    imagem: imagemBanco,
+                    precoOriginal: precoBanco,
+                    preco: Math.max(0, Math.min(precoPromocional, precoBanco)),
+                    estoque: Math.max(0, Math.floor(numeroValido(produtoBanco.estoque))),
+                    ativo: produtoBanco.ativo !== false
+                };
+            });
+
+            /* Corrige quantidades caso o estoque tenha diminuído. */
+            carrinho = carrinho
+                .filter(item => {
+                    const produtoBanco = produtosBanco[String(item.id)];
+
+                    /* Mantém dados locais se o produto não foi retornado pelo banco. */
+                    if (!produtoBanco) {
+                        return true;
+                    }
+
+                    return produtoBanco.ativo !== false &&
+                        numeroValido(produtoBanco.estoque) > 0;
+                })
+                .map(item => {
+                    if (item.estoque === undefined) {
+                        return item;
+                    }
+
+                    return {
+                        ...item,
+                        quantidade: Math.min(
+                            item.quantidade,
+                            Math.max(1, item.estoque)
+                        )
+                    };
+                });
+
+            salvarCarrinho();
+        } catch (erro) {
+            console.error("Erro ao atualizar produtos do carrinho:", erro);
+        }
+    }
+
+    /* =====================================================
+       CONTADOR DO CABEÇALHO
+       ===================================================== */
+
+    function atualizarContador() {
+        if (cartCount) {
+            cartCount.textContent = quantidadeTotal();
+        }
+    }
+
+    /* =====================================================
+       RESUMO DA COMPRA
        ===================================================== */
 
     function atualizarResumo() {
-
-        const subtotal = carrinho.reduce(
-            (total, produto) => {
-                return total +
-                    Number(produto.preco || 0) *
-                    Number(produto.quantidade || 0);
-            },
-            0
-        );
-
-
-        /* SUBTOTAL */
-
-        const subtotalElement = document.querySelector(
-            ".summary-items .summary-row:first-child strong"
-        );
+        const subtotal = subtotalOriginal();
+        const desconto = valorDesconto();
+        const total = valorTotal();
 
         if (subtotalElement) {
-            subtotalElement.textContent =
-                formatarPreco(subtotal);
+            subtotalElement.textContent = formatarPreco(subtotal);
         }
 
-
-        /* TOTAL */
-
-        if (summaryTotal) {
-            summaryTotal.textContent =
-                formatarPreco(subtotal);
+        if (discountElement) {
+            discountElement.textContent = `− ${formatarPreco(desconto)}`;
         }
 
+        if (discountRow) {
+            discountRow.hidden = desconto <= 0;
+        }
 
-        /* QUANTIDADE */
+        if (totalElement) {
+            totalElement.textContent = formatarPreco(total);
+        }
 
-        if (cartProductsHeader) {
+        if (shippingElement) {
+            shippingElement.textContent = "A calcular";
+        }
 
-            const quantidade = carrinho.reduce(
-                (total, produto) => {
-                    return total +
-                        Number(produto.quantidade || 0);
-                },
-                0
-            );
+        if (cartItemsCount) {
+            const quantidade = quantidadeTotal();
+            cartItemsCount.textContent =
+                quantidade === 1 ? "1 item" : `${quantidade} itens`;
+        }
 
-            const quantidadeElement =
-                cartProductsHeader.querySelector("span");
+        if (checkoutButton) {
+            const vazio = carrinho.length === 0;
+            checkoutButton.setAttribute("aria-disabled", String(vazio));
+            checkoutButton.classList.toggle("disabled", vazio);
 
-            if (quantidadeElement) {
-
-                quantidadeElement.textContent =
-                    quantidade === 1
-                        ? "1 item"
-                        : `${quantidade} itens`;
+            if (vazio) {
+                checkoutButton.setAttribute("tabindex", "-1");
+            } else {
+                checkoutButton.removeAttribute("tabindex");
             }
         }
     }
 
-
     /* =====================================================
-       CARRINHO VAZIO
+       MENSAGENS DE ESTADO
        ===================================================== */
 
-    function mostrarCarrinhoVazio() {
-
-        const continuar =
-            cartProducts.querySelector(".continue-shopping");
-
-        if (!continuar) {
+    function mostrarErro(mensagem) {
+        if (!cartError) {
             return;
         }
 
-        const vazio =
-            document.createElement("div");
+        cartError.hidden = false;
 
-        vazio.className = "cart-empty";
-
-        vazio.innerHTML = `
-            <i class="fa-solid fa-bag-shopping"></i>
-
-            <h3>
-                Seu carrinho está vazio
-            </h3>
-
-            <p>
-                Adicione alguns produtos para continuar.
-            </p>
-
-            <a href="loja.html">
-                Explorar produtos
-            </a>
-        `;
-
-        cartProducts.insertBefore(
-            vazio,
-            continuar
-        );
+        const paragrafo = cartError.querySelector("p");
+        if (paragrafo) {
+            paragrafo.textContent = mensagem;
+        }
     }
 
+    function esconderErro() {
+        if (cartError) {
+            cartError.hidden = true;
+        }
+    }
 
-    /* =====================================================
-       RENDERIZAR PRODUTOS
-       ===================================================== */
+    function atualizarEstadoVazio() {
+        const vazio = carrinho.length === 0;
 
-    function renderizarCarrinho() {
-
-        if (!cartProducts) {
-            return;
+        if (cartEmpty) {
+            cartEmpty.hidden = !vazio;
         }
 
-
-        /* Remove produtos antigos */
-
-        cartProducts
-            .querySelectorAll(".cart-item")
-            .forEach(item => item.remove());
-
-
-        /* Remove mensagem de carrinho vazio anterior */
-
-        cartProducts
-            .querySelectorAll(".cart-empty")
-            .forEach(item => item.remove());
-
-
-        /* Carrinho vazio */
-
-        if (carrinho.length === 0) {
-
-            mostrarCarrinhoVazio();
-
-            atualizarResumo();
-            atualizarContador();
-
-            return;
+        if (cartList) {
+            cartList.hidden = vazio;
+            cartList.setAttribute("aria-busy", "false");
         }
 
-
-        /* Produtos */
-
-        carrinho.forEach((produto, index) => {
-
-            const item =
-                document.createElement("article");
-
-            item.className = "cart-item";
-
-
-            const imagem =
-                produto.imagem || "";
-
-
-            item.innerHTML = `
-
-                <div class="cart-item-image">
-
-                    ${
-                        imagem
-                            ? `
-                                <img
-                                    src="${imagem}"
-                                    alt="${produto.nome || "Produto NØVA"}"
-                                >
-                            `
-                            : `
-                                <span>
-                                    IMAGEM
-                                </span>
-                            `
-                    }
-
-                </div>
-
-
-                <div class="cart-item-info">
-
-                    <span class="cart-item-category">
-                        ${produto.categoria || "PRODUTO"}
-                    </span>
-
-                    <h3>
-                        ${produto.nome || "Produto NØVA"}
-                    </h3>
-
-                    ${
-                        produto.cor
-                            ? `
-                                <p class="cart-item-color">
-                                    Cor: ${produto.cor}
-                                </p>
-                            `
-                            : ""
-                    }
-
-                    ${
-                        produto.tamanho
-                            ? `
-                                <p class="cart-item-size">
-                                    Tamanho: ${produto.tamanho}
-                                </p>
-                            `
-                            : ""
-                    }
-
-                    <button
-                        class="remove-item"
-                        type="button"
-                        data-index="${index}"
-                    >
-
-                        <i class="fa-regular fa-trash-can"></i>
-
-                        Remover
-
-                    </button>
-
-                </div>
-
-
-                <div class="cart-item-right">
-
-                    <div class="cart-item-price">
-                        ${formatarPreco(produto.preco)}
-                    </div>
-
-
-                    <div class="cart-quantity">
-
-                        <button
-                            type="button"
-                            class="decrease-quantity"
-                            data-index="${index}"
-                            aria-label="Diminuir quantidade"
-                        >
-                            −
-                        </button>
-
-                        <span>
-                            ${produto.quantidade}
-                        </span>
-
-                        <button
-                            type="button"
-                            class="increase-quantity"
-                            data-index="${index}"
-                            aria-label="Aumentar quantidade"
-                        >
-                            +
-                        </button>
-
-                    </div>
-
-                </div>
-
-            `;
-
-
-            const continuar =
-                cartProducts.querySelector(
-                    ".continue-shopping"
-                );
-
-
-            cartProducts.insertBefore(
-                item,
-                continuar
-            );
-
-        });
-
-
-        adicionarEventos();
+        if (cartLoading) {
+            cartLoading.hidden = true;
+        }
 
         atualizarResumo();
-
         atualizarContador();
     }
 
-
     /* =====================================================
-       EVENTOS DOS BOTÕES
+       CRIAR ITEM DO CARRINHO
        ===================================================== */
 
-    function adicionarEventos() {
+    function criarItem(produto, index) {
+        const item = document.createElement("article");
+        item.className = "cart-item";
 
+        const imagemContainer = document.createElement("div");
+        imagemContainer.className = "cart-item-image";
 
-        /* AUMENTAR */
+        if (produto.imagem) {
+            const imagem = document.createElement("img");
+            imagem.src = produto.imagem;
+            imagem.alt = produto.nome;
+            imagem.loading = "lazy";
+            imagem.onerror = () => {
+                imagem.remove();
+                const fallback = document.createElement("span");
+                fallback.textContent = "SEM IMAGEM";
+                imagemContainer.appendChild(fallback);
+            };
+            imagemContainer.appendChild(imagem);
+        } else {
+            const fallback = document.createElement("span");
+            fallback.textContent = "SEM IMAGEM";
+            imagemContainer.appendChild(fallback);
+        }
 
-        document
-            .querySelectorAll(".increase-quantity")
-            .forEach(button => {
+        const info = document.createElement("div");
+        info.className = "cart-item-info";
 
-                button.addEventListener(
-                    "click",
-                    () => {
+        const categoria = document.createElement("span");
+        categoria.className = "cart-item-category";
+        categoria.textContent = produto.categoria;
 
-                        const index =
-                            Number(button.dataset.index);
+        const nome = document.createElement("h3");
+        nome.textContent = produto.nome;
 
+        info.append(categoria, nome);
 
-                        if (!carrinho[index]) {
-                            return;
-                        }
+        if (produto.cor) {
+            const cor = document.createElement("p");
+            cor.className = "cart-item-color";
+            cor.textContent = `Cor: ${produto.cor}`;
+            info.appendChild(cor);
+        }
 
+        if (produto.tamanho) {
+            const tamanho = document.createElement("p");
+            tamanho.className = "cart-item-size";
+            tamanho.textContent = `Tamanho: ${produto.tamanho}`;
+            info.appendChild(tamanho);
+        }
 
-                        carrinho[index].quantidade =
-                            Number(
-                                carrinho[index].quantidade
-                            ) + 1;
+        const remover = document.createElement("button");
+        remover.type = "button";
+        remover.className = "remove-item";
+        remover.dataset.index = index;
+        remover.setAttribute("aria-label", `Remover ${produto.nome} do carrinho`);
+        remover.innerHTML = '<i class="fa-regular fa-trash-can" aria-hidden="true"></i> Remover';
+        info.appendChild(remover);
 
+        const ladoDireito = document.createElement("div");
+        ladoDireito.className = "cart-item-right";
 
-                        salvarCarrinho();
+        const preco = document.createElement("div");
+        preco.className = "cart-item-price";
+        preco.textContent = formatarPreco(precoAtual(produto));
 
-                        renderizarCarrinho();
+        if (precoOriginal(produto) > precoAtual(produto)) {
+            const original = document.createElement("del");
+            original.className = "cart-item-original-price";
+            original.textContent = formatarPreco(precoOriginal(produto));
+            preco.appendChild(original);
+        }
 
-                    }
-                );
+        const quantidadeContainer = document.createElement("div");
+        quantidadeContainer.className = "cart-quantity";
 
-            });
+        const diminuir = document.createElement("button");
+        diminuir.type = "button";
+        diminuir.className = "decrease-quantity";
+        diminuir.dataset.index = index;
+        diminuir.setAttribute("aria-label", "Diminuir quantidade");
+        diminuir.textContent = "−";
 
+        const quantidade = document.createElement("span");
+        quantidade.textContent = produto.quantidade;
+        quantidade.setAttribute("aria-label", "Quantidade");
 
-        /* DIMINUIR */
+        const aumentar = document.createElement("button");
+        aumentar.type = "button";
+        aumentar.className = "increase-quantity";
+        aumentar.dataset.index = index;
+        aumentar.setAttribute("aria-label", "Aumentar quantidade");
+        aumentar.textContent = "+";
 
-        document
-            .querySelectorAll(".decrease-quantity")
-            .forEach(button => {
+        const estoqueConhecido = Number.isFinite(Number(produto.estoque));
+        if (estoqueConhecido && produto.quantidade >= Number(produto.estoque)) {
+            aumentar.disabled = true;
+            aumentar.title = "Quantidade máxima disponível em estoque";
+        }
 
-                button.addEventListener(
-                    "click",
-                    () => {
+        quantidadeContainer.append(diminuir, quantidade, aumentar);
+        ladoDireito.append(preco, quantidadeContainer);
+        item.append(imagemContainer, info, ladoDireito);
 
-                        const index =
-                            Number(button.dataset.index);
-
-
-                        if (!carrinho[index]) {
-                            return;
-                        }
-
-
-                        if (
-                            Number(
-                                carrinho[index].quantidade
-                            ) > 1
-                        ) {
-
-                            carrinho[index].quantidade--;
-
-                        } else {
-
-                            carrinho.splice(index, 1);
-
-                        }
-
-
-                        salvarCarrinho();
-
-                        renderizarCarrinho();
-
-                    }
-                );
-
-            });
-
-
-        /* REMOVER */
-
-        document
-            .querySelectorAll(".remove-item")
-            .forEach(button => {
-
-                button.addEventListener(
-                    "click",
-                    () => {
-
-                        const index =
-                            Number(button.dataset.index);
-
-
-                        if (!carrinho[index]) {
-                            return;
-                        }
-
-
-                        carrinho.splice(index, 1);
-
-                        salvarCarrinho();
-
-                        renderizarCarrinho();
-
-                    }
-                );
-
-            });
-
+        return item;
     }
 
+    /* =====================================================
+       RENDERIZAR CARRINHO
+       ===================================================== */
+
+    function renderizarCarrinho() {
+        if (!cartList) {
+            console.error("Elemento #cart-items-list não encontrado no HTML.");
+            return;
+        }
+
+        cartList.replaceChildren();
+
+        carrinho.forEach((produto, index) => {
+            cartList.appendChild(criarItem(produto, index));
+        });
+
+        atualizarEstadoVazio();
+        esconderErro();
+    }
+
+    /* =====================================================
+       ALTERAR QUANTIDADE E REMOVER PRODUTOS
+       ===================================================== */
+
+    if (cartList) {
+        cartList.addEventListener("click", evento => {
+            const botao = evento.target.closest("button");
+
+            if (!botao) {
+                return;
+            }
+
+            const index = Number(botao.dataset.index);
+
+            if (!Number.isInteger(index) || !carrinho[index]) {
+                return;
+            }
+
+            if (botao.classList.contains("increase-quantity")) {
+                const produto = carrinho[index];
+                const estoque = produto.estoque;
+
+                if (
+                    estoque !== undefined &&
+                    Number.isFinite(Number(estoque)) &&
+                    produto.quantidade >= Number(estoque)
+                ) {
+                    mostrarErro("Você já atingiu a quantidade disponível em estoque.");
+                    return;
+                }
+
+                produto.quantidade += 1;
+            } else if (botao.classList.contains("decrease-quantity")) {
+                if (carrinho[index].quantidade > 1) {
+                    carrinho[index].quantidade -= 1;
+                } else {
+                    carrinho.splice(index, 1);
+                }
+            } else if (botao.classList.contains("remove-item")) {
+                carrinho.splice(index, 1);
+            } else {
+                return;
+            }
+
+            salvarCarrinho();
+            renderizarCarrinho();
+        });
+    }
+
+    /* =====================================================
+       CUPOM DE DESCONTO
+       ===================================================== */
+
+    if (couponButton) {
+        couponButton.addEventListener("click", () => {
+            const cupom = couponInput?.value.trim() || "";
+
+            if (!couponMessage) {
+                return;
+            }
+
+            couponMessage.hidden = false;
+
+            if (!cupom) {
+                couponMessage.textContent = "Digite um cupom para continuar.";
+                return;
+            }
+
+            couponMessage.textContent =
+                "A validação de cupons ainda não está configurada nesta loja.";
+        });
+    }
+
+    if (couponInput) {
+        couponInput.addEventListener("keydown", evento => {
+            if (evento.key === "Enter") {
+                evento.preventDefault();
+                couponButton?.click();
+            }
+        });
+    }
+
+    /* =====================================================
+       IMPEDIR CHECKOUT COM CARRINHO VAZIO
+       ===================================================== */
+
+    if (checkoutButton) {
+        checkoutButton.addEventListener("click", evento => {
+            if (carrinho.length === 0) {
+                evento.preventDefault();
+                atualizarEstadoVazio();
+            }
+        });
+    }
+
+    /* =====================================================
+       TENTAR NOVAMENTE
+       ===================================================== */
+
+    if (retryButton) {
+        retryButton.addEventListener("click", async () => {
+            esconderErro();
+            await inicializarCarrinho();
+        });
+    }
 
     /* =====================================================
        INICIALIZAÇÃO
        ===================================================== */
 
-    renderizarCarrinho();
+    async function inicializarCarrinho() {
+        if (carregando) {
+            return;
+        }
 
-    atualizarContador();
+        carregando = true;
 
+        if (cartList) {
+            cartList.setAttribute("aria-busy", "true");
+        }
+
+        if (cartLoading) {
+            cartLoading.hidden = false;
+        }
+
+        try {
+            carrinho = carregarCarrinho();
+
+            await carregarConfiguracoes();
+            await atualizarProdutosDoBanco();
+
+            salvarCarrinho();
+            renderizarCarrinho();
+        } catch (erro) {
+            console.error("Erro ao inicializar o carrinho:", erro);
+            mostrarErro("Não foi possível atualizar o carrinho. Seus produtos locais foram preservados.");
+            renderizarCarrinho();
+        } finally {
+            carregando = false;
+
+            if (cartList) {
+                cartList.setAttribute("aria-busy", "false");
+            }
+
+            if (cartLoading) {
+                cartLoading.hidden = true;
+            }
+        }
+    }
+
+    inicializarCarrinho();
 });

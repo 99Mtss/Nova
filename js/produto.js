@@ -1,87 +1,84 @@
-javascript
+
 /* =========================================================
    NØVA — PÁGINA DO PRODUTO
+   Supabase + imagens + promoções + carrinho + relacionados
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
+    "use strict";
+
     const CART_KEY = "novaCarrinho";
     const PRODUCT_KEY = "novaProdutoSelecionado";
+    const FAVORITES_KEY = "novaFavoritos";
+
+    const supabaseClient = window.supabaseClient;
 
     /* ELEMENTOS */
-    const productTitle = document.querySelector(".product-information h1");
-    const productPrice = document.querySelector(".product-detail-price strong");
-    const productReference = document.querySelector(".product-reference");
-    const breadcrumbProduct = document.querySelector(".product-breadcrumb span");
+    const productTitle = document.getElementById("product-name");
+    const productPrice = document.getElementById("product-price");
+    const productReference = document.getElementById("product-reference");
+    const breadcrumb = document.getElementById("product-breadcrumb-name");
+    const description = document.getElementById("product-description");
 
-    const colorOptions = document.querySelectorAll(".color-option");
-    const selectedColorText = document.querySelector(".option-heading strong");
-    const sizeOptions = document.querySelectorAll(".product-sizes button");
+    const mainImage = document.getElementById("product-image");
+    const mainImageContainer = document.getElementById("product-main-image");
+    const placeholder = document.getElementById("product-image-placeholder");
+    const thumbnailsContainer = document.getElementById("product-thumbnails");
 
-    const quantityControl = document.querySelector(".quantity-control");
-    const quantityDisplay = quantityControl?.querySelector("span");
-    const quantityButtons = quantityControl?.querySelectorAll("button");
+    const colorOption = document.getElementById("product-color-option");
+    const colorContainer = document.getElementById("product-colors");
+    const selectedColorText = document.getElementById("selected-color-name");
 
-    const addToCartButton = document.querySelector(".add-to-cart");
-    const cartCount = document.querySelector(".cart-count");
-    const favoriteButtons = document.querySelectorAll(
-        ".gallery-favorite, .buy-favorite"
-    );
+    const sizeOption = document.getElementById("product-size-option");
+    const sizeContainer = document.getElementById("product-sizes");
+    const sizeError = document.getElementById("size-error");
 
-    const mainImageContainer = document.querySelector(".product-main-image");
-    const placeholder = document.querySelector(".product-image-placeholder");
-    const thumbnailsContainer = document.querySelector(".product-thumbnails");
+    const quantityInput = document.getElementById("product-quantity");
+    const decreaseButton = document.getElementById("decrease-quantity");
+    const increaseButton = document.getElementById("increase-quantity");
 
-    /* PRODUTO SELECIONADO */
+    const addToCartButton = document.getElementById("add-to-cart");
+    const addToCartText = document.getElementById("add-to-cart-text");
+    const stockElement = document.getElementById("product-stock");
+    const messageElement = document.getElementById("product-message");
+
+    const cartCount = document.getElementById("cart-count");
+    const errorSection = document.getElementById("product-error");
+    const retryButton = document.getElementById("retry-product");
+    const relatedContainer = document.getElementById("related-products-list");
+
     let produtoSelecionado = null;
-
-    try {
-        produtoSelecionado = JSON.parse(
-            localStorage.getItem(PRODUCT_KEY)
-        );
-    } catch (erro) {
-        console.error("Erro ao ler produto selecionado:", erro);
-    }
-
-    function mostrarMensagem(texto) {
-        document.querySelector(".nova-mensagem")?.remove();
-
-        const mensagem = document.createElement("div");
-        mensagem.className = "nova-mensagem";
-        mensagem.textContent = texto;
-
-        Object.assign(mensagem.style, {
-            position: "fixed",
-            bottom: "25px",
-            right: "25px",
-            zIndex: "99999",
-            padding: "14px 20px",
-            background: "#1E222B",
-            color: "#F5F7FA",
-            border: "1px solid #8B5CF6",
-            borderRadius: "8px",
-            fontSize: "14px",
-            boxShadow: "0 10px 30px rgba(0,0,0,.3)"
-        });
-
-        document.body.appendChild(mensagem);
-        setTimeout(() => mensagem.remove(), 2500);
-    }
-
-    if (!produtoSelecionado) {
-        mostrarMensagem("Nenhum produto selecionado.");
-
-        setTimeout(() => {
-            window.location.href = "loja.html";
-        }, 1200);
-
-        return;
-    }
-
+    let configuracoes = {};
     let quantidade = 1;
-    let corSelecionada = "Preto";
-    let tamanhoSelecionado = "M";
+    let corSelecionada = "";
+    let tamanhoSelecionado = "";
+    let precoAtual = 0;
+    let finalizandoAdicao = false;
 
-    /* FORMATAR PREÇO */
+    /* =====================================================
+       FUNÇÕES AUXILIARES
+       ===================================================== */
+
+    function lerLocalStorage(chave, padrao = null) {
+        try {
+            const valor = localStorage.getItem(chave);
+            return valor ? JSON.parse(valor) : padrao;
+        } catch (erro) {
+            console.error(`Erro ao ler ${chave}:`, erro);
+            return padrao;
+        }
+    }
+
+    function salvarLocalStorage(chave, valor) {
+        try {
+            localStorage.setItem(chave, JSON.stringify(valor));
+            return true;
+        } catch (erro) {
+            console.error(`Erro ao salvar ${chave}:`, erro);
+            return false;
+        }
+    }
+
     function formatarPreco(valor) {
         return Number(valor || 0).toLocaleString("pt-BR", {
             style: "currency",
@@ -89,33 +86,15 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* MOSTRAR DADOS DO PRODUTO */
-    function mostrarProduto() {
-        if (productTitle) {
-            productTitle.textContent = produtoSelecionado.nome || "Produto NØVA";
-        }
-
-        if (productPrice) {
-            productPrice.textContent = formatarPreco(produtoSelecionado.preco);
-        }
-
-        if (breadcrumbProduct) {
-            breadcrumbProduct.textContent = produtoSelecionado.nome || "Produto";
-        }
-
-        if (productReference && produtoSelecionado.categoria) {
-            productReference.textContent =
-                produtoSelecionado.categoria.toUpperCase();
-        }
+    function escaparHTML(valor) {
+        return String(valor ?? "").replace(/[&<>"']/g, caractere => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[caractere]);
     }
-
-    /* =====================================================
-       GALERIA DE IMAGENS
-       Aceita:
-       imagem: "https://..."
-       imagem: "assets/produtos/camiseta.jpg"
-       imagens: ["foto1.jpg", "foto2.jpg"]
-       ===================================================== */
 
     function normalizarImagem(imagem) {
         if (typeof imagem === "string") {
@@ -135,21 +114,30 @@ document.addEventListener("DOMContentLoaded", () => {
         return "";
     }
 
-    function obterImagens() {
+    function obterImagens(produto) {
         const imagens = [];
-
-        const principal = normalizarImagem(produtoSelecionado.imagem);
+        const principal = normalizarImagem(produto.imagem);
 
         if (principal) {
             imagens.push(principal);
         }
 
-        if (Array.isArray(produtoSelecionado.imagens)) {
-            produtoSelecionado.imagens.forEach(item => {
-                const caminho = normalizarImagem(item);
+        let adicionais = produto.imagens;
 
-                if (caminho && !imagens.includes(caminho)) {
-                    imagens.push(caminho);
+        if (typeof adicionais === "string") {
+            try {
+                adicionais = JSON.parse(adicionais);
+            } catch {
+                adicionais = [];
+            }
+        }
+
+        if (Array.isArray(adicionais)) {
+            adicionais.forEach(item => {
+                const imagem = normalizarImagem(item);
+
+                if (imagem && !imagens.includes(imagem)) {
+                    imagens.push(imagem);
                 }
             });
         }
@@ -157,293 +145,846 @@ document.addEventListener("DOMContentLoaded", () => {
         return imagens;
     }
 
-    function configurarGaleria() {
-        if (!mainImageContainer) {
-            console.warn("Elemento .product-main-image não encontrado.");
-            return;
+    function mostrarMensagem(texto, tipo = "sucesso") {
+        if (messageElement) {
+            messageElement.textContent = texto;
+            messageElement.hidden = false;
+            messageElement.dataset.tipo = tipo;
         }
 
-        const imagens = obterImagens();
+        let toast = document.querySelector(".nova-mensagem");
 
-        let imagemPrincipal = mainImageContainer.querySelector(
-            ".product-main-photo"
-        );
+        if (!toast) {
+            toast = document.createElement("div");
+            toast.className = "nova-mensagem";
 
-        if (!imagemPrincipal) {
-            imagemPrincipal = document.createElement("img");
-            imagemPrincipal.className = "product-main-photo";
-            imagemPrincipal.alt = produtoSelecionado.nome || "Produto NØVA";
-
-            Object.assign(imagemPrincipal.style, {
-                display: "block",
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                objectPosition: "center"
+            Object.assign(toast.style, {
+                position: "fixed",
+                bottom: "24px",
+                right: "24px",
+                zIndex: "99999",
+                padding: "14px 20px",
+                background: "#151519",
+                color: "#F5F5F5",
+                border: "1px solid #777",
+                borderRadius: "8px",
+                fontSize: "14px",
+                boxShadow: "0 10px 30px rgba(0,0,0,.3)",
+                maxWidth: "min(90vw, 380px)"
             });
 
-            mainImageContainer.appendChild(imagemPrincipal);
+            document.body.appendChild(toast);
         }
 
-        if (imagens.length === 0) {
-            imagemPrincipal.removeAttribute("src");
-            imagemPrincipal.hidden = true;
+        toast.textContent = texto;
+        toast.style.borderColor = tipo === "erro" ? "#ef4444" : "#777";
 
-            if (placeholder) {
-                placeholder.hidden = false;
-                placeholder.textContent = "IMAGEM DO PRODUTO";
-            }
+        clearTimeout(toast._timeout);
+        toast._timeout = setTimeout(() => toast.remove(), 3000);
+    }
 
-            if (thumbnailsContainer) {
-                thumbnailsContainer.querySelectorAll("button").forEach(botao => {
-                    botao.hidden = true;
-                });
-            }
+    function obterProdutoArmazenado() {
+        return lerLocalStorage(PRODUCT_KEY, null);
+    }
 
-            console.warn(
-                "Este produto não possui imagem cadastrada.",
-                produtoSelecionado
-            );
+    function obterIdSelecionado() {
+        const selecionado = obterProdutoArmazenado();
 
+        if (selecionado?.id !== undefined && selecionado?.id !== null) {
+            return String(selecionado.id);
+        }
+
+        return null;
+    }
+
+    function obterPromocoes() {
+        const promocoes = configuracoes.promocoes;
+        return Array.isArray(promocoes) ? promocoes : [];
+    }
+
+    function obterPrecoPromocional(produto) {
+        const promocao = obterPromocoes().find(item =>
+            String(item.id) === String(produto.id)
+        );
+
+        if (!promocao) return null;
+
+        const preco = Number(promocao.preco);
+
+        if (
+            !Number.isFinite(preco) ||
+            preco <= 0 ||
+            preco >= Number(produto.preco)
+        ) {
+            return null;
+        }
+
+        return preco;
+    }
+
+    function obterPrecoFinal(produto) {
+        return obterPrecoPromocional(produto) ?? Number(produto.preco || 0);
+    }
+
+    function produtoDisponivel(produto) {
+        return produto &&
+            produto.ativo !== false &&
+            Number(produto.estoque || 0) > 0;
+    }
+
+    /* =====================================================
+       CONFIGURAÇÕES DA LOJA
+       ===================================================== */
+
+    async function carregarConfiguracoes() {
+        if (!supabaseClient) {
+            console.warn("Cliente Supabase não encontrado.");
             return;
         }
 
-        if (placeholder) {
-            placeholder.hidden = true;
+        const { data, error } = await supabaseClient
+            .from("configuracoes_nova")
+            .select("configuracoes")
+            .eq("id", "loja")
+            .maybeSingle();
+
+        if (error) {
+            console.warn("Não foi possível carregar as configurações:", error);
+            return;
         }
 
-        function selecionarImagem(caminho, botaoAtivo) {
-            imagemPrincipal.hidden = false;
-            imagemPrincipal.alt = produtoSelecionado.nome || "Produto NØVA";
+        configuracoes = data?.configuracoes || {};
+        aplicarCores();
+    }
 
-            imagemPrincipal.onerror = () => {
-                imagemPrincipal.hidden = true;
+    function aplicarCores() {
+        const cores = configuracoes.cores || {};
+        const raiz = document.documentElement;
 
+        const variaveis = {
+            Fundo: "--nova-cor-fundo",
+            Superfície: "--nova-cor-superficie",
+            Destaque: "--nova-cor-destaque",
+            Texto: "--nova-cor-texto"
+        };
+
+        Object.entries(variaveis).forEach(([chave, variavel]) => {
+            const valor = cores[chave];
+
+            if (typeof valor === "string" &&
+                /^#[0-9a-f]{3,8}$/i.test(valor)) {
+                raiz.style.setProperty(variavel, valor);
+            }
+        });
+    }
+
+    /* =====================================================
+       CARREGAR PRODUTO DO SUPABASE
+       ===================================================== */
+
+    async function carregarProduto() {
+        const id = obterIdSelecionado();
+
+        if (!id) {
+            mostrarErro("Nenhum produto foi selecionado.");
+            return;
+        }
+
+        if (!supabaseClient) {
+            mostrarErro("A conexão com o banco de dados não foi inicializada.");
+            return;
+        }
+
+        if (errorSection) errorSection.hidden = true;
+
+        if (addToCartButton) {
+            addToCartButton.disabled = true;
+            if (addToCartText) addToCartText.textContent = "Carregando produto...";
+        }
+
+        const { data, error } = await supabaseClient
+            .from("produtos_nova")
+            .select("*")
+            .eq("id", id)
+            .maybeSingle();
+
+        if (error) {
+            console.error("Erro ao consultar produto:", error);
+            mostrarErro("Não foi possível consultar o produto no banco de dados.");
+            return;
+        }
+
+        if (!data || data.ativo === false) {
+            mostrarErro("Este produto não está disponível na loja.");
+            return;
+        }
+
+        produtoSelecionado = data;
+
+        /* Mantém o produto selecionado atualizado no navegador. */
+        salvarLocalStorage(PRODUCT_KEY, data);
+
+        quantidade = 1;
+        corSelecionada = "";
+        tamanhoSelecionado = "";
+        precoAtual = obterPrecoFinal(data);
+
+        renderizarProduto();
+        configurarGaleria();
+        configurarCores();
+        configurarTamanhos();
+        atualizarQuantidade();
+        atualizarEstoque();
+        atualizarFavoritos();
+        atualizarContadorCarrinho();
+        await carregarProdutosRelacionados();
+    }
+
+    function mostrarErro(mensagem) {
+        console.error(mensagem);
+
+        if (errorSection) {
+            errorSection.hidden = false;
+
+            const texto = errorSection.querySelector("[role='alert']");
+            if (texto) texto.textContent = mensagem;
+        }
+
+        if (productTitle) productTitle.textContent = "Produto indisponível";
+        if (addToCartButton) addToCartButton.disabled = true;
+        if (addToCartText) addToCartText.textContent = "Indisponível";
+
+        if (stockElement) stockElement.textContent = mensagem;
+    }
+
+    /* =====================================================
+       RENDERIZAR INFORMAÇÕES
+       ===================================================== */
+
+    function renderizarProduto() {
+        const produto = produtoSelecionado;
+        const precoPromocional = obterPrecoPromocional(produto);
+
+        if (productTitle) {
+            productTitle.textContent = produto.nome || "Produto NØVA";
+        }
+
+        if (productReference) {
+            productReference.textContent =
+                produto.categoria?.toUpperCase() || "NØVA";
+        }
+
+        if (breadcrumb) {
+            breadcrumb.textContent = produto.nome || "Produto";
+        }
+
+        if (description) {
+            description.textContent =
+                produto.descricao || "Conheça os detalhes desta peça NØVA.";
+        }
+
+        const precoOriginal = Number(produto.preco || 0);
+
+        if (productPrice) {
+            if (precoPromocional !== null) {
+                productPrice.innerHTML =
+                    `<span class="price-old">${formatarPreco(precoOriginal)}</span> ` +
+                    `<span class="price-promotion">${formatarPreco(precoPromocional)}</span>`;
+            } else {
+                productPrice.textContent = formatarPreco(precoOriginal);
+            }
+        }
+
+        if (precoPromocional !== null && productPrice) {
+            productPrice.setAttribute("aria-label",
+                `Preço promocional ${formatarPreco(precoPromocional)}. ` +
+                `Preço original ${formatarPreco(precoOriginal)}`
+            );
+        }
+
+        const etiqueta = document.getElementById("product-label");
+
+        if (etiqueta) {
+            const destaque = Array.isArray(configuracoes.destaques) &&
+                configuracoes.destaques.some(id =>
+                    String(id) === String(produto.id)
+                );
+
+            const emPromocao = precoPromocional !== null;
+
+            etiqueta.hidden = !destaque && !emPromocao;
+            etiqueta.textContent = emPromocao
+                ? "PROMOÇÃO"
+                : "DESTAQUE";
+        }
+
+        const installment = document.getElementById("product-installments");
+
+        if (installment) {
+            installment.textContent = precoPromocional !== null
+                ? "Oferta especial configurada pela loja."
+                : "Confira as condições de pagamento no checkout.";
+        }
+
+        if (addToCartText) {
+            addToCartText.textContent = "Adicionar ao carrinho";
+        }
+
+        document.title = `${produto.nome || "Produto"} | NØVA`;
+    }
+
+    /* =====================================================
+       GALERIA DE IMAGENS
+       ===================================================== */
+
+    function configurarGaleria() {
+        if (!produtoSelecionado || !mainImage) return;
+
+        const imagens = obterImagens(produtoSelecionado);
+
+        mainImage.hidden = true;
+        mainImage.removeAttribute("src");
+
+        if (thumbnailsContainer) {
+            thumbnailsContainer.replaceChildren();
+        }
+
+        if (!imagens.length) {
+            if (placeholder) {
+                placeholder.hidden = false;
+                placeholder.textContent = "IMAGEM NÃO CADASTRADA";
+            }
+            return;
+        }
+
+        function selecionarImagem(url, botao) {
+            mainImage.hidden = false;
+            mainImage.alt = produtoSelecionado.nome || "Produto NØVA";
+
+            mainImage.onload = () => {
+                mainImage.hidden = false;
+                if (placeholder) placeholder.hidden = true;
+            };
+
+            mainImage.onerror = () => {
+                mainImage.hidden = true;
                 if (placeholder) {
                     placeholder.hidden = false;
                     placeholder.textContent = "IMAGEM INDISPONÍVEL";
                 }
-
-                console.error("Não foi possível carregar a imagem:", caminho);
+                console.error("Falha ao carregar imagem:", url);
             };
 
-            imagemPrincipal.onload = () => {
-                imagemPrincipal.hidden = false;
-
-                if (placeholder) {
-                    placeholder.hidden = true;
-                }
-            };
-
-            imagemPrincipal.src = caminho;
+            mainImage.src = url;
 
             if (thumbnailsContainer) {
-                thumbnailsContainer.querySelectorAll("button").forEach(botao => {
-                    botao.classList.remove("active");
+                thumbnailsContainer.querySelectorAll("button").forEach(item => {
+                    item.classList.toggle("active", item === botao);
                 });
             }
-
-            botaoAtivo?.classList.add("active");
         }
 
-        if (thumbnailsContainer) {
-            const botoes = Array.from(
-                thumbnailsContainer.querySelectorAll("button")
-            );
+        imagens.forEach((url, indice) => {
+            if (indice === 0) {
+                selecionarImagem(url, null);
+            }
 
-            imagens.forEach((caminho, indice) => {
-                let botao = botoes[indice];
+            if (!thumbnailsContainer) return;
 
-                if (!botao) {
-                    botao = document.createElement("button");
-                    botao.type = "button";
-                    botao.className = "product-thumbnail";
-                    thumbnailsContainer.appendChild(botao);
-                }
+            const botao = document.createElement("button");
+            botao.type = "button";
+            botao.className = "product-thumbnail";
+            botao.setAttribute("aria-label", `Ver imagem ${indice + 1}`);
 
-                botao.hidden = false;
-                botao.innerHTML = "";
+            const imagem = document.createElement("img");
+            imagem.src = url;
+            imagem.alt = `${produtoSelecionado.nome || "Produto"} — imagem ${indice + 1}`;
+            imagem.loading = "lazy";
 
-                const miniatura = document.createElement("img");
-                miniatura.src = caminho;
-                miniatura.alt = `Foto ${indice + 1} de ${produtoSelecionado.nome || "produto"}`;
+            botao.appendChild(imagem);
+            botao.addEventListener("click", () => selecionarImagem(url, botao));
+            thumbnailsContainer.appendChild(botao);
+        });
+    }
 
-                Object.assign(miniatura.style, {
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover"
+    /* =====================================================
+       CORES
+       ===================================================== */
+
+    function configurarCores() {
+        if (!colorOption || !colorContainer) return;
+
+        let cores = produtoSelecionado.cores;
+
+        if (typeof cores === "string") {
+            try {
+                cores = JSON.parse(cores);
+            } catch {
+                cores = cores.split(",").map(cor => cor.trim()).filter(Boolean);
+            }
+        }
+
+        if (!Array.isArray(cores) || cores.length === 0) {
+            colorOption.hidden = true;
+            corSelecionada = "";
+            return;
+        }
+
+        colorOption.hidden = false;
+        colorContainer.replaceChildren();
+
+        cores.forEach(item => {
+            const cor = typeof item === "string"
+                ? { nome: item }
+                : item;
+
+            if (!cor?.nome) return;
+
+            const botao = document.createElement("button");
+            botao.type = "button";
+            botao.className = "color-option";
+            botao.dataset.color = cor.nome;
+            botao.setAttribute("aria-label", cor.nome);
+            botao.title = cor.nome;
+
+            if (cor.hex && /^#[0-9a-f]{3,8}$/i.test(cor.hex)) {
+                botao.style.backgroundColor = cor.hex;
+            } else {
+                botao.textContent = cor.nome;
+            }
+
+            botao.addEventListener("click", () => {
+                colorContainer.querySelectorAll("button").forEach(item => {
+                    item.classList.remove("selected");
                 });
 
-                miniatura.onerror = () => {
-                    botao.classList.add("thumbnail-error");
-                };
+                botao.classList.add("selected");
+                corSelecionada = cor.nome;
 
-                botao.appendChild(miniatura);
-
-                botao.onclick = () => selecionarImagem(caminho, botao);
+                if (selectedColorText) {
+                    selectedColorText.textContent = cor.nome;
+                }
             });
 
-            botoes.slice(imagens.length).forEach(botao => {
-                botao.hidden = true;
-            });
+            colorContainer.appendChild(botao);
+        });
 
-            selecionarImagem(
-                imagens[0],
-                thumbnailsContainer.querySelector("button:not([hidden])")
-            );
-        } else {
-            selecionarImagem(imagens[0], null);
+        if (!colorContainer.children.length) {
+            colorOption.hidden = true;
+            return;
+        }
+
+        if (selectedColorText) selectedColorText.textContent = "Selecione";
+    }
+
+    /* =====================================================
+       TAMANHOS
+       ===================================================== */
+
+    function configurarTamanhos() {
+        if (!sizeOption || !sizeContainer) return;
+
+        const categoria = String(produtoSelecionado.categoria || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
+
+        const acessorio = categoria.includes("acessorio") ||
+            categoria.includes("bone") ||
+            categoria.includes("cap");
+
+        if (acessorio) {
+            sizeOption.hidden = true;
+            tamanhoSelecionado = "Único";
+            if (sizeError) sizeError.hidden = true;
+            return;
+        }
+
+        sizeOption.hidden = false;
+
+        sizeContainer.querySelectorAll("button").forEach(botao => {
+            botao.classList.remove("selected");
+            botao.disabled = false;
+
+            botao.addEventListener("click", () => {
+                sizeContainer.querySelectorAll("button").forEach(item => {
+                    item.classList.remove("selected");
+                });
+
+                botao.classList.add("selected");
+                tamanhoSelecionado = botao.dataset.size ||
+                    botao.textContent.trim();
+
+                if (sizeError) sizeError.hidden = true;
+            });
+        });
+    }
+
+    /* =====================================================
+       ESTOQUE E QUANTIDADE
+       ===================================================== */
+
+    function atualizarQuantidade() {
+        const estoque = Number(produtoSelecionado?.estoque || 0);
+
+        quantidade = Math.max(1, Math.min(
+            Number.parseInt(quantidadeInput?.value, 10) || quantidade || 1,
+            Math.max(estoque, 1)
+        ));
+
+        if (quantityInput) {
+            quantityInput.value = quantidade;
+            quantityInput.min = "1";
+            quantityInput.max = String(Math.max(estoque, 1));
+        }
+
+        if (decreaseButton) {
+            decreaseButton.disabled = quantidade <= 1;
+        }
+
+        if (increaseButton) {
+            increaseButton.disabled = estoque <= 0 || quantidade >= estoque;
+        }
+
+        if (addToCartButton) {
+            addToCartButton.disabled = estoque <= 0;
         }
     }
 
-    /* CONTADOR DO CARRINHO */
-    function atualizarContador() {
-        if (!cartCount) return;
+    function atualizarEstoque() {
+        if (!stockElement || !produtoSelecionado) return;
 
-        let carrinho = [];
+        const estoque = Number(produtoSelecionado.estoque || 0);
 
-        try {
-            carrinho = JSON.parse(localStorage.getItem(CART_KEY)) || [];
-        } catch (erro) {
-            carrinho = [];
+        if (estoque <= 0) {
+            stockElement.textContent = "Produto esgotado no momento.";
+            if (addToCartText) addToCartText.textContent = "Produto esgotado";
+            if (addToCartButton) addToCartButton.disabled = true;
+        } else if (estoque <= 5) {
+            stockElement.textContent = `Últimas unidades: ${estoque} disponível(is).`;
+        } else {
+            stockElement.textContent = "Produto disponível em estoque.";
+        }
+    }
+
+    decreaseButton?.addEventListener("click", () => {
+        quantidade = Math.max(1, quantidade - 1);
+        atualizarQuantidade();
+    });
+
+    increaseButton?.addEventListener("click", () => {
+        const estoque = Number(produtoSelecionado?.estoque || 0);
+
+        if (quantidade < estoque) {
+            quantidade += 1;
+            atualizarQuantidade();
+        }
+    });
+
+    quantityInput?.addEventListener("change", () => {
+        const valor = Number.parseInt(quantityInput.value, 10);
+        quantidade = Number.isFinite(valor) ? valor : 1;
+        atualizarQuantidade();
+    });
+
+    quantityInput?.addEventListener("input", () => {
+        const valor = Number.parseInt(quantityInput.value, 10);
+
+        if (Number.isFinite(valor) && valor > 0) {
+            quantidade = valor;
+        }
+    });
+
+    /* =====================================================
+       CONTADOR DO CARRINHO
+       ===================================================== */
+
+    function atualizarContadorCarrinho() {
+        const carrinho = lerLocalStorage(CART_KEY, []);
+        const total = Array.isArray(carrinho)
+            ? carrinho.reduce((soma, item) =>
+                soma + Math.max(0, Number(item.quantidade || 0)), 0)
+            : 0;
+
+        document.querySelectorAll("[data-cart-count], .cart-count").forEach(el => {
+            el.textContent = total;
+        });
+    }
+
+    /* =====================================================
+       ADICIONAR AO CARRINHO
+       ===================================================== */
+
+    addToCartButton?.addEventListener("click", () => {
+        if (finalizandoAdicao || !produtoSelecionado) return;
+
+        const estoque = Number(produtoSelecionado.estoque || 0);
+
+        if (estoque <= 0) {
+            mostrarMensagem("Este produto está esgotado.", "erro");
+            return;
         }
 
-        const total = carrinho.reduce(
-            (soma, produto) => soma + Number(produto.quantidade || 0),
-            0
+        if (sizeOption && !sizeOption.hidden && !tamanhoSelecionado) {
+            if (sizeError) sizeError.hidden = false;
+            mostrarMensagem("Selecione um tamanho antes de continuar.", "erro");
+            return;
+        }
+
+        if (colorOption && !colorOption.hidden && !corSelecionada) {
+            mostrarMensagem("Selecione uma cor antes de continuar.", "erro");
+            return;
+        }
+
+        const quantidadeSolicitada = Math.max(
+            1,
+            Number.parseInt(quantityInput?.value, 10) || quantidade
         );
 
-        cartCount.textContent = total;
-    }
+        if (quantidadeSolicitada > estoque) {
+            mostrarMensagem(`Há somente ${estoque} unidade(s) em estoque.`, "erro");
+            return;
+        }
 
-    /* CORES */
-    colorOptions.forEach(botao => {
-        botao.addEventListener("click", () => {
-            colorOptions.forEach(item => item.classList.remove("selected"));
-            botao.classList.add("selected");
+        finalizandoAdicao = true;
 
-            corSelecionada =
-                botao.getAttribute("aria-label") ||
-                botao.dataset.color ||
-                "Preto";
+        const carrinho = lerLocalStorage(CART_KEY, []);
+        const itens = Array.isArray(carrinho) ? carrinho : [];
+        const preco = obterPrecoFinal(produtoSelecionado);
 
-            if (selectedColorText) {
-                selectedColorText.textContent = corSelecionada;
-            }
-        });
-    });
+        const produtoExistente = itens.find(item =>
+            String(item.id) === String(produtoSelecionado.id) &&
+            String(item.tamanho || "") === String(tamanhoSelecionado || "") &&
+            String(item.cor || "") === String(corSelecionada || "")
+        );
 
-    /* TAMANHOS */
-    sizeOptions.forEach(botao => {
-        botao.addEventListener("click", () => {
-            sizeOptions.forEach(item => item.classList.remove("selected"));
-            botao.classList.add("selected");
-            tamanhoSelecionado = botao.textContent.trim();
-        });
-    });
+        if (produtoExistente) {
+            const novaQuantidade =
+                Number(produtoExistente.quantidade || 0) + quantidadeSolicitada;
 
-    /* QUANTIDADE */
-    if (quantityButtons && quantityDisplay) {
-        const diminuir = quantityButtons[0];
-        const aumentar = quantityButtons[1];
-
-        diminuir?.addEventListener("click", () => {
-            if (quantidade > 1) {
-                quantidade--;
-                quantityDisplay.textContent = quantidade;
-            }
-        });
-
-        aumentar?.addEventListener("click", () => {
-            const estoque = Number(produtoSelecionado.estoque);
-
-            if (estoque > 0 && quantidade >= estoque) {
-                mostrarMensagem("Quantidade máxima disponível em estoque.");
+            if (novaQuantidade > estoque) {
+                mostrarMensagem(
+                    `Você já tem este produto no carrinho. Estoque disponível: ${estoque}.`,
+                    "erro"
+                );
+                finalizandoAdicao = false;
                 return;
             }
 
-            quantidade++;
-            quantityDisplay.textContent = quantidade;
-        });
+            produtoExistente.quantidade = novaQuantidade;
+            produtoExistente.preco = preco;
+        } else {
+            itens.push({
+                id: produtoSelecionado.id,
+                nome: produtoSelecionado.nome,
+                preco,
+                precoOriginal: Number(produtoSelecionado.preco || 0),
+                categoria: produtoSelecionado.categoria || "PRODUTO",
+                imagem: normalizarImagem(produtoSelecionado.imagem),
+                cor: corSelecionada || "",
+                tamanho: tamanhoSelecionado || "",
+                quantidade: quantidadeSolicitada
+            });
+        }
+
+        if (!salvarLocalStorage(CART_KEY, itens)) {
+            mostrarMensagem("Não foi possível salvar o carrinho.", "erro");
+            finalizandoAdicao = false;
+            return;
+        }
+
+        quantidade = 1;
+        if (quantityInput) quantityInput.value = "1";
+
+        atualizarQuantidade();
+        atualizarContadorCarrinho();
+        mostrarMensagem("Produto adicionado ao carrinho!");
+
+        if (addToCartText) {
+            addToCartText.textContent = "Adicionado ao carrinho!";
+        }
+
+        setTimeout(() => {
+            if (addToCartText) {
+                addToCartText.textContent = "Adicionar ao carrinho";
+            }
+            finalizandoAdicao = false;
+        }, 1200);
+    });
+
+    /* =====================================================
+       FAVORITOS
+       ===================================================== */
+
+    function obterFavoritos() {
+        const favoritos = lerLocalStorage(FAVORITES_KEY, []);
+        return Array.isArray(favoritos) ? favoritos.map(String) : [];
     }
 
-    /* ADICIONAR AO CARRINHO */
-    if (addToCartButton) {
-        addToCartButton.addEventListener("click", () => {
-            let carrinho = [];
+    function atualizarFavoritos() {
+        if (!produtoSelecionado) return;
 
-            try {
-                carrinho = JSON.parse(localStorage.getItem(CART_KEY)) || [];
-            } catch (erro) {
-                carrinho = [];
-            }
+        const favoritos = obterFavoritos();
+        const favorito = favoritos.includes(String(produtoSelecionado.id));
 
-            const produtoExistente = carrinho.find(produto =>
-                produto.id === produtoSelecionado.id &&
-                produto.tamanho === tamanhoSelecionado &&
-                produto.cor === corSelecionada
-            );
-
-            if (produtoExistente) {
-                produtoExistente.quantidade =
-                    Number(produtoExistente.quantidade || 0) + quantidade;
-            } else {
-                carrinho.push({
-                    id: produtoSelecionado.id,
-                    nome: produtoSelecionado.nome,
-                    preco: Number(produtoSelecionado.preco || 0),
-                    categoria: produtoSelecionado.categoria || "PRODUTO",
-                    imagem: normalizarImagem(produtoSelecionado.imagem),
-                    cor: corSelecionada,
-                    tamanho: tamanhoSelecionado,
-                    quantidade
-                });
-            }
-
-            try {
-                localStorage.setItem(CART_KEY, JSON.stringify(carrinho));
-            } catch (erro) {
-                console.error("Não foi possível salvar o carrinho:", erro);
-                mostrarMensagem("Erro ao salvar o carrinho.");
-                return;
-            }
-
-            atualizarContador();
-            mostrarMensagem("Produto adicionado ao carrinho!");
-
-            const textoOriginal = addToCartButton.innerHTML;
-            addToCartButton.innerHTML =
-                '<i class="fa-solid fa-check"></i> Adicionado ao carrinho';
-
-            setTimeout(() => {
-                addToCartButton.innerHTML = textoOriginal;
-            }, 1800);
-        });
-    }
-
-    /* FAVORITOS */
-    favoriteButtons.forEach(botao => {
-        botao.addEventListener("click", () => {
-            botao.classList.toggle("active");
+        document.querySelectorAll("[data-favorite-product]").forEach(botao => {
+            botao.classList.toggle("active", favorito);
+            botao.setAttribute("aria-pressed", String(favorito));
 
             const icone = botao.querySelector("i");
-            if (!icone) return;
 
-            icone.classList.toggle(
-                "fa-solid",
-                botao.classList.contains("active")
-            );
+            if (icone) {
+                icone.classList.toggle("fa-solid", favorito);
+                icone.classList.toggle("fa-regular", !favorito);
+            }
+        });
+    }
 
-            icone.classList.toggle(
-                "fa-regular",
-                !botao.classList.contains("active")
+    document.querySelectorAll("[data-favorite-product]").forEach(botao => {
+        botao.addEventListener("click", () => {
+            if (!produtoSelecionado) return;
+
+            let favoritos = obterFavoritos();
+            const id = String(produtoSelecionado.id);
+
+            favoritos = favoritos.includes(id)
+                ? favoritos.filter(item => item !== id)
+                : [...favoritos, id];
+
+            if (!salvarLocalStorage(FAVORITES_KEY, favoritos)) {
+                mostrarMensagem("Não foi possível salvar os favoritos.", "erro");
+                return;
+            }
+
+            atualizarFavoritos();
+
+            mostrarMensagem(
+                favoritos.includes(id)
+                    ? "Produto adicionado aos favoritos."
+                    : "Produto removido dos favoritos."
             );
         });
     });
 
-    /* INICIALIZAÇÃO */
-    mostrarProduto();
-    configurarGaleria();
-    atualizarContador();
-});
+    /* =====================================================
+       PRODUTOS RELACIONADOS
+       ===================================================== */
 
+    async function carregarProdutosRelacionados() {
+        if (!relatedContainer || !supabaseClient || !produtoSelecionado) return;
+
+        relatedContainer.setAttribute("aria-busy", "true");
+        relatedContainer.replaceChildren();
+
+        const { data, error } = await supabaseClient
+            .from("produtos_nova")
+            .select("*")
+            .eq("ativo", true)
+            .gt("estoque", 0)
+            .neq("id", produtoSelecionado.id)
+            .limit(4);
+
+        relatedContainer.setAttribute("aria-busy", "false");
+
+        if (error) {
+            console.error("Erro ao carregar produtos relacionados:", error);
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            const mensagem = document.createElement("p");
+            mensagem.textContent = "Não há outros produtos disponíveis no momento.";
+            relatedContainer.appendChild(mensagem);
+            return;
+        }
+
+        data.forEach(produto => {
+            const card = document.createElement("article");
+            card.className = "related-product-card";
+
+            const imagens = obterImagens(produto);
+            const precoPromocional = obterPrecoPromocional(produto);
+            const preco = obterPrecoFinal(produto);
+
+            const imagem = document.createElement("img");
+            imagem.className = "related-product-image";
+            imagem.alt = produto.nome || "Produto NØVA";
+            imagem.loading = "lazy";
+
+            if (imagens[0]) {
+                imagem.src = imagens[0];
+            } else {
+                imagem.hidden = true;
+            }
+
+            const linkImagem = document.createElement("a");
+            linkImagem.href = "produto.html";
+            linkImagem.className = "related-product-image-link";
+            linkImagem.appendChild(imagem);
+
+            const nome = document.createElement("h3");
+            nome.textContent = produto.nome || "Produto NØVA";
+
+            const linkNome = document.createElement("a");
+            linkNome.href = "produto.html";
+            linkNome.className = "related-product-name";
+            linkNome.appendChild(nome);
+
+            const categoria = document.createElement("p");
+            categoria.className = "related-product-category";
+            categoria.textContent = produto.categoria || "NØVA";
+
+            const precoEl = document.createElement("p");
+            precoEl.className = "related-product-price";
+
+            if (precoPromocional !== null) {
+                precoEl.innerHTML =
+                    `<span class="price-old">${escaparHTML(formatarPreco(produto.preco))}</span> ` +
+                    `<strong class="price-promotion">${escaparHTML(formatarPreco(preco))}</strong>`;
+            } else {
+                precoEl.textContent = formatarPreco(preco);
+            }
+
+            [linkImagem, linkNome].forEach(link => {
+                link.addEventListener("click", event => {
+                    event.preventDefault();
+
+                    if (!salvarLocalStorage(PRODUCT_KEY, produto)) {
+                        mostrarMensagem("Não foi possível abrir este produto.", "erro");
+                        return;
+                    }
+
+                    window.location.href = "produto.html";
+                });
+            });
+
+            card.append(linkImagem, categoria, linkNome, precoEl);
+            relatedContainer.appendChild(card);
+        });
+    }
+
+    /* =====================================================
+       TENTAR NOVAMENTE
+       ===================================================== */
+
+    retryButton?.addEventListener("click", async () => {
+        await iniciar();
+    });
+
+    /* =====================================================
+       INICIALIZAÇÃO
+       ===================================================== */
+
+    async function iniciar() {
+        try {
+            await carregarConfiguracoes();
+            await carregarProduto();
+        } catch (erro) {
+            console.error("Erro ao iniciar página do produto:", erro);
+            mostrarErro("Ocorreu um erro ao carregar o produto. Tente novamente.");
+        }
+    }
+
+    atualizarContadorCarrinho();
+    iniciar();
+});

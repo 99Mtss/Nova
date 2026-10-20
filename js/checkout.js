@@ -1,172 +1,302 @@
+
 /* =========================================================
    NØVA — CHECKOUT
-   Finalização da compra e integração com o ADM
+   Validação, resumo e salvamento do pedido no Supabase
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
+    "use strict";
+
     const CART_KEY = "novaCarrinho";
     const ORDER_KEY = "novaPedido";
 
+    const form = document.querySelector("#checkout-form");
+    const finishButton = document.querySelector("#finish-order");
+    const loadingElement = document.querySelector("#checkout-loading");
+    const errorElement = document.querySelector("#checkout-error");
+    const errorMessage = document.querySelector("#checkout-error-message");
+    const layout = document.querySelector("#checkout-layout");
+    const formMessage = document.querySelector("#checkout-form-message");
+
+    const summaryProducts = document.querySelector("#checkout-summary-products");
+    const productsLoading = document.querySelector("#checkout-products-loading");
+    const itemsCountElement = document.querySelector("#checkout-items-count");
+    const subtotalElement = document.querySelector("#checkout-subtotal");
+    const shippingElement = document.querySelector("#checkout-shipping");
+    const discountRow = document.querySelector("#checkout-discount-row");
+    const discountElement = document.querySelector("#checkout-discount");
+    const totalElement = document.querySelector("#checkout-total");
+
+    const paymentOptions = document.querySelectorAll(".payment-option");
+    const paymentNotice = document.querySelector("#payment-notice");
+    const cepInput = document.querySelector("#cep");
+
     let carrinho = [];
-
-    try {
-        const dados = JSON.parse(
-            localStorage.getItem(CART_KEY) || "[]"
-        );
-
-        carrinho = Array.isArray(dados) ? dados : [];
-    } catch (erro) {
-        console.error("Erro ao carregar carrinho:", erro);
-        carrinho = [];
-    }
-
-    /* =====================================================
-       ELEMENTOS
-       ===================================================== */
-
-    const summaryContainer = document.querySelector(
-        ".checkout-summary"
-    );
-
-    const summaryItemsCount = document.querySelector(
-        ".checkout-summary-heading span"
-    );
-
-    const subtotalElement = document.querySelector(
-        ".checkout-summary-values div:first-child strong"
-    );
-
-    const totalElement = document.querySelector(
-        ".checkout-total strong"
-    );
-
-    const finishButton = document.querySelector(
-        ".finish-order"
-    );
-
-    const paymentOptions = document.querySelectorAll(
-        ".payment-option"
-    );
-
-    const cardPaymentFields = document.querySelector(
-        ".card-payment-fields"
-    );
-
-    const termsCheckbox = document.querySelector(
-        ".terms-check input"
-    );
-
+    let configuracoes = {};
     let finalizando = false;
 
     /* =====================================================
-       MENSAGENS
-       ===================================================== */
-
-    function mostrarMensagem(texto) {
-        const antiga = document.querySelector(".nova-mensagem");
-
-        if (antiga) antiga.remove();
-
-        const mensagem = document.createElement("div");
-
-        mensagem.className = "nova-mensagem";
-        mensagem.textContent = texto;
-        mensagem.setAttribute("role", "status");
-
-        Object.assign(mensagem.style, {
-            position: "fixed",
-            bottom: "25px",
-            right: "25px",
-            zIndex: "99999",
-            padding: "14px 20px",
-            background: "#1E222B",
-            color: "#F5F7FA",
-            border: "1px solid #8B5CF6",
-            borderRadius: "8px",
-            fontSize: "14px",
-            fontFamily: "Arial, sans-serif",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.3)"
-        });
-
-        document.body.appendChild(mensagem);
-
-        setTimeout(() => mensagem.remove(), 3000);
-    }
-
-    /* =====================================================
-       VERIFICAR CARRINHO
-       ===================================================== */
-
-    if (carrinho.length === 0) {
-        mostrarMensagem("Seu carrinho está vazio.");
-
-        if (finishButton) {
-            finishButton.disabled = true;
-        }
-
-        setTimeout(() => {
-            window.location.href = "carrinho.html";
-        }, 1500);
-
-        return;
-    }
-
-    /* =====================================================
-       FORMATAR PREÇO
+       UTILITÁRIOS
        ===================================================== */
 
     function formatarPreco(valor) {
-        return Number(valor).toLocaleString("pt-BR", {
+        return Number(valor || 0).toLocaleString("pt-BR", {
             style: "currency",
             currency: "BRL"
         });
     }
 
-    /* =====================================================
-       QUANTIDADE E SUBTOTAL
-       ===================================================== */
+    function obterSupabase() {
+        return window.supabaseClient || null;
+    }
 
-    function calcularQuantidadeItens() {
-        return carrinho.reduce((total, produto) => {
-            return total + Math.max(
-                0,
-                Number(produto.quantidade) || 0
+    function mostrarMensagem(mensagem) {
+        if (formMessage) {
+            formMessage.textContent = mensagem;
+            formMessage.hidden = false;
+            return;
+        }
+
+        alert(mensagem);
+    }
+
+    function limparMensagem() {
+        if (formMessage) {
+            formMessage.textContent = "";
+            formMessage.hidden = true;
+        }
+    }
+
+    function mostrarErro(mensagem) {
+        if (errorElement) {
+            errorElement.hidden = false;
+        }
+
+        if (errorMessage) {
+            errorMessage.textContent = mensagem;
+        }
+
+        if (layout) {
+            layout.hidden = true;
+        }
+    }
+
+    function lerCarrinho() {
+        try {
+            const dados = JSON.parse(
+                localStorage.getItem(CART_KEY) || "[]"
             );
-        }, 0);
+
+            if (!Array.isArray(dados)) {
+                return [];
+            }
+
+            return dados
+                .filter(item => item && typeof item === "object")
+                .map(item => ({
+                    ...item,
+                    quantidade: Math.max(
+                        1,
+                        Math.floor(Number(item.quantidade) || 1)
+                    ),
+                    preco: Math.max(0, Number(item.preco) || 0)
+                }));
+        } catch (erro) {
+            console.error("Erro ao ler o carrinho:", erro);
+            return [];
+        }
+    }
+
+    function salvarCarrinhoLocal() {
+        localStorage.setItem(CART_KEY, JSON.stringify(carrinho));
+    }
+
+    function calcularQuantidade() {
+        return carrinho.reduce(
+            (total, item) => total + item.quantidade,
+            0
+        );
     }
 
     function calcularSubtotal() {
-        return carrinho.reduce((total, produto) => {
-            const preco = Math.max(
-                0,
-                Number(produto.preco) || 0
+        return carrinho.reduce(
+            (total, item) => total + item.preco * item.quantidade,
+            0
+        );
+    }
+
+    function calcularSubtotalOriginal() {
+        return carrinho.reduce((total, item) => {
+            const original = Math.max(
+                item.preco,
+                Number(item.precoOriginal ?? item.preco) || 0
             );
 
-            const quantidade = Math.max(
-                0,
-                Number(produto.quantidade) || 0
-            );
-
-            return total + preco * quantidade;
+            return total + original * item.quantidade;
         }, 0);
     }
 
+    function calcularDesconto() {
+        return Math.max(
+            0,
+            calcularSubtotalOriginal() - calcularSubtotal()
+        );
+    }
+
     /* =====================================================
-       RENDERIZAR RESUMO DO PEDIDO
+       CONFIGURAÇÕES E ESTOQUE
+       ===================================================== */
+
+    async function atualizarDadosDosProdutos() {
+        const supabase = obterSupabase();
+
+        if (!supabase || typeof supabase.from !== "function") {
+            throw new Error(
+                "Não foi possível conectar ao Supabase. " +
+                "Confira a configuração da conexão antes de finalizar."
+            );
+        }
+
+        const { data: configData, error: configError } = await supabase
+            .from("configuracoes_nova")
+            .select("configuracoes")
+            .eq("id", "loja")
+            .maybeSingle();
+
+        if (configError) {
+            console.warn(
+                "Não foi possível carregar as promoções:",
+                configError.message
+            );
+        } else {
+            configuracoes = configData?.configuracoes || {};
+        }
+
+        const ids = [
+            ...new Set(
+                carrinho
+                    .map(item => item.id)
+                    .filter(id => id !== null && id !== undefined && String(id).trim())
+                    .map(String)
+            )
+        ];
+
+        if (ids.length === 0) {
+            throw new Error(
+                "Um ou mais itens do carrinho não possuem identificação. " +
+                "Volte à loja e adicione os produtos novamente."
+            );
+        }
+
+        const { data: produtos, error } = await supabase
+            .from("produtos_nova")
+            .select("id,nome,categoria,preco,estoque,ativo,imagem,imagens")
+            .in("id", ids);
+
+        if (error) {
+            console.error("Erro ao consultar produtos:", error);
+            throw new Error(
+                "Não foi possível conferir os preços e o estoque. Tente novamente."
+            );
+        }
+
+        const produtosPorId = {};
+
+        (produtos || []).forEach(produto => {
+            produtosPorId[String(produto.id)] = produto;
+        });
+
+        const promocoes = Array.isArray(configuracoes.promocoes)
+            ? configuracoes.promocoes
+            : [];
+
+        const carrinhoAtualizado = [];
+
+        for (const item of carrinho) {
+            const produto = produtosPorId[String(item.id)];
+
+            if (!produto) {
+                throw new Error(
+                    `O produto "${item.nome}" não foi encontrado na loja.`
+                );
+            }
+
+            if (produto.ativo !== true) {
+                throw new Error(
+                    `O produto "${produto.nome}" não está mais disponível.`
+                );
+            }
+
+            const estoque = Math.max(0, Number(produto.estoque) || 0);
+
+            if (estoque < 1) {
+                throw new Error(
+                    `O produto "${produto.nome}" está sem estoque.`
+                );
+            }
+
+            if (item.quantidade > estoque) {
+                throw new Error(
+                    `Há apenas ${estoque} unidade(s) de "${produto.nome}" em estoque. ` +
+                    "Volte ao carrinho e ajuste a quantidade."
+                );
+            }
+
+            const precoOriginal = Math.max(0, Number(produto.preco) || 0);
+
+            const promocao = promocoes.find(p =>
+                String(p.id) === String(produto.id)
+            );
+
+            const precoPromocional = promocao
+                ? Number(promocao.preco)
+                : precoOriginal;
+
+            const preco = Number.isFinite(precoPromocional)
+                ? Math.max(0, Math.min(precoPromocional, precoOriginal))
+                : precoOriginal;
+
+            const imagens = Array.isArray(produto.imagens)
+                ? produto.imagens
+                : [];
+
+            const imagem =
+                produto.imagem ||
+                imagens.find(img => typeof img === "string" && img.trim()) ||
+                item.imagem ||
+                "";
+
+            carrinhoAtualizado.push({
+                ...item,
+                id: produto.id,
+                nome: produto.nome || item.nome,
+                categoria: produto.categoria || item.categoria || "Produto",
+                imagem,
+                precoOriginal,
+                preco,
+                estoque
+            });
+        }
+
+        carrinho = carrinhoAtualizado;
+        salvarCarrinhoLocal();
+    }
+
+    /* =====================================================
+       RESUMO DO PEDIDO
        ===================================================== */
 
     function renderizarResumo() {
-        if (!summaryContainer) return;
+        if (!summaryProducts) {
+            console.error("Elemento #checkout-summary-products não encontrado.");
+            return;
+        }
 
-        summaryContainer
+        summaryProducts
             .querySelectorAll(".summary-product")
-            .forEach((item) => item.remove());
+            .forEach(item => item.remove());
 
-        const valores = summaryContainer.querySelector(
-            ".checkout-summary-values"
-        );
-
-        carrinho.forEach((produto) => {
+        carrinho.forEach(produto => {
             const item = document.createElement("div");
             item.className = "summary-product";
 
@@ -175,71 +305,65 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (produto.imagem) {
                 const imagem = document.createElement("img");
-
                 imagem.src = produto.imagem;
-                imagem.alt = produto.nome || "Produto NØVA";
+                imagem.alt = produto.nome;
                 imagem.loading = "lazy";
+
+                imagem.onerror = () => {
+                    imagem.remove();
+
+                    const placeholder = document.createElement("span");
+                    placeholder.textContent = "IMG";
+                    imagemContainer.appendChild(placeholder);
+                };
 
                 imagemContainer.appendChild(imagem);
             } else {
                 const placeholder = document.createElement("span");
                 placeholder.textContent = "IMG";
-
                 imagemContainer.appendChild(placeholder);
             }
 
             const quantidade = document.createElement("b");
-
-            quantidade.textContent = String(
-                Number(produto.quantidade) || 1
-            );
-
+            quantidade.textContent = String(produto.quantidade);
             imagemContainer.appendChild(quantidade);
 
             const info = document.createElement("div");
             info.className = "summary-product-info";
 
             const nome = document.createElement("h3");
-            nome.textContent = produto.nome || "Produto NØVA";
+            nome.textContent = produto.nome;
 
             const detalhes = document.createElement("span");
-            const caracteristicas = [];
+            const variacoes = [];
 
             if (produto.cor) {
-                caracteristicas.push(produto.cor);
+                variacoes.push(`Cor: ${produto.cor}`);
             }
 
             if (produto.tamanho) {
-                caracteristicas.push(`Tam. ${produto.tamanho}`);
+                variacoes.push(`Tam. ${produto.tamanho}`);
             }
 
-            detalhes.textContent = caracteristicas.length
-                ? caracteristicas.join(" / ")
-                : "Produto";
+            detalhes.textContent = variacoes.join(" / ") || produto.categoria;
 
             info.append(nome, detalhes);
 
             const preco = document.createElement("strong");
-
             preco.textContent = formatarPreco(
-                (Number(produto.preco) || 0) *
-                (Number(produto.quantidade) || 1)
+                produto.preco * produto.quantidade
             );
 
             item.append(imagemContainer, info, preco);
-
-            if (valores) {
-                summaryContainer.insertBefore(item, valores);
-            } else {
-                summaryContainer.appendChild(item);
-            }
+            summaryProducts.appendChild(item);
         });
 
-        const quantidade = calcularQuantidadeItens();
+        const quantidade = calcularQuantidade();
         const subtotal = calcularSubtotal();
+        const desconto = calcularDesconto();
 
-        if (summaryItemsCount) {
-            summaryItemsCount.textContent =
+        if (itemsCountElement) {
+            itemsCountElement.textContent =
                 `${quantidade} ${quantidade === 1 ? "item" : "itens"}`;
         }
 
@@ -247,131 +371,87 @@ document.addEventListener("DOMContentLoaded", () => {
             subtotalElement.textContent = formatarPreco(subtotal);
         }
 
+        /* O frete permanece sem cálculo até a integração de entrega. */
+        if (shippingElement) {
+            shippingElement.textContent = "A calcular";
+        }
+
+        if (discountElement) {
+            discountElement.textContent = `− ${formatarPreco(desconto)}`;
+        }
+
+        if (discountRow) {
+            discountRow.hidden = desconto <= 0;
+        }
+
+        /* Ainda não existe cálculo automático de frete. */
         if (totalElement) {
             totalElement.textContent = formatarPreco(subtotal);
         }
+
+        if (productsLoading) {
+            productsLoading.hidden = true;
+        }
+
+        summaryProducts.setAttribute("aria-busy", "false");
     }
 
     /* =====================================================
        FORMAS DE PAGAMENTO
        ===================================================== */
 
-    function atualizarCamposPagamento() {
-        const pagamento = document.querySelector(
+    function atualizarPagamentoSelecionado() {
+        paymentOptions.forEach(option => {
+            const radio = option.querySelector('input[type="radio"]');
+            const icone = option.querySelector(".payment-check");
+
+            const selecionado = Boolean(radio?.checked);
+
+            option.classList.toggle("selected", selecionado);
+
+            if (icone) {
+                icone.className = selecionado
+                    ? "fa-solid fa-circle-check payment-check"
+                    : "fa-regular fa-circle payment-check";
+            }
+        });
+
+        const selecionado = document.querySelector(
             'input[name="payment"]:checked'
         );
 
-        if (!pagamento || !cardPaymentFields) return;
+        if (paymentNotice && selecionado) {
+            const mensagens = {
+                pix: "O pedido será registrado como pendente. O PIX ainda precisa ser integrado para gerar a cobrança.",
+                cartao: "O pagamento por cartão não está disponível até a integração com um provedor de pagamentos.",
+                boleto: "O boleto ainda não está integrado. O pedido não será considerado pago."
+            };
 
-        const nome = pagamento
-            .closest(".payment-option")
-            ?.querySelector(".payment-text strong")
-            ?.textContent.trim();
-
-        cardPaymentFields.style.display =
-            nome === "Cartão" ? "block" : "none";
+            paymentNotice.textContent =
+                mensagens[selecionado.value] ||
+                "A forma de pagamento será confirmada após a integração com o provedor.";
+        }
     }
 
-    paymentOptions.forEach((option) => {
+    paymentOptions.forEach(option => {
         const radio = option.querySelector('input[type="radio"]');
 
-        if (!radio) return;
-
-        radio.addEventListener("change", () => {
-            paymentOptions.forEach((item) => {
-                item.classList.remove("selected");
-
-                const check = item.querySelector(".payment-check");
-
-                if (check) {
-                    check.className =
-                        "fa-regular fa-circle payment-check";
-                }
-            });
-
-            option.classList.add("selected");
-
-            const check = option.querySelector(".payment-check");
-
-            if (check) {
-                check.className =
-                    "fa-solid fa-circle-check payment-check";
-            }
-
-            atualizarCamposPagamento();
-        });
+        radio?.addEventListener("change", atualizarPagamentoSelecionado);
     });
 
     /* =====================================================
-       MÁSCARA CEP
+       MÁSCARA DO CEP
        ===================================================== */
 
-    const cep = document.querySelector("#cep");
-
-    if (cep) {
-        cep.addEventListener("input", () => {
-            let valor = cep.value
-                .replace(/\D/g, "")
-                .slice(0, 8);
+    if (cepInput) {
+        cepInput.addEventListener("input", () => {
+            let valor = cepInput.value.replace(/\D/g, "").slice(0, 8);
 
             if (valor.length > 5) {
                 valor = `${valor.slice(0, 5)}-${valor.slice(5)}`;
             }
 
-            cep.value = valor;
-        });
-    }
-
-    /* =====================================================
-       MÁSCARA CARTÃO
-       ===================================================== */
-
-    const numeroCartao = document.querySelector("#card-number");
-
-    if (numeroCartao) {
-        numeroCartao.addEventListener("input", () => {
-            const valor = numeroCartao.value
-                .replace(/\D/g, "")
-                .slice(0, 16);
-
-            numeroCartao.value = valor.replace(
-                /(\d{4})(?=\d)/g,
-                "$1 "
-            );
-        });
-    }
-
-    /* =====================================================
-       MÁSCARA VALIDADE
-       ===================================================== */
-
-    const campoValidade = document.querySelector("#expiration");
-
-    if (campoValidade) {
-        campoValidade.addEventListener("input", () => {
-            let valor = campoValidade.value
-                .replace(/\D/g, "")
-                .slice(0, 4);
-
-            if (valor.length > 2) {
-                valor = `${valor.slice(0, 2)}/${valor.slice(2)}`;
-            }
-
-            campoValidade.value = valor;
-        });
-    }
-
-    /* =====================================================
-       MÁSCARA CVV
-       ===================================================== */
-
-    const campoCVV = document.querySelector("#cvv");
-
-    if (campoCVV) {
-        campoCVV.addEventListener("input", () => {
-            campoCVV.value = campoCVV.value
-                .replace(/\D/g, "")
-                .slice(0, 4);
+            cepInput.value = valor;
         });
     }
 
@@ -380,44 +460,37 @@ document.addEventListener("DOMContentLoaded", () => {
        ===================================================== */
 
     function validarFormulario() {
-        const campos = [
-            ["name", "Digite seu nome completo."],
-            ["email", "Digite seu e-mail."],
-            ["cep", "Digite seu CEP."],
-            ["street", "Digite sua rua."],
-            ["number", "Digite o número do endereço."],
-            ["neighborhood", "Digite seu bairro."],
-            ["city", "Digite sua cidade."],
-            ["state", "Selecione seu estado."]
-        ];
+        limparMensagem();
 
-        for (const [id, mensagem] of campos) {
-            const elemento = document.getElementById(id);
-
-            if (!elemento || !elemento.value.trim()) {
-                mostrarMensagem(mensagem);
-                elemento?.focus();
-
-                return false;
-            }
-        }
-
-        const email = document
-            .querySelector("#email")
-            .value.trim();
-
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            mostrarMensagem("Digite um e-mail válido.");
-            document.querySelector("#email").focus();
-
+        if (!form.checkValidity()) {
+            form.reportValidity();
             return false;
         }
 
-        if (!termsCheckbox || !termsCheckbox.checked) {
-            mostrarMensagem(
-                "Aceite os termos de compra para continuar."
-            );
+        const nome = document.querySelector("#name")?.value.trim() || "";
+        const email = document.querySelector("#email")?.value.trim() || "";
+        const cep = document.querySelector("#cep")?.value.replace(/\D/g, "") || "";
 
+        if (nome.length < 3) {
+            mostrarMensagem("Informe seu nome completo.");
+            document.querySelector("#name")?.focus();
+            return false;
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            mostrarMensagem("Informe um e-mail válido.");
+            document.querySelector("#email")?.focus();
+            return false;
+        }
+
+        if (cep.length !== 8) {
+            mostrarMensagem("Informe um CEP válido com 8 números.");
+            document.querySelector("#cep")?.focus();
+            return false;
+        }
+
+        if (!carrinho.length) {
+            mostrarMensagem("Seu carrinho está vazio.");
             return false;
         }
 
@@ -430,43 +503,15 @@ document.addEventListener("DOMContentLoaded", () => {
             return false;
         }
 
-        const nomePagamento = pagamento
-            .closest(".payment-option")
-            ?.querySelector(".payment-text strong")
-            ?.textContent.trim();
-
-        if (nomePagamento === "Cartão") {
-            const numero = document.querySelector("#card-number");
-            const nome = document.querySelector("#card-name");
-            const validade = document.querySelector("#expiration");
-            const cvv = document.querySelector("#cvv");
-
-            if (
-                !numero ||
-                numero.value.replace(/\D/g, "").length < 13 ||
-                !nome ||
-                !nome.value.trim() ||
-                !validade ||
-                !/^\d{2}\/\d{2}$/.test(validade.value) ||
-                !cvv ||
-                cvv.value.replace(/\D/g, "").length < 3
-            ) {
-                mostrarMensagem(
-                    "Confira os dados preenchidos do cartão."
-                );
-
-                return false;
-            }
-
-            /*
-             * Este protótipo não processa pagamentos.
-             * Não armazene dados de cartão.
-             */
-
+        /*
+         * Não registrar cartão ou boleto como se o pagamento
+         * estivesse disponível sem um provedor integrado.
+         */
+        if (pagamento.value !== "pix") {
             mostrarMensagem(
-                "O pagamento por cartão ainda precisa de um serviço de pagamento integrado."
+                "Por enquanto, somente o registro de pedidos com PIX está disponível. " +
+                "A cobrança PIX ainda precisará ser integrada."
             );
-
             return false;
         }
 
@@ -474,7 +519,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* =====================================================
-       GERAR ID ÚNICO DO PEDIDO
+       GERAR ID DO PEDIDO
        ===================================================== */
 
     function gerarIdPedido() {
@@ -495,55 +540,53 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* =====================================================
-       FINALIZAR PEDIDO — SUPABASE
+       ENVIAR PEDIDO
        ===================================================== */
 
-    if (finishButton) {
-        finishButton.addEventListener("click", async (event) => {
-            event.preventDefault();
+    async function finalizarPedido(evento) {
+        evento.preventDefault();
 
-            if (finalizando) return;
+        if (finalizando) {
+            return;
+        }
 
-            if (!validarFormulario()) return;
+        if (!validarFormulario()) {
+            return;
+        }
 
-            if (
-                !window.NovaPedidos ||
-                typeof window.NovaPedidos.salvarPedido !== "function"
-            ) {
-                mostrarMensagem(
-                    "Sistema de pedidos indisponível. Atualize a página e tente novamente."
-                );
+        finalizando = true;
+        limparMensagem();
 
-                console.error(
-                    "window.NovaPedidos.salvarPedido não está disponível."
-                );
+        finishButton.disabled = true;
+        finishButton.setAttribute("aria-busy", "true");
+        finishButton.textContent = "Conferindo estoque...";
 
-                return;
-            }
+        if (loadingElement) {
+            loadingElement.hidden = false;
+        }
 
+        try {
+            /*
+             * Atualiza preço e estoque antes de calcular o pedido.
+             */
+            await atualizarDadosDosProdutos();
+            renderizarResumo();
+
+            const subtotal = calcularSubtotal();
             const pagamento = document.querySelector(
                 'input[name="payment"]:checked'
             );
 
-            const formaPagamento = pagamento
-                ?.closest(".payment-option")
-                ?.querySelector(".payment-text strong")
-                ?.textContent.trim() || "Não informado";
-
-            const subtotal = calcularSubtotal();
-
             const cliente = {
                 nome: document.querySelector("#name").value.trim(),
                 email: document.querySelector("#email").value.trim(),
-
                 endereco: {
                     cep: document.querySelector("#cep").value.trim(),
                     rua: document.querySelector("#street").value.trim(),
                     numero: document.querySelector("#number").value.trim(),
                     complemento:
                         document.querySelector("#complement")?.value.trim() || "",
-                    bairro:
-                        document.querySelector("#neighborhood").value.trim(),
+                    bairro: document.querySelector("#neighborhood").value.trim(),
                     cidade: document.querySelector("#city").value.trim(),
                     estado: document.querySelector("#state").value
                 }
@@ -551,24 +594,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const pedido = {
                 id: gerarIdPedido(),
-
                 cliente,
-
-                pagamento: formaPagamento,
-
-                itens: carrinho.map((item) => ({
-                    id: item.id ?? "",
-                    nome: item.nome || "Produto NØVA",
-                    preco: Number(item.preco) || 0,
-                    quantidade: Math.max(
-                        1,
-                        Number.parseInt(item.quantidade, 10) || 1
-                    ),
+                pagamento: pagamento.value,
+                itens: carrinho.map(item => ({
+                    id: item.id,
+                    nome: item.nome,
                     imagem: item.imagem || "",
+                    preco: item.preco,
+                    quantidade: item.quantidade,
                     cor: item.cor || "",
                     tamanho: item.tamanho || ""
                 })),
-
                 subtotal,
                 frete: 0,
                 total: subtotal,
@@ -576,82 +612,111 @@ document.addEventListener("DOMContentLoaded", () => {
                 criadoEm: new Date().toISOString()
             };
 
-            /* Bloquear cliques repetidos durante o salvamento. */
-
-            finalizando = true;
-            finishButton.disabled = true;
-            finishButton.setAttribute("aria-busy", "true");
             finishButton.textContent = "Salvando pedido...";
 
-            try {
-                /*
-                 * Aguarda a confirmação do Supabase.
-                 * Não limpar o carrinho antes deste passo.
-                 */
-
-                const pedidoSalvo =
-                    await window.NovaPedidos.salvarPedido(pedido);
-
-                if (!pedidoSalvo || !pedidoSalvo.id) {
-                    throw new Error(
-                        "O sistema não confirmou o salvamento do pedido."
-                    );
-                }
-
-                /*
-                 * Salvar o último pedido localmente para a página
-                 * de confirmação, somente depois do sucesso.
-                 */
-
-                localStorage.setItem(
-                    ORDER_KEY,
-                    JSON.stringify(pedidoSalvo)
+            if (
+                !window.NovaPedidos ||
+                typeof window.NovaPedidos.salvarPedido !== "function"
+            ) {
+                throw new Error(
+                    "A integração de pedidos não foi carregada. Confira o app.js."
                 );
-
-                /*
-                 * Limpar o carrinho apenas depois que o Supabase
-                 * confirmar a inserção.
-                 */
-
-                localStorage.removeItem(CART_KEY);
-
-                finishButton.textContent = "Pedido registrado!";
-
-                mostrarMensagem("Pedido registrado com sucesso!");
-
-                setTimeout(() => {
-                    window.location.href = "pedido-realizado.html";
-                }, 800);
-
-            } catch (erro) {
-                console.error(
-                    "Erro ao registrar pedido:",
-                    erro
-                );
-
-                mostrarMensagem(
-                    erro.message ||
-                    "Não foi possível registrar o pedido. Tente novamente."
-                );
-
-                /*
-                 * Preservar o carrinho e liberar nova tentativa.
-                 */
-
-                finalizando = false;
-                finishButton.disabled = false;
-                finishButton.removeAttribute("aria-busy");
-                finishButton.textContent = "Finalizar pedido";
             }
-        });
+
+            /*
+             * O app.js faz o INSERT no Supabase.
+             * Só continuamos se ele confirmar o pedido.
+             */
+            const pedidoSalvo = await window.NovaPedidos.salvarPedido(pedido);
+
+            if (!pedidoSalvo?.id) {
+                throw new Error(
+                    "O banco não confirmou o salvamento do pedido."
+                );
+            }
+
+            /*
+             * Guarda o último pedido para a página de confirmação.
+             * O carrinho só é limpo após a confirmação do Supabase.
+             */
+            localStorage.setItem(ORDER_KEY, JSON.stringify(pedidoSalvo));
+            localStorage.removeItem(CART_KEY);
+
+            finishButton.textContent = "Pedido registrado!";
+
+            mostrarMensagem(
+                "Pedido registrado como pendente. O pagamento ainda precisa ser confirmado."
+            );
+
+            window.setTimeout(() => {
+                window.location.href = "pedido-realizado.html";
+            }, 1000);
+
+        } catch (erro) {
+            console.error("Erro ao finalizar pedido:", erro);
+
+            mostrarMensagem(
+                erro?.message ||
+                "Não foi possível registrar o pedido. Seus produtos continuam no carrinho."
+            );
+
+            finalizando = false;
+            finishButton.disabled = false;
+            finishButton.removeAttribute("aria-busy");
+            finishButton.innerHTML =
+                'Revisar pedido <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
+
+        } finally {
+            if (loadingElement) {
+                loadingElement.hidden = true;
+            }
+        }
+    }
+
+    if (form) {
+        form.addEventListener("submit", finalizarPedido);
     }
 
     /* =====================================================
        INICIALIZAÇÃO
        ===================================================== */
 
-    renderizarResumo();
-    atualizarCamposPagamento();
+    async function inicializar() {
+        carrinho = lerCarrinho();
 
-    console.log("NØVA checkout inicializado.");
+        if (!carrinho.length) {
+            mostrarErro("Seu carrinho está vazio. Adicione produtos antes de finalizar.");
+
+            if (finishButton) {
+                finishButton.disabled = true;
+            }
+
+            return;
+        }
+
+        try {
+            if (loadingElement) {
+                loadingElement.hidden = false;
+            }
+
+            await atualizarDadosDosProdutos();
+            renderizarResumo();
+
+        } catch (erro) {
+            console.error("Erro ao preparar checkout:", erro);
+            mostrarErro(
+                erro.message ||
+                "Não foi possível conferir seu carrinho. Volte ao carrinho e tente novamente."
+            );
+
+        } finally {
+            if (loadingElement) {
+                loadingElement.hidden = true;
+            }
+        }
+
+        atualizarPagamentoSelecionado();
+    }
+
+    inicializar();
 });

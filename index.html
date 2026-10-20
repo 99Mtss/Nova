@@ -7,10 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <meta name="description" content="NØVA — Estilo que vai com você.">
+    <meta name="theme-color" content="#0B0B0D">
 
     <title>NØVA — Loja</title>
 
-    <!-- Google Fonts -->
+    <!-- GOOGLE FONTS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -18,13 +19,54 @@
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
         rel="stylesheet">
 
-    <!-- Font Awesome -->
+    <!-- FONT AWESOME -->
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
-    <!-- CSS -->
+    <!-- CSS ORIGINAL -->
     <link rel="stylesheet" href="css/style.css">
+
+    <!-- VARIÁVEIS DAS CONFIGURAÇÕES DA LOJA -->
+    <style>
+        :root {
+            --nova-cor-fundo: #0B0B0D;
+            --nova-cor-superficie: #151519;
+            --nova-cor-destaque: #FFFFFF;
+            --nova-cor-texto: #F5F5F5;
+        }
+
+        /*
+         * A imagem do banner será aplicada pelo app.js.
+         * Mantemos os elementos e as classes do layout original.
+         */
+        .hero.nova-banner-configurado {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .nova-preco-antigo {
+            text-decoration: line-through;
+            opacity: 0.65;
+            margin-right: 8px;
+        }
+
+        .nova-etiqueta-promocao {
+            display: inline-block;
+            padding: 5px 9px;
+            margin-bottom: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .nova-imagem-banner-carregando {
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
 </head>
 
 <body>
@@ -35,10 +77,14 @@
 
             <a href="index.html" class="logo">NØVA</a>
 
-            <nav class="nav" aria-label="Navegação principal">
+            <nav class="nav" id="nav-menu" aria-label="Navegação principal">
                 <a href="index.html" class="nav-link active">Início</a>
+
                 <a href="pages/loja.html" class="nav-link">Loja</a>
-                <a href="pages/loja.html#categorias" class="nav-link">
+
+                <a
+                    href="pages/loja.html#categorias"
+                    class="nav-link">
                     Categorias
                 </a>
             </nav>
@@ -78,7 +124,8 @@
                     id="menu-mobile"
                     type="button"
                     aria-label="Abrir menu"
-                    aria-expanded="false">
+                    aria-expanded="false"
+                    aria-controls="nav-menu">
 
                     <i class="fa-solid fa-bars"></i>
                 </button>
@@ -90,21 +137,26 @@
     <main>
 
         <!-- BANNER PRINCIPAL -->
-        <section class="hero">
+        <section
+            class="hero"
+            id="banner-principal"
+            data-nova-banner>
 
             <div class="hero-overlay"></div>
 
             <div class="container hero-content">
 
-                <span class="hero-label">COLEÇÃO 2026</span>
+                <span class="hero-label" data-banner-label>
+                    COLEÇÃO 2026
+                </span>
 
-                <h1>
+                <h1 data-banner-titulo>
                     ESTILO<br>
                     QUE VAI COM<br>
                     VOCÊ.
                 </h1>
 
-                <p>
+                <p data-banner-descricao>
                     Roupas que unem conforto, atitude e qualidade.
                     Seu estilo, sua identidade.
                 </p>
@@ -211,11 +263,8 @@
                 </div>
 
                 <!--
-                    O JavaScript carregará os produtos do Supabase
-                    neste espaço.
-
-                    data-product-list identifica a lista dinâmica.
-                    Não remover esses atributos durante a integração.
+                    O app.js preencherá esta área com os produtos
+                    selecionados em Configurações no painel administrativo.
                 -->
                 <div
                     class="products-grid"
@@ -223,174 +272,17 @@
                     data-product-list="featured"
                     aria-live="polite">
 
-                    <!-- Conteúdo provisório até a integração com o banco -->
-
-                    <article class="product-card" data-product-fallback>
-                        <a href="pages/produto.html" data-product-link>
-                            <div class="product-image">
-                                <img
-                                    src="assets/images/products/produto-1.jpg"
-                                    alt="Camiseta Oversized NØVA"
-                                    loading="lazy">
-
-                                <span class="product-tag">
-                                    Destaque
-                                </span>
-                            </div>
-                        </a>
-
-                        <div class="product-info">
-                            <h3>Camiseta Oversized</h3>
-
-                            <span class="product-price">
-                                R$ 129,90
-                            </span>
-
-                            <div class="product-bottom">
-                                <div class="product-rating"
-                                     aria-label="Produto em destaque">
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                </div>
-
-                                <button
-                                    class="product-cart"
-                                    type="button"
-                                    data-add-to-cart
-                                    aria-label="Adicionar Camiseta Oversized ao carrinho">
-
-                                    <i class="fa-solid fa-bag-shopping"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="product-card" data-product-fallback>
-                        <a href="pages/produto.html" data-product-link>
-                            <div class="product-image">
-                                <img
-                                    src="assets/images/products/produto-2.jpg"
-                                    alt="Moletom Essential NØVA"
-                                    loading="lazy">
-                            </div>
-                        </a>
-
-                        <div class="product-info">
-                            <h3>Moletom Essential</h3>
-
-                            <span class="product-price">
-                                R$ 199,90
-                            </span>
-
-                            <div class="product-bottom">
-                                <div class="product-rating"
-                                     aria-label="Produto em destaque">
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                </div>
-
-                                <button
-                                    class="product-cart"
-                                    type="button"
-                                    data-add-to-cart
-                                    aria-label="Adicionar Moletom Essential ao carrinho">
-
-                                    <i class="fa-solid fa-bag-shopping"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="product-card" data-product-fallback>
-                        <a href="pages/produto.html" data-product-link>
-                            <div class="product-image">
-                                <img
-                                    src="assets/images/products/produto-3.jpg"
-                                    alt="Moletom Urban NØVA"
-                                    loading="lazy">
-                            </div>
-                        </a>
-
-                        <div class="product-info">
-                            <h3>Moletom Urban</h3>
-
-                            <span class="product-price">
-                                R$ 189,90
-                            </span>
-
-                            <div class="product-bottom">
-                                <div class="product-rating"
-                                     aria-label="Produto em destaque">
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                </div>
-
-                                <button
-                                    class="product-cart"
-                                    type="button"
-                                    data-add-to-cart
-                                    aria-label="Adicionar Moletom Urban ao carrinho">
-
-                                    <i class="fa-solid fa-bag-shopping"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="product-card" data-product-fallback>
-                        <a href="pages/produto.html" data-product-link>
-                            <div class="product-image">
-                                <img
-                                    src="assets/images/products/produto-4.jpg"
-                                    alt="Boné Dad Hat NØVA"
-                                    loading="lazy">
-                            </div>
-                        </a>
-
-                        <div class="product-info">
-                            <h3>Boné Dad Hat</h3>
-
-                            <span class="product-price">
-                                R$ 89,90
-                            </span>
-
-                            <div class="product-bottom">
-                                <div class="product-rating"
-                                     aria-label="Produto em destaque">
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                </div>
-
-                                <button
-                                    class="product-cart"
-                                    type="button"
-                                    data-add-to-cart
-                                    aria-label="Adicionar Boné Dad Hat ao carrinho">
-
-                                    <i class="fa-solid fa-bag-shopping"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </article>
+                    <p class="products-loading">
+                        Carregando produtos...
+                    </p>
 
                 </div>
+
             </div>
         </section>
 
         <!-- BANNER DA COLEÇÃO -->
-        <section class="collection-banner">
+        <section class="collection-banner" id="banner-colecao">
 
             <div class="collection-overlay"></div>
 
@@ -420,6 +312,7 @@
             <div class="container">
 
                 <div class="section-header">
+
                     <div>
                         <span class="section-label">EXPLORE</span>
 
@@ -437,6 +330,7 @@
                         Ver todas
                         <i class="fa-solid fa-arrow-right"></i>
                     </a>
+
                 </div>
 
                 <div class="categories-grid">
@@ -535,15 +429,19 @@
                 <p>Mais que roupas, um estilo de vida.</p>
 
                 <div class="social-links">
-                    <a href="#"
-                       aria-label="Instagram da NØVA">
+
+                    <a
+                        href="#"
+                        aria-label="Instagram da NØVA">
                         <i class="fa-brands fa-instagram"></i>
                     </a>
 
-                    <a href="#"
-                       aria-label="TikTok da NØVA">
+                    <a
+                        href="#"
+                        aria-label="TikTok da NØVA">
                         <i class="fa-brands fa-tiktok"></i>
                     </a>
+
                 </div>
             </div>
 
@@ -584,7 +482,13 @@
         </div>
     </footer>
 
-    <!-- JavaScript atual da página -->
+    <!-- SUPABASE -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- CLIENTE SUPABASE DA NØVA -->
+    <script src="admin/js/supabase.js"></script>
+
+    <!-- LÓGICA DA PÁGINA INICIAL -->
     <script src="js/app.js"></script>
 
 </body>

@@ -1,0 +1,311 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Configurações | NØVA ADM</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/config.css">
+</head>
+
+<body>
+
+<div class="admin-layout">
+
+    <!-- MENU LATERAL -->
+    <aside class="admin-sidebar" id="admin-sidebar">
+
+        <div class="admin-logo">
+            <a href="index.html">
+                <span class="logo-symbol">NØVA</span>
+                <span class="logo-caption">ADMINISTRAÇÃO</span>
+            </a>
+        </div>
+
+        <nav class="admin-navigation">
+
+            <a href="index.html" class="admin-nav-link">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="pedidos.html" class="admin-nav-link">
+                <i class="fa-solid fa-box"></i>
+                <span>Pedidos</span>
+            </a>
+
+            <a href="produtos.html" class="admin-nav-link">
+                <i class="fa-solid fa-shirt"></i>
+                <span>Produtos</span>
+            </a>
+
+        </nav>
+
+        <div class="admin-sidebar-bottom">
+
+            <a href="config.html"
+               class="admin-nav-link active"
+               aria-current="page">
+                <i class="fa-solid fa-gear"></i>
+                <span>Configurações</span>
+            </a>
+
+            <button type="button"
+                    class="admin-nav-link"
+                    id="admin-logout">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Sair</span>
+            </button>
+
+        </div>
+
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="admin-main">
+
+        <header class="admin-header">
+
+            <div class="admin-header-left">
+                <button type="button"
+                        class="sidebar-toggle"
+                        id="sidebar-toggle"
+                        aria-label="Abrir menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <div>
+                    <h1>Configurações</h1>
+                    <p>Personalize a experiência da sua loja NØVA.</p>
+                </div>
+            </div>
+
+            <div class="admin-header-right">
+                <div class="admin-user">
+                    <div class="admin-avatar">N</div>
+                    <div class="admin-user-info">
+                        <strong>Administrador</strong>
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </div>
+
+        </header>
+
+        <section class="config-page">
+
+            <!-- INTRODUÇÃO -->
+            <div class="config-intro">
+                <div>
+                    <span class="config-eyebrow">NØVA STORE / PERSONALIZAÇÃO</span>
+                    <h2>Controle sua loja</h2>
+                    <p>
+                        Gerencie as cores, os banners, os produtos em destaque
+                        e as promoções da página inicial.
+                    </p>
+                </div>
+            </div>
+
+            <!-- CORES -->
+            <section class="config-card">
+
+                <div class="config-card-heading">
+                    <div class="config-icon">
+                        <i class="fa-solid fa-palette"></i>
+                    </div>
+
+                    <div>
+                        <h3>Identidade visual</h3>
+                        <p>Personalize as cores principais da loja.</p>
+                    </div>
+                </div>
+
+                <div class="config-color-grid">
+
+                    <div class="config-field">
+                        <label for="cor-fundo">Cor de fundo</label>
+                        <div class="color-control">
+                            <input type="color" id="cor-fundo" value="#0B0B0D">
+                            <input type="text" id="hex-fundo"
+                                   value="#0B0B0D" placeholder="#0B0B0D">
+                        </div>
+                    </div>
+
+                    <div class="config-field">
+                        <label for="cor-superficie">Cor dos cartões</label>
+                        <div class="color-control">
+                            <input type="color" id="cor-superficie" value="#151519">
+                            <input type="text" id="hex-superficie"
+                                   value="#151519" placeholder="#151519">
+                        </div>
+                    </div>
+
+                    <div class="config-field">
+                        <label for="cor-destaque">Cor de destaque</label>
+                        <div class="color-control">
+                            <input type="color" id="cor-destaque" value="#FFFFFF">
+                            <input type="text" id="hex-destaque"
+                                   value="#FFFFFF" placeholder="#FFFFFF">
+                        </div>
+                    </div>
+
+                    <div class="config-field">
+                        <label for="cor-texto">Cor dos textos</label>
+                        <div class="color-control">
+                            <input type="color" id="cor-texto" value="#F5F5F5">
+                            <input type="text" id="hex-texto"
+                                   value="#F5F5F5" placeholder="#F5F5F5">
+                        </div>
+                    </div>
+
+                </div>
+
+                <p class="config-help">
+                    Você poderá informar o código HEX ou RGB. As cores só serão
+                    aplicadas à loja depois da integração com o salvamento.
+                </p>
+
+            </section>
+
+            <!-- BANNER -->
+            <section class="config-card">
+
+                <div class="config-card-heading">
+                    <div class="config-icon">
+                        <i class="fa-regular fa-image"></i>
+                    </div>
+
+                    <div>
+                        <h3>Banner principal</h3>
+                        <p>Escolha a imagem de destaque da página inicial.</p>
+                    </div>
+                </div>
+
+                <div class="config-banner-preview" id="banner-preview">
+                    <div class="banner-placeholder">
+                        <i class="fa-regular fa-images"></i>
+                        <span>Pré-visualização do banner</span>
+                        <small>Recomendado: imagem horizontal de alta resolução</small>
+                    </div>
+                </div>
+
+                <div class="config-field">
+                    <label for="banner-url">URL da imagem</label>
+                    <input type="url"
+                           id="banner-url"
+                           placeholder="https://...">
+                </div>
+
+                <div class="config-actions">
+                    <button type="button" class="config-button config-button-secondary"
+                            id="preview-banner">
+                        <i class="fa-regular fa-eye"></i>
+                        Visualizar imagem
+                    </button>
+                </div>
+
+                <p class="config-help">
+                    O envio de imagens pelo computador ou celular será conectado
+                    ao Supabase Storage na próxima etapa.
+                </p>
+
+            </section>
+
+            <!-- DESTAQUES -->
+            <section class="config-card">
+
+                <div class="config-card-heading">
+                    <div class="config-icon">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+
+                    <div>
+                        <h3>Produtos em destaque</h3>
+                        <p>Selecione os produtos que aparecerão na página inicial.</p>
+                    </div>
+                </div>
+
+                <div class="config-empty-state">
+                    <i class="fa-solid fa-shirt"></i>
+                    <h4>Produtos do catálogo</h4>
+                    <p>
+                        Os produtos de <strong>produtos_nova</strong> serão
+                        carregados aqui quando conectarmos esta página ao Supabase.
+                    </p>
+                </div>
+
+                <div id="lista-produtos-destaque" class="config-product-list"></div>
+
+            </section>
+
+            <!-- PROMOÇÕES -->
+            <section class="config-card">
+
+                <div class="config-card-heading">
+                    <div class="config-icon">
+                        <i class="fa-solid fa-tags"></i>
+                    </div>
+
+                    <div>
+                        <h3>Promoções</h3>
+                        <p>Defina preços promocionais para os produtos da loja.</p>
+                    </div>
+                </div>
+
+                <div class="config-promotion-notice">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <p>
+                        O preço promocional será armazenado separadamente do
+                        preço original para preservar o valor normal do produto.
+                    </p>
+                </div>
+
+                <div id="lista-produtos-promocao" class="config-product-list"></div>
+
+                <p class="config-help">
+                    Os campos de preço e os controles de promoção serão
+                    disponibilizados após a conexão com o catálogo.
+                </p>
+
+            </section>
+
+            <!-- SALVAR -->
+            <div class="config-save-bar">
+                <div>
+                    <strong>Configurações da loja</strong>
+                    <p>As alterações ainda não são persistidas no banco de dados.</p>
+                </div>
+
+                <button type="button"
+                        class="config-button config-button-primary"
+                        id="salvar-configuracoes"
+                        disabled>
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    Salvar configurações
+                </button>
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/config.js"></script>
+
+</body>
+</html>

@@ -1,11 +1,102 @@
+
 /* =========================================================
    NØVA — JAVASCRIPT PRINCIPAL
-   Loja, carrinho e integração com pedidos do ADM
+   Loja, carrinho, pedidos e configurações do Supabase
    ========================================================= */
 
 const NOVA_CART_KEY = "novaCarrinho";
 const NOVA_ORDERS_KEY = "novaPedidos";
 const NOVA_ORDER_KEY = "novaPedido";
+const NOVA_PRODUCT_KEY = "novaProdutoSelecionado";
+
+let novaCarrinho = [];
+let novaProdutos = [];
+let novaConfiguracoes = {};
+
+/* =========================================================
+   FUNÇÕES AUXILIARES
+   ========================================================= */
+
+function novaConverterPreco(valor) {
+    if (typeof valor === "number") {
+        return Number.isFinite(valor) ? valor : 0;
+    }
+
+    if (valor === null || valor === undefined || valor === "") {
+        return 0;
+    }
+
+    let texto = String(valor)
+        .trim()
+        .replace(/[^\d,.-]/g, "");
+
+    if (texto.includes(",")) {
+        texto = texto.replace(/\./g, "").replace(",", ".");
+    }
+
+    const preco = Number(texto);
+
+    return Number.isFinite(preco) ? preco : 0;
+}
+
+function novaFormatarPreco(valor) {
+    return novaConverterPreco(valor).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+    });
+}
+
+function novaEscaparHTML(valor) {
+    return String(valor ?? "").replace(/[&<>"']/g, (caractere) => {
+        const entidades = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        };
+
+        return entidades[caractere];
+    });
+}
+
+function novaImagemValida(url) {
+    if (!url || typeof url !== "string") {
+        return "";
+    }
+
+    try {
+        const endereco = new URL(url, window.location.href);
+
+        if (
+            endereco.protocol === "https:" ||
+            endereco.protocol === "http:"
+        ) {
+            return endereco.href;
+        }
+    } catch (erro) {
+        return "";
+    }
+
+    return "";
+}
+
+function novaGerarIdPedido() {
+    const data = new Date();
+
+    const dataFormatada = [
+        data.getFullYear(),
+        String(data.getMonth() + 1).padStart(2, "0"),
+        String(data.getDate()).padStart(2, "0")
+    ].join("");
+
+    const aleatorio = Math.random()
+        .toString(36)
+        .slice(2, 8)
+        .toUpperCase();
+
+    return `NVA-${dataFormatada}-${aleatorio}`;
+}
 
 /* =========================================================
    INTEGRAÇÃO DE PEDIDOS COM SUPABASE
@@ -15,7 +106,7 @@ window.NovaPedidos = {
     carregarPedidos() {
         try {
             const pedidos = JSON.parse(
-                localStorage.getItem(NOVA_ORDERS_KEY)
+                localStorage.getItem(NOVA_ORDERS_KEY) || "[]"
             );
 
             return Array.isArray(pedidos) ? pedidos : [];
@@ -67,8 +158,7 @@ window.NovaPedidos = {
         }
 
         const subtotalCalculado = itens.reduce(
-            (total, item) =>
-                total + item.preco * item.quantidade,
+            (total, item) => total + item.preco * item.quantidade,
             0
         );
 
@@ -88,15 +178,13 @@ window.NovaPedidos = {
             frete < 0 ||
             total < 0
         ) {
-            throw new Error(
-                "Os valores do pedido são inválidos."
-            );
+            throw new Error("Os valores do pedido são inválidos.");
         }
 
         const dataAtual = new Date().toISOString();
 
         const pedido = {
-            id: dados.id || gerarIdPedido(),
+            id: dados.id || novaGerarIdPedido(),
             cliente: dados.cliente || {},
             itens,
             produtos: itens,
@@ -109,23 +197,13 @@ window.NovaPedidos = {
             data: dados.data || dataAtual
         };
 
-        /* =============================================
-           VERIFICAR CONEXÃO COM O SUPABASE
-           ============================================= */
-
         const supabase = window.supabaseClient;
 
         if (!supabase || typeof supabase.from !== "function") {
             throw new Error(
-                "Conexão com o Supabase indisponível. " +
-                "O pedido não foi salvo."
+                "Conexão com o Supabase indisponível. O pedido não foi salvo."
             );
         }
-
-        /* =============================================
-           PREPARAR REGISTRO PARA A TABELA
-           public.pedidos_nova
-           ============================================= */
 
         const registroBanco = {
             id: pedido.id,
@@ -139,28 +217,17 @@ window.NovaPedidos = {
             criado_em: pedido.criadoEm
         };
 
-        /* =============================================
-           SALVAR NO SUPABASE
-           ============================================= */
-
         const { error } = await supabase
             .from("pedidos_nova")
             .insert(registroBanco);
 
         if (error) {
-            console.error(
-                "Erro do Supabase ao salvar pedido:",
-                error
-            );
+            console.error("Erro do Supabase ao salvar pedido:", error);
 
             throw new Error(
                 "Não foi possível salvar o pedido no banco de dados."
             );
         }
-
-        /* =============================================
-           ATUALIZAR CACHE LOCAL APÓS O SUCESSO
-           ============================================= */
 
         const pedidoSalvo = {
             ...pedido,
@@ -170,8 +237,7 @@ window.NovaPedidos = {
         const pedidos = this.carregarPedidos();
 
         const indiceExistente = pedidos.findIndex(
-            (item) =>
-                String(item.id) === String(pedidoSalvo.id)
+            (item) => String(item.id) === String(pedidoSalvo.id)
         );
 
         if (indiceExistente >= 0) {
@@ -193,10 +259,6 @@ window.NovaPedidos = {
             JSON.stringify(pedidoSalvo)
         );
 
-        /* =============================================
-           AVISAR OUTRAS PARTES DA APLICAÇÃO
-           ============================================= */
-
         window.dispatchEvent(
             new CustomEvent("nova:pedido-criado", {
                 detail: pedidoSalvo
@@ -208,309 +270,539 @@ window.NovaPedidos = {
 };
 
 /* =========================================================
-   GERAR ID DO PEDIDO
+   CARRINHO
    ========================================================= */
 
-function gerarIdPedido() {
-    const data = new Date();
+function novaCarregarCarrinho() {
+    try {
+        const salvo = JSON.parse(
+            localStorage.getItem(NOVA_CART_KEY) || "[]"
+        );
 
-    const dataFormatada = [
-        data.getFullYear(),
-        String(data.getMonth() + 1).padStart(2, "0"),
-        String(data.getDate()).padStart(2, "0")
-    ].join("");
+        novaCarrinho = Array.isArray(salvo) ? salvo : [];
+    } catch (erro) {
+        console.error("Erro ao carregar carrinho:", erro);
+        novaCarrinho = [];
+    }
+}
 
-    const aleatorio = Math.random()
-        .toString(36)
-        .slice(2, 8)
-        .toUpperCase();
+function novaAtualizarContadorCarrinho() {
+    const contador = document.querySelector(".cart-count");
 
-    return `NVA-${dataFormatada}-${aleatorio}`;
+    if (!contador) return;
+
+    const quantidade = novaCarrinho.reduce(
+        (total, produto) =>
+            total + Number(produto.quantidade || 0),
+        0
+    );
+
+    contador.textContent = quantidade;
+}
+
+function novaSalvarCarrinho() {
+    localStorage.setItem(
+        NOVA_CART_KEY,
+        JSON.stringify(novaCarrinho)
+    );
+
+    novaAtualizarContadorCarrinho();
+
+    window.dispatchEvent(
+        new CustomEvent("nova:carrinho-atualizado", {
+            detail: novaCarrinho
+        })
+    );
+}
+
+function novaMostrarMensagem(texto) {
+    const anterior = document.querySelector(".nova-mensagem");
+
+    if (anterior) anterior.remove();
+
+    const mensagem = document.createElement("div");
+
+    mensagem.className = "nova-mensagem";
+    mensagem.textContent = texto;
+    mensagem.setAttribute("role", "status");
+
+    Object.assign(mensagem.style, {
+        position: "fixed",
+        bottom: "25px",
+        right: "25px",
+        zIndex: "99999",
+        maxWidth: "calc(100% - 40px)",
+        padding: "14px 20px",
+        background: "#1E222B",
+        color: "#F5F7FA",
+        border: "1px solid #8B5CF6",
+        borderRadius: "8px",
+        fontSize: "14px",
+        fontFamily: "Arial, sans-serif",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.3)"
+    });
+
+    document.body.appendChild(mensagem);
+
+    window.setTimeout(() => mensagem.remove(), 2500);
+}
+
+function novaAdicionarProduto(produto) {
+    if (!produto || !produto.id) {
+        novaMostrarMensagem("Não foi possível identificar o produto.");
+        return;
+    }
+
+    const existente = novaCarrinho.find(
+        (item) => String(item.id) === String(produto.id)
+    );
+
+    if (existente) {
+        existente.quantidade =
+            Number(existente.quantidade || 0) + 1;
+    } else {
+        novaCarrinho.push({
+            id: produto.id,
+            nome: produto.nome || produto.name || "Produto NØVA",
+            preco: novaConverterPreco(produto.preco ?? produto.price),
+            imagem: produto.imagem || produto.image || "",
+            categoria: produto.categoria || "PRODUTO",
+            quantidade: 1,
+            tamanho: produto.tamanho || "",
+            cor: produto.cor || ""
+        });
+    }
+
+    novaSalvarCarrinho();
+    novaMostrarMensagem("Produto adicionado ao carrinho!");
 }
 
 /* =========================================================
-   INICIALIZAÇÃO DA LOJA
+   CONFIGURAÇÕES DA LOJA — SUPABASE
+   Tabela: public.configuracoes_nova
+   Colunas esperadas: id, configuracoes
+   Registro: id = "loja"
    ========================================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
-    let carrinho = [];
+async function novaCarregarConfiguracoes() {
+    const supabase = window.supabaseClient;
 
-    try {
-        const salvo = JSON.parse(
-            localStorage.getItem(NOVA_CART_KEY)
+    if (!supabase || typeof supabase.from !== "function") {
+        console.warn(
+            "Supabase indisponível. A página usará as configurações padrão."
         );
-
-        carrinho = Array.isArray(salvo) ? salvo : [];
-    } catch (erro) {
-        console.error("Erro ao carregar carrinho:", erro);
-        carrinho = [];
+        return {};
     }
 
-    /* =============================================
-       ELEMENTOS
-       ============================================= */
+    const { data, error } = await supabase
+        .from("configuracoes_nova")
+        .select("configuracoes")
+        .eq("id", "loja")
+        .maybeSingle();
 
-    const cartCount = document.querySelector(".cart-count");
-
-    const productButtons = document.querySelectorAll(
-        ".product-cart"
-    );
-
-    console.log("NØVA JS carregado.");
-    console.log("Botões encontrados:", productButtons.length);
-
-    /* =============================================
-       CONTADOR DO CARRINHO
-       ============================================= */
-
-    function atualizarContador() {
-        if (!cartCount) return;
-
-        const quantidade = carrinho.reduce(
-            (total, produto) => {
-                return total + Number(produto.quantidade || 0);
-            },
-            0
-        );
-
-        cartCount.textContent = quantidade;
+    if (error) {
+        console.error("Erro ao carregar configurações da loja:", error);
+        return {};
     }
 
-    /* =============================================
-       SALVAR CARRINHO
-       ============================================= */
-
-    function salvarCarrinho() {
-        localStorage.setItem(
-            NOVA_CART_KEY,
-            JSON.stringify(carrinho)
-        );
-
-        atualizarContador();
-
-        window.dispatchEvent(
-            new CustomEvent("nova:carrinho-atualizado", {
-                detail: carrinho
-            })
-        );
+    if (!data || !data.configuracoes) {
+        console.warn("Nenhuma configuração da loja foi encontrada.");
+        return {};
     }
 
-    /* =============================================
-       CONVERTER PREÇO BRASILEIRO
-       Exemplos: R$ 129,90 ou 129.90
-       ============================================= */
+    const configuracoes = data.configuracoes;
 
-    function converterPreco(valor) {
-        if (typeof valor === "number") {
-            return Number.isFinite(valor) ? valor : 0;
+    return configuracoes && typeof configuracoes === "object"
+        ? configuracoes
+        : {};
+}
+
+/* =========================================================
+   APLICAR CORES CONFIGURADAS NO ADM
+   ========================================================= */
+
+function novaAplicarCores(configuracoes) {
+    const cores = configuracoes.cores || {};
+
+    const raiz = document.documentElement;
+
+    const mapaCores = {
+        "Fundo": "--nova-cor-fundo",
+        "Superfície": "--nova-cor-superficie",
+        "Destaque": "--nova-cor-destaque",
+        "Texto": "--nova-cor-texto"
+    };
+
+    Object.entries(mapaCores).forEach(([chave, variavel]) => {
+        const cor = cores[chave];
+
+        if (
+            typeof cor === "string" &&
+            /^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?$/.test(cor)
+        ) {
+            raiz.style.setProperty(variavel, cor);
         }
-
-        if (!valor) return 0;
-
-        let texto = String(valor)
-            .trim()
-            .replace(/[^\d,.-]/g, "");
-
-        if (texto.includes(",")) {
-            texto = texto
-                .replace(/\./g, "")
-                .replace(",", ".");
-        }
-
-        const preco = Number(texto);
-
-        return Number.isFinite(preco) ? preco : 0;
-    }
-
-    /* =============================================
-       ADICIONAR PRODUTO AO CARRINHO
-       ============================================= */
-
-    function adicionarProduto(produto) {
-        console.log("Produto recebido:", produto);
-
-        const produtoExistente = carrinho.find(
-            (item) =>
-                String(item.id) === String(produto.id)
-        );
-
-        if (produtoExistente) {
-            produtoExistente.quantidade =
-                Number(produtoExistente.quantidade || 0) + 1;
-        } else {
-            carrinho.push({
-                id: produto.id,
-                nome: produto.nome,
-                preco: produto.preco,
-                imagem: produto.imagem,
-                categoria: produto.categoria || "PRODUTO",
-                quantidade: 1,
-                tamanho: produto.tamanho || ""
-            });
-        }
-
-        salvarCarrinho();
-
-        mostrarMensagem("Produto adicionado ao carrinho!");
-
-        console.log("Carrinho atual:", carrinho);
-    }
-
-    /* =============================================
-       BOTÕES DOS PRODUTOS
-       ============================================= */
-
-    productButtons.forEach((button, index) => {
-        button.addEventListener("click", (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-
-            const card = button.closest(".product-card");
-
-            if (!card) {
-                console.error(
-                    "Não encontrei .product-card para o botão."
-                );
-                return;
-            }
-
-            const nomeElement = card.querySelector(
-                ".product-info h3"
-            );
-
-            const nome = nomeElement
-                ? nomeElement.textContent.trim()
-                : "Produto NØVA";
-
-            const precoElement = card.querySelector(
-                ".product-price"
-            );
-
-            const preco = converterPreco(
-                precoElement
-                    ? precoElement.textContent
-                    : "0"
-            );
-
-            const imagemElement = card.querySelector("img");
-
-            const imagem = imagemElement
-                ? imagemElement.getAttribute("src") || ""
-                : "";
-
-            const categoriaElement = card.querySelector(
-                ".product-category"
-            );
-
-            const categoria = categoriaElement
-                ? categoriaElement.textContent.trim()
-                : "PRODUTO";
-
-            const id =
-                card.dataset.productId ||
-                card.dataset.id ||
-                `nova-produto-${index + 1}`;
-
-            const produto = {
-                id,
-                nome,
-                preco,
-                imagem,
-                categoria
-            };
-
-            adicionarProduto(produto);
-        });
     });
 
-    /* =============================================
-       MENSAGEM TEMPORÁRIA
-       ============================================= */
+    /*
+       Aplica as cores às áreas principais sem sobrescrever
+       indiscriminadamente todos os estilos do site.
+    */
 
-    function mostrarMensagem(texto) {
-        const mensagemExistente = document.querySelector(
-            ".nova-mensagem"
-        );
+    const fundo = cores["Fundo"];
+    const superficie = cores["Superfície"];
+    const destaque = cores["Destaque"];
+    const texto = cores["Texto"];
 
-        if (mensagemExistente) {
-            mensagemExistente.remove();
-        }
-
-        const mensagem = document.createElement("div");
-
-        mensagem.className = "nova-mensagem";
-        mensagem.textContent = texto;
-        mensagem.setAttribute("role", "status");
-
-        Object.assign(mensagem.style, {
-            position: "fixed",
-            bottom: "25px",
-            right: "25px",
-            zIndex: "99999",
-            padding: "14px 20px",
-            background: "#1E222B",
-            color: "#F5F7FA",
-            border: "1px solid #8B5CF6",
-            borderRadius: "8px",
-            fontSize: "14px",
-            fontFamily: "Arial, sans-serif",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.3)"
-        });
-
-        document.body.appendChild(mensagem);
-
-        setTimeout(() => {
-            mensagem.remove();
-        }, 2500);
+    if (fundo && /^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?$/.test(fundo)) {
+        document.body.style.backgroundColor = fundo;
     }
 
-    /* =============================================
-       MENU MOBILE
-       ============================================= */
+    if (texto && /^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?$/.test(texto)) {
+        document.body.style.color = texto;
+    }
 
+    if (
+        superficie &&
+        /^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?$/.test(superficie)
+    ) {
+        document.querySelectorAll(
+            ".header, .footer, .product-card, .benefit"
+        ).forEach((elemento) => {
+            elemento.style.setProperty(
+                "background-color",
+                superficie
+            );
+        });
+    }
+
+    if (
+        destaque &&
+        /^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?$/.test(destaque)
+    ) {
+        document.querySelectorAll(
+            ".btn-primary, .section-label"
+        ).forEach((elemento) => {
+            elemento.style.setProperty(
+                "border-color",
+                destaque
+            );
+        });
+    }
+}
+
+/* =========================================================
+   APLICAR IMAGEM DO BANNER PRINCIPAL
+   ========================================================= */
+
+function novaAplicarBanner(configuracoes) {
+    const hero = document.querySelector(
+        "[data-nova-banner], #banner-principal, .hero"
+    );
+
+    if (!hero) return;
+
+    const url = novaImagemValida(configuracoes.banner);
+
+    if (!url) return;
+
+    hero.style.backgroundImage =
+        `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url("${url}")`;
+
+    hero.classList.add("nova-banner-configurado");
+    hero.dataset.bannerConfigurado = "true";
+}
+
+/* =========================================================
+   BUSCAR PRODUTOS NO SUPABASE
+   Tabela: public.produtos_nova
+   ========================================================= */
+
+async function novaCarregarProdutosBanco() {
+    const supabase = window.supabaseClient;
+
+    if (!supabase || typeof supabase.from !== "function") {
+        console.warn("Supabase indisponível para carregar produtos.");
+        return [];
+    }
+
+    const { data, error } = await supabase
+        .from("produtos_nova")
+        .select("*")
+        .eq("ativo", true)
+        .gt("estoque", 0)
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error("Erro ao buscar produtos:", error);
+        return [];
+    }
+
+    return Array.isArray(data) ? data : [];
+}
+
+/* =========================================================
+   IDENTIFICAR PRODUTOS EM DESTAQUE E PROMOÇÃO
+   ========================================================= */
+
+function novaEncontrarPromocao(configuracoes, produtoId) {
+    const promocoes = Array.isArray(configuracoes.promocoes)
+        ? configuracoes.promocoes
+        : [];
+
+    return promocoes.find(
+        (promocao) =>
+            String(promocao.id) === String(produtoId)
+    );
+}
+
+function novaMontarListaDestaques(produtos, configuracoes) {
+    const idsDestaque = Array.isArray(configuracoes.destaques)
+        ? configuracoes.destaques.map(String)
+        : [];
+
+    if (idsDestaque.length === 0) {
+        return produtos.slice(0, 4);
+    }
+
+    return idsDestaque
+        .map((id) =>
+            produtos.find(
+                (produto) => String(produto.id) === id
+            )
+        )
+        .filter(Boolean);
+}
+
+/* =========================================================
+   EXIBIR PRODUTOS NA PÁGINA INICIAL
+   ========================================================= */
+
+function novaRenderizarDestaques(produtos, configuracoes) {
+    const lista = document.querySelector(
+        '[data-product-list="featured"], #featured-products'
+    );
+
+    if (!lista) return;
+
+    const destaques = novaMontarListaDestaques(
+        produtos,
+        configuracoes
+    );
+
+    if (destaques.length === 0) {
+        lista.innerHTML = `
+            <p class="products-loading">
+                Nenhum produto em destaque disponível no momento.
+            </p>
+        `;
+        return;
+    }
+
+    lista.innerHTML = destaques.map((produto) => {
+        const id = novaEscaparHTML(produto.id);
+        const nome = novaEscaparHTML(produto.nome);
+        const categoria = novaEscaparHTML(produto.categoria || "NØVA");
+        const descricao = novaEscaparHTML(produto.descricao || "");
+        const imagem = novaImagemValida(produto.imagem);
+
+        const precoOriginal = novaConverterPreco(produto.preco);
+        const promocao = novaEncontrarPromocao(
+            configuracoes,
+            produto.id
+        );
+
+        let precoAtual = precoOriginal;
+        let etiquetaPromocao = "";
+        let precoAntigo = "";
+
+        if (promocao) {
+            const precoPromocional = novaConverterPreco(
+                promocao.preco
+            );
+
+            if (
+                precoPromocional > 0 &&
+                precoPromocional < precoOriginal
+            ) {
+                precoAtual = precoPromocional;
+
+                etiquetaPromocao = `
+                    <span class="nova-etiqueta-promocao">
+                        PROMOÇÃO
+                    </span>
+                `;
+
+                precoAntigo = `
+                    <span class="nova-preco-antigo">
+                        ${novaFormatarPreco(precoOriginal)}
+                    </span>
+                `;
+            }
+        }
+
+        const imagemHTML = imagem
+            ? `
+                <img
+                    src="${novaEscaparHTML(imagem)}"
+                    alt="${nome}"
+                    loading="lazy"
+                >
+            `
+            : `
+                <div class="nova-imagem-indisponivel">
+                    NØVA
+                </div>
+            `;
+
+        return `
+            <article
+                class="product-card"
+                data-product-id="${id}"
+                data-id="${id}"
+            >
+                <a
+                    href="pages/produto.html"
+                    class="product-image nova-link-produto"
+                    data-product-open="${id}"
+                    aria-label="Ver ${nome}"
+                >
+                    ${etiquetaPromocao}
+                    ${imagemHTML}
+                </a>
+
+                <div class="product-info">
+                    <span class="product-category">
+                        ${categoria}
+                    </span>
+
+                    <h3>
+                        <a
+                            href="pages/produto.html"
+                            class="nova-link-produto"
+                            data-product-open="${id}"
+                        >
+                            ${nome}
+                        </a>
+                    </h3>
+
+                    ${descricao ? `
+                        <p class="product-description">
+                            ${descricao}
+                        </p>
+                    ` : ""}
+
+                    <div class="product-price">
+                        ${novaFormatarPreco(precoAtual)}
+                        ${precoAntigo}
+                    </div>
+
+                    <button
+                        type="button"
+                        class="product-cart"
+                        data-add-cart="${id}"
+                        aria-label="Adicionar ${nome} ao carrinho"
+                    >
+                        Adicionar ao carrinho
+                    </button>
+                </div>
+            </article>
+        `;
+    }).join("");
+}
+
+/* =========================================================
+   ABRIR PÁGINA DO PRODUTO
+   ========================================================= */
+
+function novaAbrirProduto(id) {
+    const produto = novaProdutos.find(
+        (item) => String(item.id) === String(id)
+    );
+
+    if (!produto) {
+        novaMostrarMensagem("Não foi possível encontrar esse produto.");
+        return;
+    }
+
+    const promocao = novaEncontrarPromocao(
+        novaConfiguracoes,
+        produto.id
+    );
+
+    let preco = novaConverterPreco(produto.preco);
+
+    if (promocao) {
+        const precoPromocional = novaConverterPreco(promocao.preco);
+
+        if (precoPromocional > 0 && precoPromocional < preco) {
+            preco = precoPromocional;
+        }
+    }
+
+    const produtoSelecionado = {
+        ...produto,
+        id: produto.id,
+        nome: produto.nome,
+        name: produto.nome,
+        preco,
+        price: preco,
+        precoOriginal: novaConverterPreco(produto.preco),
+        imagem: produto.imagem || "",
+        image: produto.imagem || "",
+        categoria: produto.categoria || "",
+        descricao: produto.descricao || ""
+    };
+
+    localStorage.setItem(
+        NOVA_PRODUCT_KEY,
+        JSON.stringify(produtoSelecionado)
+    );
+
+    window.location.href = "pages/produto.html";
+}
+
+/* =========================================================
+   MENU MOBILE
+   ========================================================= */
+
+function novaInicializarMenuMobile() {
     const menuMobile =
         document.querySelector(".menu-mobile") ||
         document.querySelector(".menu-toggle");
 
     const nav = document.querySelector(".nav");
 
-    if (menuMobile && nav) {
-        menuMobile.addEventListener("click", () => {
-            nav.classList.toggle("menu-open");
+    if (!menuMobile || !nav) return;
 
-            const aberto = nav.classList.contains("menu-open");
+    menuMobile.addEventListener("click", () => {
+        nav.classList.toggle("menu-open");
 
-            menuMobile.setAttribute(
-                "aria-expanded",
-                String(aberto)
-            );
-        });
-    }
+        const aberto = nav.classList.contains("menu-open");
 
-    /* =============================================
-       BANNER PRINCIPAL
-       ============================================= */
+        menuMobile.setAttribute(
+            "aria-expanded",
+            String(aberto)
+        );
+    });
+}
 
+/* =========================================================
+   CONTROLES DO BANNER
+   ========================================================= */
+
+function novaInicializarControlesBanner() {
     const hero = document.querySelector(".hero");
 
-    const heroLeft = document.querySelector(
-        ".hero-arrow-left"
-    );
-
-    const heroRight = document.querySelector(
-        ".hero-arrow-right"
-    );
-
+    const heroLeft = document.querySelector(".hero-arrow-left");
+    const heroRight = document.querySelector(".hero-arrow-right");
     const heroDots = document.querySelectorAll(".hero-dot");
 
     let bannerAtual = 0;
 
     function atualizarBanner() {
         heroDots.forEach((dot, index) => {
-            dot.classList.toggle(
-                "active",
-                index === bannerAtual
-            );
+            dot.classList.toggle("active", index === bannerAtual);
 
             dot.setAttribute(
                 "aria-current",
@@ -551,35 +843,156 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* =============================================
-       SINCRONIZAÇÃO DO CARRINHO ENTRE ABAS
-       ============================================= */
+    atualizarBanner();
+}
 
+/* =========================================================
+   EVENTOS DOS PRODUTOS
+   ========================================================= */
+
+function novaInicializarEventosProdutos() {
+    document.addEventListener("click", (event) => {
+        const botaoCarrinho = event.target.closest("[data-add-cart]");
+
+        if (botaoCarrinho) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const id = botaoCarrinho.dataset.addCart;
+
+            const produto = novaProdutos.find(
+                (item) => String(item.id) === String(id)
+            );
+
+            if (!produto) {
+                novaMostrarMensagem("Produto não encontrado.");
+                return;
+            }
+
+            const promocao = novaEncontrarPromocao(
+                novaConfiguracoes,
+                produto.id
+            );
+
+            let preco = novaConverterPreco(produto.preco);
+
+            if (promocao) {
+                const promocional = novaConverterPreco(promocao.preco);
+
+                if (promocional > 0 && promocional < preco) {
+                    preco = promocional;
+                }
+            }
+
+            novaAdicionarProduto({
+                id: produto.id,
+                nome: produto.nome,
+                preco,
+                imagem: produto.imagem || "",
+                categoria: produto.categoria || "PRODUTO"
+            });
+
+            return;
+        }
+
+        const linkProduto = event.target.closest("[data-product-open]");
+
+        if (linkProduto) {
+            event.preventDefault();
+
+            novaAbrirProduto(
+                linkProduto.dataset.productOpen
+            );
+        }
+    });
+}
+
+/* =========================================================
+   SINCRONIZAR CARRINHO ENTRE ABAS
+   ========================================================= */
+
+function novaInicializarSincronizacaoCarrinho() {
     window.addEventListener("storage", (event) => {
         if (event.key !== NOVA_CART_KEY) return;
 
         try {
             const dados = JSON.parse(event.newValue || "[]");
 
-            carrinho = Array.isArray(dados) ? dados : [];
+            novaCarrinho = Array.isArray(dados) ? dados : [];
         } catch (erro) {
-            console.error(
-                "Erro ao sincronizar carrinho:",
-                erro
-            );
-
-            carrinho = [];
+            console.error("Erro ao sincronizar carrinho:", erro);
+            novaCarrinho = [];
         }
 
-        atualizarContador();
+        novaAtualizarContadorCarrinho();
     });
+}
 
-    /* =============================================
-       INICIALIZAÇÃO
-       ============================================= */
+/* =========================================================
+   INICIALIZAÇÃO PRINCIPAL
+   ========================================================= */
 
-    atualizarContador();
-    atualizarBanner();
+document.addEventListener("DOMContentLoaded", async () => {
+    console.log("NØVA JS carregado.");
+
+    novaCarregarCarrinho();
+    novaAtualizarContadorCarrinho();
+
+    novaInicializarMenuMobile();
+    novaInicializarControlesBanner();
+    novaInicializarEventosProdutos();
+    novaInicializarSincronizacaoCarrinho();
+
+    const listaDestaques = document.querySelector(
+        '[data-product-list="featured"], #featured-products'
+    );
+
+    if (listaDestaques) {
+        listaDestaques.innerHTML = `
+            <p class="products-loading">
+                Carregando produtos...
+            </p>
+        `;
+    }
+
+    try {
+        /*
+         * Carrega as configurações e os produtos do banco.
+         */
+
+        const [configuracoes, produtos] = await Promise.all([
+            novaCarregarConfiguracoes(),
+            novaCarregarProdutosBanco()
+        ]);
+
+        novaConfiguracoes = configuracoes;
+        novaProdutos = produtos;
+
+        novaAplicarCores(novaConfiguracoes);
+        novaAplicarBanner(novaConfiguracoes);
+
+        novaRenderizarDestaques(
+            novaProdutos,
+            novaConfiguracoes
+        );
+
+        console.log("Configurações da NØVA carregadas.");
+        console.log("Produtos disponíveis:", novaProdutos.length);
+    } catch (erro) {
+        console.error(
+            "Erro ao inicializar os dados da loja:",
+            erro
+        );
+
+        if (listaDestaques) {
+            listaDestaques.innerHTML = `
+                <p class="products-loading">
+                    Não foi possível carregar os produtos.
+                    Tente novamente mais tarde.
+                </p>
+            `;
+        }
+    }
 
     console.log("NØVA APP.JS inicializado.");
 });

@@ -1,12 +1,17 @@
 
+/* =========================================================
+   NØVA — CONFIRMAÇÃO DO PEDIDO
+   Integração com Supabase + localStorage
+   ========================================================= */
+
 document.addEventListener("DOMContentLoaded", () => {
     "use strict";
 
     const ORDER_KEY = "novaPedido";
 
-    // =========================================
+    // =====================================================
     // ELEMENTOS DA PÁGINA
-    // =========================================
+    // =====================================================
 
     const loading = document.getElementById("pedido-loading");
     const erro = document.getElementById("pedido-erro");
@@ -32,9 +37,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const descontoLinha = document.getElementById("pedido-desconto-linha");
     const descontoElemento = document.getElementById("pedido-desconto");
 
-    // =========================================
+    let carregando = false;
+
+    // =====================================================
     // FORMATAÇÃO
-    // =========================================
+    // =====================================================
 
     function formatarPreco(valor) {
         const numero = Number(valor);
@@ -54,12 +61,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function obterTexto(valor, padrao = "") {
-        return typeof valor === "string" ? valor.trim() : padrao;
+        return typeof valor === "string" && valor.trim()
+            ? valor.trim()
+            : padrao;
     }
 
-    // =========================================
+    // =====================================================
     // ESTADOS DA PÁGINA
-    // =========================================
+    // =====================================================
 
     function mostrarCarregamento() {
         if (loading) loading.hidden = false;
@@ -83,9 +92,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (conteudo) conteudo.hidden = false;
     }
 
-    // =========================================
+    // =====================================================
     // CARREGAR PEDIDO LOCAL
-    // =========================================
+    // =====================================================
 
     function carregarPedidoLocal() {
         try {
@@ -97,10 +106,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
             return JSON.parse(dados);
         } catch (error) {
-            console.error("Erro ao ler os dados do pedido:", error);
+            console.error(
+                "Erro ao ler os dados do pedido:",
+                error
+            );
+
             return null;
         }
     }
+
+    // =====================================================
+    // VALIDAR PEDIDO
+    // =====================================================
 
     function validarPedido(pedido) {
         if (!pedido || typeof pedido !== "object") {
@@ -139,9 +156,89 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // =========================================
+    // =====================================================
+    // CONSULTAR PEDIDO NO SUPABASE
+    // =====================================================
+
+    async function consultarPedidoSupabase(pedidoLocal) {
+        const supabase = window.supabaseClient;
+
+        if (!supabase || !pedidoLocal?.id) {
+            return null;
+        }
+
+        try {
+            const { data, error } = await supabase
+                .from("pedidos_nova")
+                .select("*")
+                .eq("id", pedidoLocal.id)
+                .maybeSingle();
+
+            if (error) {
+                console.warn(
+                    "Não foi possível consultar o pedido no Supabase:",
+                    error.message
+                );
+
+                return null;
+            }
+
+            if (!data) {
+                return null;
+            }
+
+            // Prioriza os dados persistidos no banco.
+            // Mantém itens locais caso a resposta não contenha itens válidos.
+            const itensBanco = Array.isArray(data.itens)
+                ? data.itens
+                : [];
+
+            const pedidoAtualizado = {
+                ...pedidoLocal,
+                ...data,
+                itens: itensBanco.length > 0
+                    ? itensBanco
+                    : (
+                        Array.isArray(pedidoLocal.itens)
+                            ? pedidoLocal.itens
+                            : pedidoLocal.produtos
+                    )
+            };
+
+            if (!validarPedido(pedidoAtualizado)) {
+                console.warn(
+                    "O pedido retornado pelo Supabase não passou na validação."
+                );
+
+                return null;
+            }
+
+            try {
+                localStorage.setItem(
+                    ORDER_KEY,
+                    JSON.stringify(pedidoAtualizado)
+                );
+            } catch (storageError) {
+                console.warn(
+                    "Não foi possível atualizar o pedido local:",
+                    storageError
+                );
+            }
+
+            return pedidoAtualizado;
+        } catch (error) {
+            console.warn(
+                "Falha inesperada ao consultar o Supabase:",
+                error
+            );
+
+            return null;
+        }
+    }
+
+    // =====================================================
     // RENDERIZAR PRODUTOS
-    // =========================================
+    // =====================================================
 
     function renderizarProdutos(pedido) {
         if (!produtosContainer) return;
@@ -169,8 +266,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (imagemUrl) {
                 const imagem = document.createElement("img");
+
                 imagem.src = imagemUrl;
-                imagem.alt = obterTexto(produto.nome, "Produto NØVA");
+                imagem.alt = obterTexto(
+                    produto.nome,
+                    "Produto NØVA"
+                );
                 imagem.loading = "lazy";
 
                 imagem.addEventListener("error", () => {
@@ -178,6 +279,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     const fallback = document.createElement("span");
                     fallback.textContent = "NØVA";
+
                     imagemContainer.appendChild(fallback);
                 }, { once: true });
 
@@ -185,6 +287,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 const fallback = document.createElement("span");
                 fallback.textContent = "NØVA";
+
                 imagemContainer.appendChild(fallback);
             }
 
@@ -192,13 +295,21 @@ document.addEventListener("DOMContentLoaded", () => {
             informacoes.className = "pedido-produto-info";
 
             const nome = document.createElement("h3");
-            nome.textContent = obterTexto(produto.nome, "Produto NØVA");
+            nome.textContent = obterTexto(
+                produto.nome,
+                "Produto NØVA"
+            );
 
             const detalhes = document.createElement("p");
             const opcoes = [];
 
-            if (produto.cor) opcoes.push(obterTexto(produto.cor));
-            if (produto.tamanho) opcoes.push(obterTexto(produto.tamanho));
+            if (produto.cor) {
+                opcoes.push(obterTexto(produto.cor));
+            }
+
+            if (produto.tamanho) {
+                opcoes.push(obterTexto(produto.tamanho));
+            }
 
             detalhes.textContent = opcoes.length
                 ? opcoes.join(" · ")
@@ -216,14 +327,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 obterNumero(produto.quantidade, 1)
             );
 
-            item.append(imagemContainer, informacoes, preco);
+            item.append(
+                imagemContainer,
+                informacoes,
+                preco
+            );
+
             produtosContainer.appendChild(item);
         });
     }
 
-    // =========================================
+    // =====================================================
     // ATUALIZAR TOTAIS
-    // =========================================
+    // =====================================================
 
     function atualizarTotais(pedido) {
         const subtotal = obterNumero(pedido.subtotal);
@@ -252,81 +368,140 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // =========================================
+    // =====================================================
     // ATUALIZAR PAGAMENTO
-    // =========================================
+    // =====================================================
 
     function atualizarPagamento(pedido) {
         if (pagamentoElemento) {
-            const pagamento = obterTexto(
+            let pagamento = obterTexto(
                 pedido.pagamento,
                 "Informação indisponível"
             );
+
+            const formasPagamento = {
+                pix: "PIX",
+                cartao: "Cartão",
+                credito: "Cartão de crédito",
+                debito: "Cartão de débito",
+                boleto: "Boleto bancário"
+            };
+
+            const chave = pagamento.toLowerCase();
+
+            if (formasPagamento[chave]) {
+                pagamento = formasPagamento[chave];
+            }
 
             pagamentoElemento.textContent = pagamento;
         }
 
         if (pagamentoStatus) {
-            // O site ainda não possui confirmação de pagamento
-            // por um provedor externo.
-            pagamentoStatus.hidden = true;
-            pagamentoStatus.textContent = "";
+            pagamentoStatus.hidden = false;
+            pagamentoStatus.textContent =
+                "Pedido registrado. A confirmação do pagamento " +
+                "depende da integração com o serviço de pagamento.";
         }
     }
 
-    // =========================================
+    // =====================================================
     // EXIBIR PEDIDO
-    // =========================================
+    // =====================================================
 
     function renderizarPedido(pedido) {
         if (numeroPedido) {
             numeroPedido.textContent = `#${pedido.id}`;
         }
 
+        const status = obterTexto(
+            pedido.status,
+            "Pendente"
+        );
+
         if (labelStatus) {
-            labelStatus.textContent = "PEDIDO RECEBIDO";
+            labelStatus.textContent =
+                status.toLowerCase() === "pendente"
+                    ? "PEDIDO RECEBIDO"
+                    : `STATUS: ${status.toUpperCase()}`;
         }
 
         if (statusPedido) {
-            statusPedido.textContent = obterTexto(
-                pedido.status,
-                "Pendente"
-            );
+            statusPedido.textContent = status;
         }
 
         if (mensagemPedido) {
             mensagemPedido.textContent =
-                "Os dados deste pedido estão disponíveis abaixo. " +
-                "O pagamento ainda depende da forma de pagamento escolhida.";
+                "Seu pedido foi registrado. Confira abaixo os detalhes " +
+                "da compra. O pagamento ainda depende da confirmação " +
+                "do serviço de pagamento escolhido.";
         }
 
         renderizarProdutos(pedido);
         atualizarTotais(pedido);
         atualizarPagamento(pedido);
 
-        // Só exibe os detalhes depois de validar os dados locais.
         mostrarConteudo();
     }
 
-    // =========================================
+    // =====================================================
     // INICIALIZAÇÃO
-    // =========================================
+    // =====================================================
 
-    function inicializar() {
+    async function inicializar() {
+        if (carregando) return;
+
+        carregando = true;
         mostrarCarregamento();
 
-        const pedido = carregarPedidoLocal();
+        try {
+            const pedidoLocal = carregarPedidoLocal();
 
-        if (!validarPedido(pedido)) {
-            mostrarErro(
-                "Não encontramos um pedido válido neste navegador. " +
-                "Se você acabou de finalizar uma compra, confira se ela foi salva antes de tentar novamente."
+            if (!validarPedido(pedidoLocal)) {
+                mostrarErro(
+                    "Não encontramos um pedido válido neste navegador. " +
+                    "Se você acabou de finalizar uma compra, confira se " +
+                    "ela foi salva antes de tentar novamente."
+                );
+
+                return;
+            }
+
+            // Tenta consultar o banco. Se o RLS bloquear a leitura,
+            // utiliza o pedido local validado.
+            const pedidoBanco = await consultarPedidoSupabase(
+                pedidoLocal
             );
-            return;
-        }
 
-        renderizarPedido(pedido);
+            const pedidoFinal = pedidoBanco || pedidoLocal;
+
+            if (!validarPedido(pedidoFinal)) {
+                mostrarErro(
+                    "Não foi possível validar os dados do pedido. " +
+                    "Tente novamente ou volte para a loja."
+                );
+
+                return;
+            }
+
+            renderizarPedido(pedidoFinal);
+        } catch (error) {
+            console.error(
+                "Erro ao carregar a confirmação do pedido:",
+                error
+            );
+
+            mostrarErro(
+                "Ocorreu um erro ao carregar seu pedido. " +
+                "Clique em tentar novamente."
+            );
+        } finally {
+            carregando = false;
+        }
     }
+
+    // =====================================================
+    // EVENTOS
+    // =====================================================
 
     if (tentarNovamente) {
         tentarNovamente.addEventListener("click", inicializar);
