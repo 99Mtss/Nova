@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", iniciarLoja);
 
 const NOVA_LOJA = {
     chaveCarrinho: "novaCarrinho",
-    chaveProduto: "novaProdutoSelecionado",
     tabelaProdutos: "produtos_nova",
     tabelaConfiguracoes: "configuracoes_nova",
     produtosPorPagina: 12
@@ -439,31 +438,9 @@ function criarCardProduto(produto) {
    ========================================================= */
 
 function abrirProduto(produto) {
-    const promocao = obterPromocao(produto);
-    const precoOriginal = converterPreco(produto.preco);
-    const precoAtual = obterPrecoAtual(produto);
-
-    const selecionado = {
-        ...produto,
-        id: produto.id,
-        nome: produto.nome,
-        name: produto.nome,
-        preco: precoAtual,
-        price: precoAtual,
-        precoOriginal,
-        imagem: obterImagem(produto),
-        image: obterImagem(produto),
-        categoria: produto.categoria || "",
-        descricao: produto.descricao || "",
-        promocao: Boolean(promocao && precoAtual < precoOriginal)
-    };
-
-    localStorage.setItem(
-        NOVA_LOJA.chaveProduto,
-        JSON.stringify(selecionado)
-    );
-
-    window.location.href = "produto.html";
+    const url = new URL("produto.html", window.location.href);
+    url.searchParams.set("id", produto.id);
+    window.location.href = url.href;
 }
 
 /* =========================================================
@@ -518,6 +495,9 @@ function atualizarContadorCarrinho() {
     } catch (erro) {
         console.error("Erro ao atualizar o carrinho:", erro);
         elementos.contadorCarrinho.textContent = "0";
+        mostrarMensagem(
+            "Não foi possível ler o carrinho salvo neste navegador."
+        );
     }
 }
 

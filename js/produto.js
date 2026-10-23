@@ -188,6 +188,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function obterIdSelecionado() {
+        const idNaUrl = new URLSearchParams(window.location.search).get("id");
+
+        if (idNaUrl) {
+            return idNaUrl;
+        }
+
         const selecionado = obterProdutoArmazenado();
 
         if (selecionado?.id !== undefined && selecionado?.id !== null) {
@@ -238,8 +244,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function carregarConfiguracoes() {
         if (!supabaseClient) {
-            console.warn("Cliente Supabase não encontrado.");
-            return;
+            throw new Error("Cliente Supabase não encontrado.");
         }
 
         const { data, error } = await supabaseClient
@@ -249,8 +254,10 @@ document.addEventListener("DOMContentLoaded", () => {
             .maybeSingle();
 
         if (error) {
-            console.warn("Não foi possível carregar as configurações:", error);
-            return;
+            console.error("Não foi possível carregar as configurações:", error);
+            throw new Error(
+                "Não foi possível validar os preços promocionais do produto."
+            );
         }
 
         configuracoes = data?.configuracoes || {};
@@ -320,9 +327,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         produtoSelecionado = data;
-
-        /* Mantém o produto selecionado atualizado no navegador. */
-        salvarLocalStorage(PRODUCT_KEY, data);
 
         quantidade = 1;
         corSelecionada = "";
@@ -918,7 +922,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const linkImagem = document.createElement("a");
-            linkImagem.href = "produto.html";
+            linkImagem.href =
+                `produto.html?id=${encodeURIComponent(produto.id)}`;
             linkImagem.className = "related-product-image-link";
             linkImagem.appendChild(imagem);
 
@@ -926,7 +931,8 @@ document.addEventListener("DOMContentLoaded", () => {
             nome.textContent = produto.nome || "Produto NØVA";
 
             const linkNome = document.createElement("a");
-            linkNome.href = "produto.html";
+            linkNome.href =
+                `produto.html?id=${encodeURIComponent(produto.id)}`;
             linkNome.className = "related-product-name";
             linkNome.appendChild(nome);
 
@@ -944,19 +950,6 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 precoEl.textContent = formatarPreco(preco);
             }
-
-            [linkImagem, linkNome].forEach(link => {
-                link.addEventListener("click", event => {
-                    event.preventDefault();
-
-                    if (!salvarLocalStorage(PRODUCT_KEY, produto)) {
-                        mostrarMensagem("Não foi possível abrir este produto.", "erro");
-                        return;
-                    }
-
-                    window.location.href = "produto.html";
-                });
-            });
 
             card.append(linkImagem, categoria, linkNome, precoEl);
             relatedContainer.appendChild(card);

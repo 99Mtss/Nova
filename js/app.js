@@ -1,13 +1,10 @@
 
 /* =========================================================
    NØVA — JAVASCRIPT PRINCIPAL
-   Loja, carrinho, pedidos e configurações do Supabase
+   Loja, carrinho e configurações do Supabase
    ========================================================= */
 
 const NOVA_CART_KEY = "novaCarrinho";
-const NOVA_ORDERS_KEY = "novaPedidos";
-const NOVA_ORDER_KEY = "novaPedido";
-const NOVA_PRODUCT_KEY = "novaProdutoSelecionado";
 
 let novaCarrinho = [];
 let novaProdutos = [];
@@ -81,191 +78,94 @@ function novaImagemValida(url) {
     return "";
 }
 
-function novaGerarIdPedido() {
-    const data = new Date();
-
-    const dataFormatada = [
-        data.getFullYear(),
-        String(data.getMonth() + 1).padStart(2, "0"),
-        String(data.getDate()).padStart(2, "0")
-    ].join("");
-
-    const aleatorio = Math.random()
-        .toString(36)
-        .slice(2, 8)
-        .toUpperCase();
-
-    return `NVA-${dataFormatada}-${aleatorio}`;
-}
-
 /* =========================================================
-   INTEGRAÇÃO DE PEDIDOS COM SUPABASE
+   PEDIDOS
    ========================================================= */
 
 window.NovaPedidos = {
-    carregarPedidos() {
-        try {
-            const pedidos = JSON.parse(
-                localStorage.getItem(NOVA_ORDERS_KEY) || "[]"
-            );
-
-            return Array.isArray(pedidos) ? pedidos : [];
-        } catch (erro) {
-            console.error("Erro ao carregar pedidos:", erro);
-            return [];
+    getEndpoint() {
+        if (window.NOVA_ORDER_ENDPOINT) {
+            return window.NOVA_ORDER_ENDPOINT;
         }
+
+        if (window.NOVA_CONFIG?.orderEndpoint) {
+            return window.NOVA_CONFIG.orderEndpoint;
+        }
+
+        if (window.supabaseClient?.supabaseUrl) {
+            const base = String(window.supabaseClient.supabaseUrl).replace(/\/$/, "");
+            return `${base}/functions/v1/create-order`;
+        }
+
+        return null;
     },
 
-    async salvarPedido(dados) {
-        if (!dados || typeof dados !== "object") {
-            throw new Error("Os dados do pedido são inválidos.");
-        }
-
-        const itensOriginais = dados.itens || dados.produtos || [];
-
-        if (!Array.isArray(itensOriginais) || itensOriginais.length === 0) {
-            throw new Error(
-                "O pedido precisa conter pelo menos um produto."
-            );
-        }
-
-        const itens = itensOriginais.map((item) => ({
-            id: item.id ?? "",
-            nome: item.nome || item.name || "Produto NØVA",
-            imagem: item.imagem || item.imagemUrl || item.image || "",
-            preco: Number(item.preco ?? item.price ?? 0),
-            quantidade: Math.max(
-                1,
-                Number.parseInt(
-                    item.quantidade ?? item.quantity ?? 1,
-                    10
-                ) || 1
-            ),
-            tamanho: item.tamanho || item.size || "",
-            cor: item.cor || item.color || ""
-        }));
-
-        if (
-            itens.some(
-                (item) =>
-                    !Number.isFinite(item.preco) ||
-                    item.preco < 0
-            )
-        ) {
-            throw new Error(
-                "Um ou mais produtos possuem preço inválido."
-            );
-        }
-
-        const subtotalCalculado = itens.reduce(
-            (total, item) => total + item.preco * item.quantidade,
-            0
+    isBackendConfigured() {
+        return Boolean(this.getEndpoint()) || (
+            Boolean(window.supabaseClient) &&
+            typeof window.supabaseClient?.functions?.invoke === "function"
         );
+    },
 
-        const subtotal = Number(
-            dados.subtotal ?? subtotalCalculado
-        );
-
-        const frete = Number(dados.frete ?? 0);
-
-        const total = Number(
-            dados.total ?? subtotal + frete
-        );
-
-        if (
-            ![subtotal, frete, total].every(Number.isFinite) ||
-            subtotal < 0 ||
-            frete < 0 ||
-            total < 0
-        ) {
-            throw new Error("Os valores do pedido são inválidos.");
-        }
-
-        const dataAtual = new Date().toISOString();
-
-        const pedido = {
-            id: dados.id || novaGerarIdPedido(),
-            cliente: dados.cliente || {},
-            itens,
-            produtos: itens,
-            pagamento: dados.pagamento || "",
-            subtotal,
-            frete,
-            total,
-            status: dados.status || "Pendente",
-            criadoEm: dados.criadoEm || dataAtual,
-            data: dados.data || dataAtual
-        };
-
+    async salvarPedido(payload = {}) {
+        const endpoint = this.getEndpoint();
         const supabase = window.supabaseClient;
 
-        if (!supabase || typeof supabase.from !== "function") {
-            throw new Error(
-                "Conexão com o Supabase indisponível. O pedido não foi salvo."
-            );
-        }
-
-        const registroBanco = {
-            id: pedido.id,
-            cliente: pedido.cliente,
-            itens: pedido.itens,
-            pagamento: pedido.pagamento,
-            subtotal: pedido.subtotal,
-            frete: pedido.frete,
-            total: pedido.total,
-            status: pedido.status,
-            criado_em: pedido.criadoEm
-        };
-
-        const { error } = await supabase
-            .from("pedidos_nova")
-            .insert(registroBanco);
-
-        if (error) {
-            console.error("Erro do Supabase ao salvar pedido:", error);
-
-            throw new Error(
-                "Não foi possível salvar o pedido no banco de dados."
-            );
-        }
-
-        const pedidoSalvo = {
-            ...pedido,
-            produtos: pedido.itens
-        };
-
-        const pedidos = this.carregarPedidos();
-
-        const indiceExistente = pedidos.findIndex(
-            (item) => String(item.id) === String(pedidoSalvo.id)
-        );
-
-        if (indiceExistente >= 0) {
-            pedidos[indiceExistente] = {
-                ...pedidos[indiceExistente],
-                ...pedidoSalvo
+        if (endpoint) {
+            const headers = {
+                "Content-Type": "application/json"
             };
-        } else {
-            pedidos.unshift(pedidoSalvo);
+
+            if (supabase?.auth?.getSession) {
+                const { data } = await supabase.auth.getSession();
+                const accessToken = data?.session?.access_token;
+
+                if (accessToken) {
+                    headers.Authorization = `Bearer ${accessToken}`;
+                }
+            }
+
+            const resposta = await fetch(endpoint, {
+                method: "POST",
+                headers,
+                body: JSON.stringify(payload)
+            });
+
+            const dados = await resposta.json().catch(() => ({}));
+
+            if (!resposta.ok) {
+                throw new Error(
+                    dados?.error ||
+                    "Não foi possível registrar o pedido no servidor."
+                );
+            }
+
+            return dados;
         }
 
-        localStorage.setItem(
-            NOVA_ORDERS_KEY,
-            JSON.stringify(pedidos)
-        );
+        if (supabase && typeof supabase.functions?.invoke === "function") {
+            const resposta = await supabase.functions.invoke("create-order", {
+                body: payload
+            });
 
-        localStorage.setItem(
-            NOVA_ORDER_KEY,
-            JSON.stringify(pedidoSalvo)
-        );
+            if (resposta?.error) {
+                throw new Error(
+                    resposta.error.message ||
+                    "Não foi possível registrar o pedido no servidor."
+                );
+            }
 
-        window.dispatchEvent(
-            new CustomEvent("nova:pedido-criado", {
-                detail: pedidoSalvo
-            })
-        );
+            return resposta?.data || resposta;
+        }
 
-        return pedidoSalvo;
+        throw new Error(
+            "A criação de pedidos está bloqueada até existir uma operação " +
+            "autorizada no servidor para validar frete, preços e estoque."
+        );
+    },
+
+    async criarPedido(payload = {}) {
+        return this.salvarPedido(payload);
     }
 };
 
@@ -282,6 +182,9 @@ function novaCarregarCarrinho() {
         novaCarrinho = Array.isArray(salvo) ? salvo : [];
     } catch (erro) {
         console.error("Erro ao carregar carrinho:", erro);
+        novaMostrarMensagem(
+            "Não foi possível recuperar o carrinho salvo neste navegador."
+        );
         novaCarrinho = [];
     }
 }
@@ -301,10 +204,18 @@ function novaAtualizarContadorCarrinho() {
 }
 
 function novaSalvarCarrinho() {
-    localStorage.setItem(
-        NOVA_CART_KEY,
-        JSON.stringify(novaCarrinho)
-    );
+    try {
+        localStorage.setItem(
+            NOVA_CART_KEY,
+            JSON.stringify(novaCarrinho)
+        );
+    } catch (erro) {
+        console.error("Não foi possível salvar o carrinho local:", erro);
+        novaMostrarMensagem(
+            "Não foi possível manter o carrinho após recarregar esta página."
+        );
+        return false;
+    }
 
     novaAtualizarContadorCarrinho();
 
@@ -313,6 +224,8 @@ function novaSalvarCarrinho() {
             detail: novaCarrinho
         })
     );
+
+    return true;
 }
 
 function novaMostrarMensagem(texto) {
@@ -373,8 +286,9 @@ function novaAdicionarProduto(produto) {
         });
     }
 
-    novaSalvarCarrinho();
-    novaMostrarMensagem("Produto adicionado ao carrinho!");
+    if (novaSalvarCarrinho()) {
+        novaMostrarMensagem("Produto adicionado ao carrinho!");
+    }
 }
 
 /* =========================================================
@@ -522,8 +436,7 @@ async function novaCarregarProdutosBanco() {
     const supabase = window.supabaseClient;
 
     if (!supabase || typeof supabase.from !== "function") {
-        console.warn("Supabase indisponível para carregar produtos.");
-        return [];
+        throw new Error("Supabase indisponível para carregar produtos.");
     }
 
     const { data, error } = await supabase
@@ -535,7 +448,7 @@ async function novaCarregarProdutosBanco() {
 
     if (error) {
         console.error("Erro ao buscar produtos:", error);
-        return [];
+        throw new Error("Não foi possível carregar os produtos da loja.");
     }
 
     return Array.isArray(data) ? data : [];
@@ -725,41 +638,9 @@ function novaAbrirProduto(id) {
         return;
     }
 
-    const promocao = novaEncontrarPromocao(
-        novaConfiguracoes,
-        produto.id
-    );
-
-    let preco = novaConverterPreco(produto.preco);
-
-    if (promocao) {
-        const precoPromocional = novaConverterPreco(promocao.preco);
-
-        if (precoPromocional > 0 && precoPromocional < preco) {
-            preco = precoPromocional;
-        }
-    }
-
-    const produtoSelecionado = {
-        ...produto,
-        id: produto.id,
-        nome: produto.nome,
-        name: produto.nome,
-        preco,
-        price: preco,
-        precoOriginal: novaConverterPreco(produto.preco),
-        imagem: produto.imagem || "",
-        image: produto.imagem || "",
-        categoria: produto.categoria || "",
-        descricao: produto.descricao || ""
-    };
-
-    localStorage.setItem(
-        NOVA_PRODUCT_KEY,
-        JSON.stringify(produtoSelecionado)
-    );
-
-    window.location.href = "pages/produto.html";
+    const url = new URL("pages/produto.html", window.location.href);
+    url.searchParams.set("id", produto.id);
+    window.location.href = url.href;
 }
 
 /* =========================================================
@@ -851,6 +732,10 @@ function novaInicializarControlesBanner() {
    ========================================================= */
 
 function novaInicializarEventosProdutos() {
+    if (!document.querySelector('[data-product-list="featured"], #featured-products')) {
+        return;
+    }
+
     document.addEventListener("click", (event) => {
         const botaoCarrinho = event.target.closest("[data-add-cart]");
 
@@ -962,7 +847,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const [configuracoes, produtos] = await Promise.all([
             novaCarregarConfiguracoes(),
-            novaCarregarProdutosBanco()
+            listaDestaques
+                ? novaCarregarProdutosBanco()
+                : Promise.resolve([])
         ]);
 
         novaConfiguracoes = configuracoes;

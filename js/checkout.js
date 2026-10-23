@@ -1,14 +1,18 @@
 
 /* =========================================================
    NØVA — CHECKOUT
-   Validação, resumo e salvamento do pedido no Supabase
+   Validação e resumo dos dados atuais do carrinho
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
     "use strict";
 
     const CART_KEY = "novaCarrinho";
-    const ORDER_KEY = "novaPedido";
+    const FRETE_CONFIGURADO = false;
+    const CRIACAO_SEGURA_DE_PEDIDOS_CONFIGURADA = false;
+    const CHECKOUT_BLOQUEADO =
+        "Não é possível finalizar a compra: o frete ainda não está configurado " +
+        "e o servidor ainda não valida preços, pagamento e estoque de forma segura.";
 
     const form = document.querySelector("#checkout-form");
     const finishButton = document.querySelector("#finish-order");
@@ -33,7 +37,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let carrinho = [];
     let configuracoes = {};
-    let finalizando = false;
 
     /* =====================================================
        UTILITÁRIOS
@@ -108,7 +111,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function salvarCarrinhoLocal() {
-        localStorage.setItem(CART_KEY, JSON.stringify(carrinho));
+        try {
+            localStorage.setItem(CART_KEY, JSON.stringify(carrinho));
+        } catch (erro) {
+            console.warn(
+                "Não foi possível atualizar o carrinho local; os dados desta página foram preservados.",
+                erro
+            );
+            mostrarMensagem(
+                "Os dados foram validados nesta página, mas o carrinho não pôde ser atualizado para a próxima visita."
+            );
+        }
     }
 
     function calcularQuantidade() {
@@ -164,9 +177,9 @@ document.addEventListener("DOMContentLoaded", () => {
             .maybeSingle();
 
         if (configError) {
-            console.warn(
-                "Não foi possível carregar as promoções:",
-                configError.message
+            console.error("Não foi possível carregar as promoções:", configError);
+            throw new Error(
+                "Não foi possível validar as promoções atuais. Tente novamente."
             );
         } else {
             configuracoes = configData?.configuracoes || {};
@@ -205,6 +218,13 @@ document.addEventListener("DOMContentLoaded", () => {
         (produtos || []).forEach(produto => {
             produtosPorId[String(produto.id)] = produto;
         });
+
+        if (ids.some(id => !produtosPorId[id])) {
+            throw new Error(
+                "Um ou mais produtos não estão mais disponíveis. " +
+                "Volte ao carrinho e revise os itens."
+            );
+        }
 
         const promocoes = Array.isArray(configuracoes.promocoes)
             ? configuracoes.promocoes
@@ -373,7 +393,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         /* O frete permanece sem cálculo até a integração de entrega. */
         if (shippingElement) {
-            shippingElement.textContent = "A calcular";
+            shippingElement.textContent = FRETE_CONFIGURADO
+                ? "A calcular"
+                : "Não configurado";
         }
 
         if (discountElement) {
@@ -386,7 +408,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         /* Ainda não existe cálculo automático de frete. */
         if (totalElement) {
-            totalElement.textContent = formatarPreco(subtotal);
+            totalElement.textContent = FRETE_CONFIGURADO
+                ? formatarPreco(subtotal)
+                : "Indisponível";
         }
 
         if (productsLoading) {
@@ -422,7 +446,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (paymentNotice && selecionado) {
             const mensagens = {
-                pix: "O pedido será registrado como pendente. O PIX ainda precisa ser integrado para gerar a cobrança.",
+                pix: "PIX indisponível: a integração com um provedor ainda não foi configurada.",
                 cartao: "O pagamento por cartão não está disponível até a integração com um provedor de pagamentos.",
                 boleto: "O boleto ainda não está integrado. O pedido não será considerado pago."
             };
@@ -461,6 +485,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function validarFormulario() {
         limparMensagem();
+
+        if (!FRETE_CONFIGURADO || !CRIACAO_SEGURA_DE_PEDIDOS_CONFIGURADA) {
+            mostrarMensagem(CHECKOUT_BLOQUEADO);
+            return false;
+        }
 
         if (!form.checkValidity()) {
             form.reportValidity();
@@ -519,156 +548,91 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* =====================================================
-       GERAR ID DO PEDIDO
-       ===================================================== */
-
-    function gerarIdPedido() {
-        const agora = new Date();
-
-        const data = [
-            agora.getFullYear(),
-            String(agora.getMonth() + 1).padStart(2, "0"),
-            String(agora.getDate()).padStart(2, "0")
-        ].join("");
-
-        const aleatorio = Math.random()
-            .toString(36)
-            .slice(2, 8)
-            .toUpperCase();
-
-        return `NVA-${data}-${aleatorio}`;
-    }
-
-    /* =====================================================
-       ENVIAR PEDIDO
+       BLOQUEAR FINALIZAÇÃO
        ===================================================== */
 
     async function finalizarPedido(evento) {
         evento.preventDefault();
 
-        if (finalizando) {
-            return;
-        }
-
         if (!validarFormulario()) {
             return;
         }
 
-        finalizando = true;
-        limparMensagem();
+        if (!window.NovaPedidos || typeof window.NovaPedidos.criarPedido !== "function") {
+            mostrarMensagem(CHECKOUT_BLOQUEADO);
+            return;
+        }
 
-        finishButton.disabled = true;
-        finishButton.setAttribute("aria-busy", "true");
-        finishButton.textContent = "Conferindo estoque...";
+        const backendDisponivel = Boolean(window.NovaPedidos.isBackendConfigured?.());
 
-        if (loadingElement) {
-            loadingElement.hidden = false;
+        if (!backendDisponivel) {
+            mostrarMensagem(CHECKOUT_BLOQUEADO);
+            return;
+        }
+
+        const endpoint = window.NovaPedidos.getEndpoint?.();
+        if (!endpoint && !(window.supabaseClient && typeof window.supabaseClient.functions?.invoke === "function")) {
+            mostrarMensagem(CHECKOUT_BLOQUEADO);
+            return;
+        }
+
+        const nome = document.querySelector("#name")?.value.trim() || "";
+        const email = document.querySelector("#email")?.value.trim() || "";
+        const pagamento = document.querySelector('input[name="payment"]:checked');
+        const pedidoId = crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+        if (!pagamento) {
+            mostrarMensagem("Selecione uma forma de pagamento.");
+            return;
+        }
+
+        if (finishButton) {
+            finishButton.disabled = true;
+            finishButton.textContent = "Enviando pedido...";
         }
 
         try {
-            /*
-             * Atualiza preço e estoque antes de calcular o pedido.
-             */
-            await atualizarDadosDosProdutos();
-            renderizarResumo();
-
-            const subtotal = calcularSubtotal();
-            const pagamento = document.querySelector(
-                'input[name="payment"]:checked'
-            );
-
-            const cliente = {
-                nome: document.querySelector("#name").value.trim(),
-                email: document.querySelector("#email").value.trim(),
-                endereco: {
-                    cep: document.querySelector("#cep").value.trim(),
-                    rua: document.querySelector("#street").value.trim(),
-                    numero: document.querySelector("#number").value.trim(),
-                    complemento:
-                        document.querySelector("#complement")?.value.trim() || "",
-                    bairro: document.querySelector("#neighborhood").value.trim(),
-                    cidade: document.querySelector("#city").value.trim(),
-                    estado: document.querySelector("#state").value
-                }
-            };
-
-            const pedido = {
-                id: gerarIdPedido(),
-                cliente,
-                pagamento: pagamento.value,
-                itens: carrinho.map(item => ({
+            const payload = {
+                idempotencyKey: pedidoId,
+                customer: {
+                    nome,
+                    email
+                },
+                items: carrinho.map(item => ({
                     id: item.id,
-                    nome: item.nome,
-                    imagem: item.imagem || "",
-                    preco: item.preco,
                     quantidade: item.quantidade,
-                    cor: item.cor || "",
-                    tamanho: item.tamanho || ""
+                    tamanho: item.tamanho || null,
+                    cor: item.cor || null,
+                    preco: item.preco
                 })),
-                subtotal,
-                frete: 0,
-                total: subtotal,
-                status: "Pendente",
-                criadoEm: new Date().toISOString()
+                shipping: {
+                    valor: 0,
+                    observacoes: "Frete ainda não configurado."
+                },
+                paymentMethod: pagamento.value
             };
 
-            finishButton.textContent = "Salvando pedido...";
+            const resposta = await window.NovaPedidos.criarPedido(payload);
 
-            if (
-                !window.NovaPedidos ||
-                typeof window.NovaPedidos.salvarPedido !== "function"
-            ) {
-                throw new Error(
-                    "A integração de pedidos não foi carregada. Confira o app.js."
-                );
+            if (resposta?.ok === false || resposta?.error) {
+                throw new Error(resposta?.error || "Não foi possível registrar o pedido.");
             }
 
-            /*
-             * O app.js faz o INSERT no Supabase.
-             * Só continuamos se ele confirmar o pedido.
-             */
-            const pedidoSalvo = await window.NovaPedidos.salvarPedido(pedido);
-
-            if (!pedidoSalvo?.id) {
-                throw new Error(
-                    "O banco não confirmou o salvamento do pedido."
-                );
-            }
-
-            /*
-             * Guarda o último pedido para a página de confirmação.
-             * O carrinho só é limpo após a confirmação do Supabase.
-             */
-            localStorage.setItem(ORDER_KEY, JSON.stringify(pedidoSalvo));
-            localStorage.removeItem(CART_KEY);
-
-            finishButton.textContent = "Pedido registrado!";
-
-            mostrarMensagem(
-                "Pedido registrado como pendente. O pagamento ainda precisa ser confirmado."
-            );
-
-            window.setTimeout(() => {
-                window.location.href = "pedido-realizado.html";
-            }, 1000);
+            const orderId = resposta?.orderId || resposta?.data?.orderId || resposta?.id || pedidoId;
+            const url = new URL("pedido-realizado.html", window.location.href);
+            url.searchParams.set("id", orderId);
+            window.location.href = url.href;
 
         } catch (erro) {
-            console.error("Erro ao finalizar pedido:", erro);
-
+            console.error("Erro ao criar pedido:", erro);
             mostrarMensagem(
-                erro?.message ||
-                "Não foi possível registrar o pedido. Seus produtos continuam no carrinho."
+                erro.message ||
+                "Não foi possível concluir o pedido no momento. Tente novamente."
             );
 
-            finalizando = false;
-            finishButton.disabled = false;
-            finishButton.removeAttribute("aria-busy");
-            finishButton.innerHTML =
-                'Revisar pedido <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
-
-        } finally {
-            if (loadingElement) {
-                loadingElement.hidden = true;
+            if (finishButton) {
+                finishButton.disabled = false;
+                finishButton.textContent = "Revisar pedido";
             }
         }
     }
@@ -682,6 +646,22 @@ document.addEventListener("DOMContentLoaded", () => {
        ===================================================== */
 
     async function inicializar() {
+        if (finishButton) {
+            finishButton.disabled = true;
+            finishButton.setAttribute("aria-disabled", "true");
+            finishButton.title = CHECKOUT_BLOQUEADO;
+        }
+
+        if (paymentNotice) {
+            paymentNotice.textContent =
+                "Nenhuma forma de pagamento está habilitada até a integração com um provedor.";
+        }
+
+        paymentOptions.forEach(option => {
+            const radio = option.querySelector('input[type="radio"]');
+            if (radio) radio.disabled = true;
+        });
+
         carrinho = lerCarrinho();
 
         if (!carrinho.length) {
@@ -701,6 +681,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             await atualizarDadosDosProdutos();
             renderizarResumo();
+            mostrarMensagem(CHECKOUT_BLOQUEADO);
 
         } catch (erro) {
             console.error("Erro ao preparar checkout:", erro);

@@ -212,14 +212,6 @@ document.addEventListener("DOMContentLoaded", () => {
             aplicarFiltros();
             atualizarEstatisticas();
 
-            try {
-                localStorage.setItem(
-                    "novaProdutos",
-                    JSON.stringify(produtos)
-                );
-            } catch (erro) {
-                console.warn("Não foi possível atualizar o cache local.", erro);
-            }
         } catch (erro) {
             console.error("Erro ao carregar produtos:", erro);
 
@@ -865,15 +857,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 salvo,
                 ...produtos.filter(item => item.id !== salvo.id)
             ];
-
-            try {
-                localStorage.setItem(
-                    "novaProdutos",
-                    JSON.stringify(produtos)
-                );
-            } catch (erro) {
-                console.warn("Não foi possível atualizar o cache.", erro);
-            }
 
             aplicarFiltros();
             atualizarEstatisticas();

@@ -34,6 +34,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let configuracoes = {};
     let produtosBanco = {};
     let carregando = false;
+    let dadosDoBancoValidados = false;
+    let erroLeituraCarrinho = false;
 
     /* =====================================================
        SUPABASE
@@ -67,6 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const dados = localStorage.getItem(CART_KEY);
             const produtos = dados ? JSON.parse(dados) : [];
+            erroLeituraCarrinho = false;
 
             if (!Array.isArray(produtos)) {
                 return [];
@@ -91,6 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }));
         } catch (erro) {
             console.error("Erro ao ler o carrinho:", erro);
+            erroLeituraCarrinho = true;
             return [];
         }
     }
@@ -101,7 +105,10 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (erro) {
             console.error("Erro ao salvar o carrinho:", erro);
             mostrarErro("Não foi possível salvar as alterações do carrinho.");
+            return false;
         }
+
+        return true;
     }
 
     function quantidadeTotal() {
@@ -150,26 +157,23 @@ document.addEventListener("DOMContentLoaded", () => {
         const supabase = obterClienteSupabase();
 
         if (!supabase) {
-            console.warn("Cliente Supabase não encontrado. Usando dados locais.");
-            return;
+            throw new Error("Não foi possível conectar ao Supabase.");
         }
 
-        try {
-            const { data, error } = await supabase
-                .from(CONFIG_TABLE)
-                .select("configuracoes")
-                .eq("id", "loja")
-                .maybeSingle();
+        const { data, error } = await supabase
+            .from(CONFIG_TABLE)
+            .select("configuracoes")
+            .eq("id", "loja")
+            .maybeSingle();
 
-            if (error) {
-                console.warn("Não foi possível carregar as configurações:", error.message);
-                return;
-            }
-
-            configuracoes = data?.configuracoes || {};
-        } catch (erro) {
-            console.warn("Erro ao consultar configurações:", erro);
+        if (error) {
+            console.error("Não foi possível carregar as configurações:", error);
+            throw new Error(
+                "Não foi possível validar os preços promocionais do carrinho."
+            );
         }
+
+        configuracoes = data?.configuracoes || {};
     }
 
     function obterPromocao(id) {
@@ -191,8 +195,12 @@ document.addEventListener("DOMContentLoaded", () => {
     async function atualizarProdutosDoBanco() {
         const supabase = obterClienteSupabase();
 
-        if (!supabase || carrinho.length === 0) {
+        if (carrinho.length === 0) {
             return;
+        }
+
+        if (!supabase) {
+            throw new Error("Não foi possível conectar ao Supabase.");
         }
 
         const ids = [
@@ -205,92 +213,90 @@ document.addEventListener("DOMContentLoaded", () => {
         ];
 
         if (ids.length === 0) {
-            return;
+            throw new Error(
+                "Há itens sem identificador no carrinho. Remova-os e adicione-os novamente."
+            );
         }
 
-        try {
-            const { data, error } = await supabase
-                .from(PRODUCTS_TABLE)
-                .select("id,nome,categoria,descricao,preco,estoque,ativo,imagem,imagens")
-                .in("id", ids);
+        const { data, error } = await supabase
+            .from(PRODUCTS_TABLE)
+            .select("id,nome,categoria,descricao,preco,estoque,ativo,imagem,imagens")
+            .in("id", ids);
 
-            if (error) {
-                console.warn("Não foi possível atualizar os produtos:", error.message);
-                return;
+        if (error) {
+            console.error("Não foi possível atualizar os produtos:", error);
+            throw new Error(
+                "Não foi possível validar os produtos e preços do carrinho."
+            );
+        }
+
+        produtosBanco = {};
+
+        (data || []).forEach(produto => {
+            produtosBanco[String(produto.id)] = produto;
+        });
+
+        if (ids.some(id => !produtosBanco[id])) {
+            throw new Error(
+                "Um ou mais produtos não estão mais disponíveis. " +
+                "Remova os itens indisponíveis e tente novamente."
+            );
+        }
+
+        const atualizados = carrinho.map(item => {
+            const produtoBanco = produtosBanco[String(item.id)];
+
+            if (produtoBanco.ativo !== true) {
+                throw new Error(
+                    `"${produtoBanco.nome || item.nome}" não está mais disponível.`
+                );
             }
 
-            produtosBanco = {};
+            const estoque = Math.max(
+                0,
+                Math.floor(numeroValido(produtoBanco.estoque))
+            );
 
-            (data || []).forEach(produto => {
-                produtosBanco[String(produto.id)] = produto;
-            });
+            if (estoque === 0) {
+                throw new Error(
+                    `"${produtoBanco.nome || item.nome}" está sem estoque.`
+                );
+            }
 
-            carrinho = carrinho.map(item => {
-                const produtoBanco = produtosBanco[String(item.id)];
+            if (item.quantidade > estoque) {
+                throw new Error(
+                    `Há apenas ${estoque} unidade(s) de ` +
+                    `"${produtoBanco.nome || item.nome}" em estoque. Ajuste a quantidade.`
+                );
+            }
 
-                if (!produtoBanco) {
-                    return item;
-                }
+            const precoBanco = Math.max(0, numeroValido(produtoBanco.preco));
+            const promocao = obterPromocao(produtoBanco.id);
+            const precoPromocional = promocao
+                ? numeroValido(promocao.preco, precoBanco)
+                : precoBanco;
 
-                const precoBanco = Math.max(0, numeroValido(produtoBanco.preco));
-                const promocao = obterPromocao(produtoBanco.id);
-                const precoPromocional = promocao
-                    ? numeroValido(promocao.preco, precoBanco)
-                    : precoBanco;
+            const imagens = Array.isArray(produtoBanco.imagens)
+                ? produtoBanco.imagens
+                : [];
 
-                const imagens = Array.isArray(produtoBanco.imagens)
-                    ? produtoBanco.imagens
-                    : [];
+            return {
+                ...item,
+                nome: produtoBanco.nome || item.nome,
+                categoria: produtoBanco.categoria || item.categoria,
+                imagem: produtoBanco.imagem ||
+                    imagens.find(imagem =>
+                        typeof imagem === "string" && imagem.trim()
+                    ) ||
+                    "",
+                precoOriginal: precoBanco,
+                preco: Math.max(0, Math.min(precoPromocional, precoBanco)),
+                estoque
+            };
+        });
 
-                const imagemBanco =
-                    produtoBanco.imagem ||
-                    imagens.find(imagem => typeof imagem === "string" && imagem.trim()) ||
-                    item.imagem ||
-                    "";
-
-                return {
-                    ...item,
-                    nome: produtoBanco.nome || item.nome,
-                    categoria: produtoBanco.categoria || item.categoria,
-                    imagem: imagemBanco,
-                    precoOriginal: precoBanco,
-                    preco: Math.max(0, Math.min(precoPromocional, precoBanco)),
-                    estoque: Math.max(0, Math.floor(numeroValido(produtoBanco.estoque))),
-                    ativo: produtoBanco.ativo !== false
-                };
-            });
-
-            /* Corrige quantidades caso o estoque tenha diminuído. */
-            carrinho = carrinho
-                .filter(item => {
-                    const produtoBanco = produtosBanco[String(item.id)];
-
-                    /* Mantém dados locais se o produto não foi retornado pelo banco. */
-                    if (!produtoBanco) {
-                        return true;
-                    }
-
-                    return produtoBanco.ativo !== false &&
-                        numeroValido(produtoBanco.estoque) > 0;
-                })
-                .map(item => {
-                    if (item.estoque === undefined) {
-                        return item;
-                    }
-
-                    return {
-                        ...item,
-                        quantidade: Math.min(
-                            item.quantidade,
-                            Math.max(1, item.estoque)
-                        )
-                    };
-                });
-
-            salvarCarrinho();
-        } catch (erro) {
-            console.error("Erro ao atualizar produtos do carrinho:", erro);
-        }
+        carrinho = atualizados;
+        salvarCarrinho();
     }
 
     /* =====================================================
@@ -310,22 +316,26 @@ document.addEventListener("DOMContentLoaded", () => {
     function atualizarResumo() {
         const subtotal = subtotalOriginal();
         const desconto = valorDesconto();
-        const total = valorTotal();
-
         if (subtotalElement) {
-            subtotalElement.textContent = formatarPreco(subtotal);
+            subtotalElement.textContent = dadosDoBancoValidados
+                ? formatarPreco(subtotal)
+                : "—";
         }
 
         if (discountElement) {
-            discountElement.textContent = `− ${formatarPreco(desconto)}`;
+            discountElement.textContent = dadosDoBancoValidados
+                ? `− ${formatarPreco(desconto)}`
+                : "—";
         }
 
         if (discountRow) {
-            discountRow.hidden = desconto <= 0;
+            discountRow.hidden = !dadosDoBancoValidados || desconto <= 0;
         }
 
         if (totalElement) {
-            totalElement.textContent = formatarPreco(total);
+            totalElement.textContent = dadosDoBancoValidados
+                ? "A calcular"
+                : "—";
         }
 
         if (shippingElement) {
@@ -339,11 +349,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (checkoutButton) {
-            const vazio = carrinho.length === 0;
-            checkoutButton.setAttribute("aria-disabled", String(vazio));
-            checkoutButton.classList.toggle("disabled", vazio);
+            const indisponivel =
+                carrinho.length === 0 || !dadosDoBancoValidados;
+            checkoutButton.setAttribute("aria-disabled", String(indisponivel));
+            checkoutButton.classList.toggle("disabled", indisponivel);
 
-            if (vazio) {
+            if (indisponivel) {
                 checkoutButton.setAttribute("tabindex", "-1");
             } else {
                 checkoutButton.removeAttribute("tabindex");
@@ -462,9 +473,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const preco = document.createElement("div");
         preco.className = "cart-item-price";
-        preco.textContent = formatarPreco(precoAtual(produto));
+        preco.textContent = dadosDoBancoValidados
+            ? formatarPreco(precoAtual(produto))
+            : "Preço não validado";
 
-        if (precoOriginal(produto) > precoAtual(produto)) {
+        if (
+            dadosDoBancoValidados &&
+            precoOriginal(produto) > precoAtual(produto)
+        ) {
             const original = document.createElement("del");
             original.className = "cart-item-original-price";
             original.textContent = formatarPreco(precoOriginal(produto));
@@ -522,7 +538,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         atualizarEstadoVazio();
-        esconderErro();
     }
 
     /* =====================================================
@@ -616,6 +631,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (carrinho.length === 0) {
                 evento.preventDefault();
                 atualizarEstadoVazio();
+                return;
+            }
+
+            if (!dadosDoBancoValidados) {
+                evento.preventDefault();
+                mostrarErro(
+                    "Atualize os preços e o estoque no Supabase antes de continuar."
+                );
             }
         });
     }
@@ -653,14 +676,29 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             carrinho = carregarCarrinho();
 
-            await carregarConfiguracoes();
-            await atualizarProdutosDoBanco();
+            if (erroLeituraCarrinho) {
+                throw new Error(
+                    "Não foi possível ler os itens salvos neste navegador."
+                );
+            }
 
-            salvarCarrinho();
+            if (carrinho.length > 0) {
+                await carregarConfiguracoes();
+                await atualizarProdutosDoBanco();
+            }
+
+            const salvo = salvarCarrinho();
+            dadosDoBancoValidados = true;
+            if (salvo) esconderErro();
             renderizarCarrinho();
         } catch (erro) {
             console.error("Erro ao inicializar o carrinho:", erro);
-            mostrarErro("Não foi possível atualizar o carrinho. Seus produtos locais foram preservados.");
+            dadosDoBancoValidados = false;
+            mostrarErro(
+                erro.message ||
+                "Não foi possível atualizar os preços e o estoque. " +
+                "Seus itens foram preservados, mas o checkout está bloqueado."
+            );
             renderizarCarrinho();
         } finally {
             carregando = false;

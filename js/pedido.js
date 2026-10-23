@@ -1,7 +1,7 @@
 
 /* =========================================================
    NØVA — CONFIRMAÇÃO DO PEDIDO
-   Integração com Supabase + localStorage
+   Dados oficiais consultados no Supabase
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // CARREGAR PEDIDO LOCAL
     // =====================================================
 
-    function carregarPedidoLocal() {
+    function carregarIdPedidoLocal() {
         try {
             const dados = localStorage.getItem(ORDER_KEY);
 
@@ -104,10 +104,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 return null;
             }
 
-            return JSON.parse(dados);
+            const pedido = JSON.parse(dados);
+            return obterTexto(pedido?.id) || null;
         } catch (error) {
             console.error(
-                "Erro ao ler os dados do pedido:",
+                "Erro ao ler o identificador local do pedido:",
                 error
             );
 
@@ -138,6 +139,15 @@ document.addEventListener("DOMContentLoaded", () => {
             return false;
         }
 
+        const valores = [pedido.subtotal, pedido.frete, pedido.total]
+            .map(Number);
+
+        if (
+            valores.some(valor => !Number.isFinite(valor) || valor < 0)
+        ) {
+            return false;
+        }
+
         return itens.every(item => {
             if (!item || typeof item !== "object") {
                 return false;
@@ -160,80 +170,42 @@ document.addEventListener("DOMContentLoaded", () => {
     // CONSULTAR PEDIDO NO SUPABASE
     // =====================================================
 
-    async function consultarPedidoSupabase(pedidoLocal) {
+    async function consultarPedidoSupabase(id) {
         const supabase = window.supabaseClient;
 
-        if (!supabase || !pedidoLocal?.id) {
-            return null;
-        }
-
-        try {
-            const { data, error } = await supabase
-                .from("pedidos_nova")
-                .select("*")
-                .eq("id", pedidoLocal.id)
-                .maybeSingle();
-
-            if (error) {
-                console.warn(
-                    "Não foi possível consultar o pedido no Supabase:",
-                    error.message
-                );
-
-                return null;
-            }
-
-            if (!data) {
-                return null;
-            }
-
-            // Prioriza os dados persistidos no banco.
-            // Mantém itens locais caso a resposta não contenha itens válidos.
-            const itensBanco = Array.isArray(data.itens)
-                ? data.itens
-                : [];
-
-            const pedidoAtualizado = {
-                ...pedidoLocal,
-                ...data,
-                itens: itensBanco.length > 0
-                    ? itensBanco
-                    : (
-                        Array.isArray(pedidoLocal.itens)
-                            ? pedidoLocal.itens
-                            : pedidoLocal.produtos
-                    )
-            };
-
-            if (!validarPedido(pedidoAtualizado)) {
-                console.warn(
-                    "O pedido retornado pelo Supabase não passou na validação."
-                );
-
-                return null;
-            }
-
-            try {
-                localStorage.setItem(
-                    ORDER_KEY,
-                    JSON.stringify(pedidoAtualizado)
-                );
-            } catch (storageError) {
-                console.warn(
-                    "Não foi possível atualizar o pedido local:",
-                    storageError
-                );
-            }
-
-            return pedidoAtualizado;
-        } catch (error) {
-            console.warn(
-                "Falha inesperada ao consultar o Supabase:",
-                error
+        if (!supabase || !id) {
+            throw new Error(
+                "Não foi possível conectar ao banco para consultar o pedido."
             );
-
-            return null;
         }
+
+        const { data, error } = await supabase
+            .from("pedidos_nova")
+            .select("*")
+            .eq("id", id)
+            .maybeSingle();
+
+        if (error) {
+            console.error("Não foi possível consultar o pedido:", error);
+            throw new Error(
+                "Não foi possível consultar o pedido autorizado no Supabase. " +
+                "Verifique as permissões de leitura."
+            );
+        }
+
+        if (!data) {
+            throw new Error(
+                "O pedido não foi encontrado ou você não tem autorização para acessá-lo."
+            );
+        }
+
+        if (!validarPedido(data) || String(data.id) !== String(id)) {
+            throw new Error(
+                "Os dados retornados pelo Supabase não são válidos para exibição."
+            );
+        }
+
+        return data;
     }
 
     // =====================================================
@@ -351,9 +323,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (freteElemento) {
-            freteElemento.textContent = frete > 0
-                ? formatarPreco(frete)
-                : "Grátis";
+            freteElemento.textContent =
+                pedido.frete === null || pedido.frete === undefined
+                    ? "Não informado"
+                    : formatarPreco(frete);
         }
 
         if (totalElemento) {
@@ -454,36 +427,31 @@ document.addEventListener("DOMContentLoaded", () => {
         mostrarCarregamento();
 
         try {
-            const pedidoLocal = carregarPedidoLocal();
+            const idNaUrl = new URLSearchParams(window.location.search)
+                .get("id");
+            const idPedido = obterTexto(idNaUrl) || carregarIdPedidoLocal();
 
-            if (!validarPedido(pedidoLocal)) {
+            if (!idPedido) {
                 mostrarErro(
-                    "Não encontramos um pedido válido neste navegador. " +
-                    "Se você acabou de finalizar uma compra, confira se " +
-                    "ela foi salva antes de tentar novamente."
+                    "Não encontramos o identificador do pedido. " +
+                    "A confirmação só pode exibir dados recuperados e autorizados pelo Supabase."
                 );
 
                 return;
             }
 
-            // Tenta consultar o banco. Se o RLS bloquear a leitura,
-            // utiliza o pedido local validado.
-            const pedidoBanco = await consultarPedidoSupabase(
-                pedidoLocal
-            );
-
-            const pedidoFinal = pedidoBanco || pedidoLocal;
-
-            if (!validarPedido(pedidoFinal)) {
-                mostrarErro(
-                    "Não foi possível validar os dados do pedido. " +
-                    "Tente novamente ou volte para a loja."
-                );
-
-                return;
-            }
+            const pedidoFinal = await consultarPedidoSupabase(idPedido);
 
             renderizarPedido(pedidoFinal);
+
+            try {
+                localStorage.removeItem(ORDER_KEY);
+            } catch (storageError) {
+                console.warn(
+                    "Não foi possível limpar o pedido local após exibi-lo:",
+                    storageError
+                );
+            }
         } catch (error) {
             console.error(
                 "Erro ao carregar a confirmação do pedido:",
@@ -491,8 +459,8 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
             mostrarErro(
-                "Ocorreu um erro ao carregar seu pedido. " +
-                "Clique em tentar novamente."
+                error?.message ||
+                "Ocorreu um erro ao carregar seu pedido. Clique em tentar novamente."
             );
         } finally {
             carregando = false;

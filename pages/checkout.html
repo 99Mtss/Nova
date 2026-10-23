@@ -354,6 +354,7 @@
                                         value="pix"
                                         checked
                                         required
+                                        disabled
                                     >
 
                                     <div class="payment-icon">
@@ -378,6 +379,7 @@
                                         type="radio"
                                         name="payment"
                                         value="cartao"
+                                        disabled
                                     >
 
                                     <div class="payment-icon">
@@ -402,6 +404,7 @@
                                         type="radio"
                                         name="payment"
                                         value="boleto"
+                                        disabled
                                     >
 
                                     <div class="payment-icon">
@@ -423,8 +426,8 @@
                             </div>
 
                             <p class="payment-notice" id="payment-notice" role="status">
-                                A opção selecionada será confirmada quando o pagamento
-                                estiver integrado ao provedor.
+                                Nenhuma forma de pagamento está habilitada até a
+                                integração com um provedor.
                             </p>
 
                         </section>
@@ -442,11 +445,11 @@
                             <label for="accept-terms">
                                 Confirmo que os dados informados estão corretos e concordo
                                 com os
-                                <a href="#" target="_blank" rel="noopener">
+                                <a href="mailto:contato@nova.com.br?subject=Termos%20de%20compra" rel="noopener">
                                     termos de compra
                                 </a>
                                 e a
-                                <a href="#" target="_blank" rel="noopener">
+                                <a href="mailto:contato@nova.com.br?subject=Pol%C3%ADtica%20de%20Privacidade" rel="noopener">
                                     política de privacidade
                                 </a>.
                             </label>
@@ -454,13 +457,17 @@
                         </div>
 
                         <!-- MENSAGEM DO FORMULÁRIO -->
-                        <p id="checkout-form-message" role="status" aria-live="polite" hidden></p>
+                        <p id="checkout-form-message" role="status" aria-live="polite">
+                            Checkout temporariamente indisponível: o frete, o pagamento
+                            e a validação segura do pedido ainda precisam ser configurados.
+                        </p>
 
                         <!-- BOTÃO -->
                         <button
                             type="submit"
                             class="btn btn-primary finish-order"
                             id="finish-order"
+                            disabled
                         >
                             Revisar pedido
                             <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
@@ -505,7 +512,7 @@
 
                             <div>
                                 <span>Frete</span>
-                                <span id="checkout-shipping">A calcular</span>
+                                <span id="checkout-shipping">Não configurado</span>
                             </div>
 
                             <div id="checkout-discount-row" hidden>
@@ -521,7 +528,7 @@
                             <span>Total</span>
 
                             <strong id="checkout-total">
-                                R$ 0,00
+                                Indisponível
                             </strong>
 
                         </div>
@@ -572,11 +579,11 @@
 
             <div class="footer-social">
 
-                <a href="#" aria-label="Instagram">
+                <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                     <i class="fa-brands fa-instagram" aria-hidden="true"></i>
                 </a>
 
-                <a href="#" aria-label="TikTok">
+                <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
                     <i class="fa-brands fa-tiktok" aria-hidden="true"></i>
                 </a>
 
@@ -596,5 +603,6 @@
 <script src="../admin/js/supabase.js"></script>
 <script src="../js/app.js"></script>
 <script src="../js/checkout.js"></script>
+
 </body>
 </html>
