@@ -328,6 +328,70 @@
 
                             </div>
 
+                            <div class="checkout-shipping-quote">
+                                <div class="checkout-shipping-quote-heading">
+                                    <div>
+                                        <h3>Calcular frete</h3>
+                                        <p>Consulte as modalidades disponíveis para o CEP informado.</p>
+                                    </div>
+                                    <a href="https://www.buscacep.correios.com.br/"
+                                       target="_blank"
+                                       rel="noopener noreferrer">
+                                        Não sei meu CEP
+                                    </a>
+                                </div>
+
+                                <button type="button"
+                                        class="btn btn-primary"
+                                        id="checkout-calculate-shipping">
+                                    Calcular
+                                </button>
+
+                                <p id="checkout-shipping-feedback"
+                                   role="status"
+                                   aria-live="polite">
+                                    PAC e SEDEX estarão disponíveis após a configuração segura do Melhor Envio.
+                                </p>
+
+                                <div class="checkout-shipping-services"
+                                     aria-label="Serviços de entrega dos Correios">
+                                    <div class="checkout-shipping-service" aria-disabled="true">
+                                        <div>
+                                            <strong>Correios - PAC Promocional</strong>
+                                            <span>Aguardando cotação</span>
+                                        </div>
+                                        <b>—</b>
+                                    </div>
+                                    <div class="checkout-shipping-service" aria-disabled="true">
+                                        <div>
+                                            <strong>Correios - SEDEX Promocional</strong>
+                                            <span>Aguardando cotação</span>
+                                        </div>
+                                        <b>—</b>
+                                    </div>
+                                </div>
+
+                                <div class="checkout-delivery-option"
+                                     id="checkout-pickup-option"
+                                     hidden>
+                                    <strong>Retirar em</strong>
+                                    <p id="checkout-pickup-address"></p>
+                                    <span>Confirme com a loja o prazo para retirada.</span>
+                                </div>
+
+                                <div class="checkout-delivery-option"
+                                     id="checkout-motoboy-option"
+                                     hidden>
+                                    <strong>Motoboy (combinar via WhatsApp)</strong>
+                                    <p>Consulte disponibilidade, valor e prazo diretamente com a loja.</p>
+                                    <a id="checkout-motoboy-link"
+                                       target="_blank"
+                                       rel="noopener noreferrer">
+                                        Combinar pelo WhatsApp
+                                    </a>
+                                </div>
+                            </div>
+
                         </section>
 
                         <!-- FORMA DE PAGAMENTO -->
@@ -501,6 +565,31 @@
                             </p>
 
                         </div>
+
+                        <form id="checkout-coupon-form" class="checkout-coupon-form">
+                            <label for="checkout-coupon-code">Tem um cupom?</label>
+                            <div class="checkout-coupon-controls">
+                                <input
+                                    type="text"
+                                    id="checkout-coupon-code"
+                                    maxlength="30"
+                                    autocomplete="off"
+                                    placeholder="Digite o código"
+                                    aria-describedby="checkout-coupon-feedback">
+                                <button type="submit" id="checkout-coupon-apply">
+                                    Aplicar
+                                </button>
+                                <button
+                                    type="button"
+                                    id="checkout-coupon-remove"
+                                    hidden>
+                                    Remover
+                                </button>
+                            </div>
+                            <p id="checkout-coupon-feedback" role="status" aria-live="polite">
+                                Cupons são apenas simulados até a validação segura no servidor.
+                            </p>
+                        </form>
 
                         <!-- VALORES -->
                         <div class="checkout-summary-values">

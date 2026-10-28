@@ -8,22 +8,22 @@
 
 :root {
     /* Cores principais */
-    --fundo-principal: #0F1117;
-    --fundo-card: #1E222B;
-    --fundo-secundario: #151820;
+    --fundo-principal: var(--nova-cor-fundo, #F7F4EE);
+    --fundo-card: var(--nova-cor-superficie, #FFFFFF);
+    --fundo-secundario: color-mix(in srgb, var(--fundo-principal) 92%, var(--texto));
 
     /* Textos */
-    --texto: #F5F7FA;
-    --texto-secundario: #A7ADB8;
-    --texto-inverso: #0F1117;
+    --texto: var(--nova-cor-texto, #191916);
+    --texto-secundario: color-mix(in srgb, var(--texto) 62%, var(--fundo-principal));
+    --texto-inverso: #FFFFFF;
 
     /* Destaques */
-    --destaque: #8B5CF6;
-    --destaque-hover: #7C3AED;
+    --destaque: var(--nova-cor-destaque, #9A6A45);
+    --destaque-hover: color-mix(in srgb, var(--destaque) 78%, #191916);
 
     /* Bordas */
-    --borda: #2A2F3A;
-    --borda-hover: #3A4050;
+    --borda: color-mix(in srgb, var(--fundo-principal) 82%, var(--texto));
+    --borda-hover: color-mix(in srgb, var(--borda) 72%, var(--texto));
 
     /* Estados */
     --sucesso: #22C55E;
@@ -31,7 +31,7 @@
     --aviso: #F59E0B;
 
     /* Branco */
-    --branco: #FFFFFF;
+    --branco: var(--texto-inverso, #FFFFFF);
 
     /* Sombras */
     --sombra-card: 0 10px 30px rgba(0, 0, 0, 0.20);
@@ -496,8 +496,8 @@ p {
 
     width: 100%;
 
-    background: rgba(15, 17, 23, 0.92);
-    border-bottom: 1px solid rgba(42, 47, 58, 0.7);
+    background: rgba(247, 244, 238, 0.94);
+    border-bottom: 1px solid var(--borda);
 
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -665,16 +665,27 @@ p {
     align-items: center;
 
     overflow: hidden;
-
     background:
         linear-gradient(
             90deg,
-            rgba(15, 17, 23, 0.95) 0%,
-            rgba(15, 17, 23, 0.72) 45%,
-            rgba(15, 17, 23, 0.25) 100%
+            rgba(25, 25, 22, 0.95) 0%,
+            rgba(25, 25, 22, 0.72) 45%,
+            rgba(25, 25, 22, 0.25) 100%
         ),
-        url("../assets/images/banners/banner-principal.jpg")
-        center / cover no-repeat;
+        linear-gradient(90deg, rgba(25, 25, 22, 0.92), rgba(25, 25, 22, 0.28));
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.hero:not(.nova-banner-configurado) {
+    background:
+        radial-gradient(ellipse at 75% 35%, #E8DED0 0%, transparent 36%),
+        linear-gradient(110deg, #F7F4EE 0%, #EEEAE2 58%, #E7DED2 100%);
+}
+
+.hero:not(.nova-banner-configurado) .hero-overlay {
+    display: none;
 }
 
 .hero-overlay {
@@ -1055,15 +1066,26 @@ p {
     align-items: center;
 
     overflow: hidden;
-
     background:
         linear-gradient(
             90deg,
-            rgba(15, 17, 23, 0.94),
-            rgba(15, 17, 23, 0.48)
+            rgba(25, 25, 22, 0.94),
+            rgba(25, 25, 22, 0.48)
         ),
-        url("../assets/images/banners/colecao.jpg")
-        center / cover no-repeat;
+        linear-gradient(90deg, rgba(25, 25, 22, 0.88), rgba(25, 25, 22, 0.2));
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.collection-banner:not(.nova-banner-configurado) {
+    background:
+        radial-gradient(ellipse at 78% 45%, #E8DED0 0%, transparent 40%),
+        linear-gradient(110deg, #EEEAE2 0%, #F7F4EE 62%, #E7DED2 100%);
+}
+
+.collection-banner:not(.nova-banner-configurado) .collection-overlay {
+    display: none;
 }
 
 .collection-overlay {
@@ -1130,7 +1152,25 @@ p {
     border: 1px solid var(--borda);
     border-radius: var(--raio-medio);
 
-    background: var(--fundo-card);
+    background:
+        radial-gradient(circle at 75% 20%, rgba(154, 106, 69, 0.18), transparent 35%),
+        linear-gradient(145deg, #E8E1D5, #D6CCBD);
+}
+
+.nova-preco-antigo {
+    margin-right: 8px;
+    opacity: 0.65;
+    text-decoration: line-through;
+}
+
+.nova-etiqueta-promocao {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 5px 9px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
 .category-card img {
@@ -1365,11 +1405,13 @@ p {
         background:
             linear-gradient(
                 90deg,
-                rgba(15, 17, 23, 0.88),
-                rgba(15, 17, 23, 0.45)
+                rgba(25, 25, 22, 0.88),
+                rgba(25, 25, 22, 0.45)
             ),
-            url("../assets/images/banners/banner-principal.jpg")
-            center / cover no-repeat;
+            linear-gradient(90deg, rgba(25, 25, 22, 0.92), rgba(25, 25, 22, 0.28));
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
     }
 
     .hero-content {

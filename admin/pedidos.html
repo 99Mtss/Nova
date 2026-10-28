@@ -1,4 +1,4 @@
-```html
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -34,11 +34,11 @@
     <aside class="admin-sidebar" id="admin-sidebar">
 
         <div class="admin-logo">
-            <a href="index.html">NØVA</a>
+            <a href="index.html" aria-label="Dashboard NØVA">NØVA</a>
             <span>ADMIN</span>
         </div>
 
-        <nav class="admin-nav">
+        <nav class="admin-nav" aria-label="Navegação administrativa">
 
             <span class="nav-title">GERAL</span>
 
@@ -47,7 +47,7 @@
                 <span>Dashboard</span>
             </a>
 
-            <a href="pedidos.html" class="admin-nav-link active">
+            <a href="pedidos.html" class="admin-nav-link active" aria-current="page">
                 <i class="fa-solid fa-receipt"></i>
                 <span>Pedidos</span>
             </a>
@@ -90,6 +90,7 @@
     <div
         class="admin-sidebar-overlay"
         id="admin-sidebar-overlay"
+        hidden
     ></div>
 
     <!-- CONTEÚDO PRINCIPAL -->

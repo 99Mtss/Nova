@@ -23,41 +23,63 @@ document.addEventListener("DOMContentLoaded", async () => {
     const supabaseClient = window.supabaseClient;
 
     const botaoSalvar = document.querySelector("#salvar-configuracoes");
-    const bannerUrl = document.querySelector("#banner-url");
+    const botaoRestaurarTema =
+        document.querySelector("#restaurar-tema-nova");
+    const bannerArquivo = document.querySelector("#banner-arquivo");
     const bannerPreview = document.querySelector("#banner-preview");
-    const botaoVisualizarBanner =
-        document.querySelector("#preview-banner");
+    const previewTema = document.querySelector("#config-theme-preview");
+    const previewDestaque =
+        document.querySelector("#preview-cor-destaque");
+    const previewBotaoTema =
+        document.querySelector("#preview-botao-tema");
 
     const listaDestaques =
         document.querySelector("#lista-produtos-destaque");
 
     const listaPromocoes =
         document.querySelector("#lista-produtos-promocao");
+    const formCupom = document.querySelector("#form-cupom");
+    const listaCupons = document.querySelector("#lista-cupons");
+    const freteCepOrigem = document.querySelector("#frete-cep-origem");
+    const freteRetiradaAtiva = document.querySelector("#frete-retirada-ativa");
+    const freteEnderecoRetirada =
+        document.querySelector("#frete-endereco-retirada");
+    const freteMotoboyAtivo = document.querySelector("#frete-motoboy-ativo");
+    const freteWhatsapp = document.querySelector("#frete-whatsapp");
+
+    const bucketImagens = "nova-produtos";
+    const tamanhoMaximoBanner = 5 * 1024 * 1024;
+    const tiposImagemPermitidos = new Set([
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif"
+    ]);
 
     const camposCores = [
         {
             nome: "Fundo",
             seletor: "#cor-fundo",
             texto: "#hex-fundo",
-            valorInicial: "#0B0B0D"
+            valorInicial: "#F7F4EE"
         },
         {
             nome: "Superfície",
             seletor: "#cor-superficie",
             texto: "#hex-superficie",
-            valorInicial: "#151519"
+            valorInicial: "#FFFFFF"
         },
         {
             nome: "Destaque",
             seletor: "#cor-destaque",
             texto: "#hex-destaque",
-            valorInicial: "#FFFFFF"
+            valorInicial: "#9A6A45"
         },
         {
             nome: "Texto",
             seletor: "#cor-texto",
             texto: "#hex-texto",
-            valorInicial: "#F5F5F5"
+            valorInicial: "#191916"
         }
     ];
 
@@ -67,11 +89,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const estado = {
         cores: {},
+        configuracoesSalvas: {},
         banner: "",
         destaques: [],
         promocoes: [],
+        cupons: [],
+        frete: {
+            provedor: "melhor_envio",
+            cepOrigem: "57800000",
+            retirada: { ativa: false, endereco: "" },
+            motoboy: { ativo: false, whatsapp: "" }
+        },
         produtos: [],
         carregando: false,
+        enviandoBanner: false,
         alteracoesPendentes: false,
         administradorAutorizado: false
     };
@@ -82,6 +113,32 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function normalizarTexto(valor) {
         return String(valor ?? "").trim();
+    }
+
+    function normalizarCodigoCupom(valor) {
+        return normalizarTexto(valor).toUpperCase();
+    }
+
+    function normalizarCep(valor) {
+        return String(valor ?? "").replace(/\D/g, "").slice(0, 8);
+    }
+
+    function validarDataCupom(valor) {
+        if (!valor) return true;
+
+        const partes = valor.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+        if (!partes) {
+            return false;
+        }
+
+        const [, ano, mes, dia] = partes;
+        const data = new Date(Number(ano), Number(mes) - 1, Number(dia));
+
+        return !Number.isNaN(data.getTime()) &&
+            data.getFullYear() === Number(ano) &&
+            data.getMonth() === Number(mes) - 1 &&
+            data.getDate() === Number(dia);
     }
 
     function converterParaHex(valor) {
@@ -179,9 +236,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 zIndex: "99999",
                 maxWidth: "min(400px, calc(100vw - 40px))",
                 padding: "15px 18px",
-                background: "#17171b",
-                color: "#f5f5f5",
-                border: "1px solid #393940",
+                background: "#FFFFFF",
+                color: "#191916",
+                border: "1px solid #DED8CD",
                 borderRadius: "10px",
                 fontSize: "13px",
                 lineHeight: "1.6",
@@ -195,7 +252,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         notificacao.style.borderColor =
             tipo === "erro" ? "#b94b55" :
             tipo === "sucesso" ? "#438a65" :
-            "#393940";
+            "#9A6A45";
     }
 
     function marcarAlteracao() {
@@ -204,7 +261,31 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (botaoSalvar) {
             botaoSalvar.disabled =
                 !estado.administradorAutorizado ||
-                estado.carregando;
+                estado.carregando ||
+                estado.enviandoBanner;
+        }
+    }
+
+    function atualizarPreviaTema() {
+        if (!previewTema) return;
+
+        const fundo = estado.cores.Fundo || "#F7F4EE";
+        const superficie = estado.cores.Superfície || "#FFFFFF";
+        const destaque = estado.cores.Destaque || "#9A6A45";
+        const texto = estado.cores.Texto || "#191916";
+
+        previewTema.style.setProperty("--preview-fundo", fundo);
+        previewTema.style.setProperty("--preview-superficie", superficie);
+        previewTema.style.setProperty("--preview-texto", texto);
+        previewTema.style.setProperty("--preview-destaque", destaque);
+
+        if (previewDestaque) {
+            previewDestaque.style.backgroundColor = destaque;
+        }
+
+        if (previewBotaoTema) {
+            previewBotaoTema.style.backgroundColor = destaque;
+            previewBotaoTema.style.color = texto;
         }
     }
 
@@ -240,6 +321,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 texto.value = cor;
                 texto.setCustomValidity("");
                 estado.cores[campo.nome] = cor;
+                atualizarPreviaTema();
 
                 marcarAlteracao();
             });
@@ -257,6 +339,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 texto.setCustomValidity("");
                 seletor.value = cor;
                 estado.cores[campo.nome] = cor;
+                atualizarPreviaTema();
 
                 marcarAlteracao();
             });
@@ -273,6 +356,25 @@ document.addEventListener("DOMContentLoaded", async () => {
                 seletor.value = cor;
             });
         });
+
+        atualizarPreviaTema();
+    }
+
+    function restaurarTemaNova() {
+        camposCores.forEach(campo => {
+            const seletor = document.querySelector(campo.seletor);
+            const texto = document.querySelector(campo.texto);
+
+            if (!seletor || !texto) return;
+
+            seletor.value = campo.valorInicial;
+            texto.value = campo.valorInicial;
+            texto.setCustomValidity("");
+            estado.cores[campo.nome] = campo.valorInicial;
+        });
+
+        atualizarPreviaTema();
+        marcarAlteracao();
     }
 
     function validarCamposCores() {
@@ -323,74 +425,155 @@ document.addEventListener("DOMContentLoaded", async () => {
         bannerPreview.appendChild(container);
     }
 
-    function visualizarBanner(urlRecebida) {
-        if (!bannerPreview || !bannerUrl) return;
+    function visualizarBanner(
+        urlRecebida,
+        marcarAlteracaoPendente = true
+    ) {
+        if (!bannerPreview) return Promise.resolve(false);
 
-        const url = validarUrlImagem(
-            urlRecebida ?? bannerUrl.value
-        );
+        const url = validarUrlImagem(urlRecebida);
 
         if (!url) {
             mostrarPlaceholderBanner(
-                "URL inválida",
-                "Informe uma URL de imagem válida."
+                "Imagem inválida",
+                "O endereço do banner não é válido."
             );
-
-            bannerUrl.setCustomValidity(
-                "Informe uma URL de imagem começando com https:// ou http://."
-            );
-
-            bannerUrl.reportValidity();
-            return;
+            return Promise.resolve(false);
         }
 
-        bannerUrl.setCustomValidity("");
         mostrarPlaceholderBanner(
             "Carregando imagem...",
             "Aguarde a pré-visualização."
         );
 
-        const imagem = new Image();
-        imagem.alt = "Pré-visualização do banner da NØVA";
+        return new Promise(resolve => {
+            const imagem = new Image();
+            imagem.alt = "Pré-visualização do banner da NØVA";
 
-        imagem.onload = () => {
-            bannerPreview.replaceChildren(imagem);
-            bannerPreview.classList.add("has-image");
+            imagem.onload = () => {
+                bannerPreview.replaceChildren(imagem);
+                bannerPreview.classList.add("has-image");
 
-            estado.banner = url;
-            marcarAlteracao();
+                estado.banner = url;
+                if (marcarAlteracaoPendente) {
+                    marcarAlteracao();
+                }
+                resolve(true);
+            };
+
+            imagem.onerror = () => {
+                mostrarPlaceholderBanner(
+                    "Não foi possível carregar a imagem",
+                    "Confira as permissões de leitura pública do bucket nova-produtos."
+                );
+                resolve(false);
+            };
+
+            imagem.src = url;
+        });
+    }
+
+    async function enviarBanner(arquivo) {
+        if (!tiposImagemPermitidos.has(arquivo.type)) {
+            throw new Error("Formato inválido. Use JPG, PNG, WebP ou GIF.");
+        }
+
+        if (arquivo.size > tamanhoMaximoBanner) {
+            throw new Error("O banner deve ter no máximo 5 MB.");
+        }
+
+        await verificarPermissaoAdmin();
+
+        if (!supabaseClient?.storage) {
+            throw new Error("O armazenamento do Supabase não está disponível.");
+        }
+
+        const extensaoPorTipo = {
+            "image/jpeg": "jpg",
+            "image/png": "png",
+            "image/webp": "webp",
+            "image/gif": "gif"
         };
+        const identificador = window.crypto?.randomUUID
+            ? window.crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const caminho =
+            `banners/${identificador}.${extensaoPorTipo[arquivo.type]}`;
 
-        imagem.onerror = () => {
-            mostrarPlaceholderBanner(
-                "Não foi possível carregar a imagem",
-                "Verifique se a URL está correta e se a imagem é pública."
+        const { error } = await supabaseClient.storage
+            .from(bucketImagens)
+            .upload(caminho, arquivo, {
+                cacheControl: "3600",
+                upsert: false,
+                contentType: arquivo.type
+            });
+
+        if (error) {
+            throw error;
+        }
+
+        const { data } = supabaseClient.storage
+            .from(bucketImagens)
+            .getPublicUrl(caminho);
+        const url = validarUrlImagem(data?.publicUrl);
+
+        if (!url) {
+            throw new Error(
+                "O Supabase não retornou uma URL pública válida para o banner."
             );
-        };
+        }
 
-        imagem.src = url;
+        const imagemCarregada = await visualizarBanner(url);
+
+        if (!imagemCarregada) {
+            throw new Error(
+                "O banner foi enviado, mas não pôde ser carregado. Verifique se o bucket permite leitura pública."
+            );
+        }
     }
 
     function configurarBanner() {
-        if (botaoVisualizarBanner) {
-            botaoVisualizarBanner.addEventListener("click", () => {
-                visualizarBanner();
-            });
-        }
+        bannerArquivo?.addEventListener("change", async () => {
+            const arquivo = bannerArquivo.files?.[0];
+            if (!arquivo) return;
 
-        if (bannerUrl) {
-            bannerUrl.addEventListener("input", () => {
-                bannerUrl.setCustomValidity();
-                marcarAlteracao();
-            });
+            estado.enviandoBanner = true;
+            bannerArquivo.disabled = true;
+            if (botaoSalvar) {
+                botaoSalvar.disabled = true;
+            }
+            mostrarPlaceholderBanner(
+                "Enviando banner...",
+                "Aguarde o envio para o Supabase Storage."
+            );
 
-            bannerUrl.addEventListener("keydown", evento => {
-                if (evento.key === "Enter") {
-                    evento.preventDefault();
-                    visualizarBanner();
+            try {
+                await enviarBanner(arquivo);
+                mostrarNotificacao(
+                    "Banner enviado. Salve as configurações para publicá-lo.",
+                    "sucesso"
+                );
+            } catch (erro) {
+                console.error("[NØVA Config] Erro ao enviar banner:", erro);
+                mostrarNotificacao(
+                    erro.message || "Não foi possível enviar o banner.",
+                    "erro"
+                );
+                mostrarPlaceholderBanner(
+                    "Falha no envio do banner",
+                    "Confira sua conexão e as permissões do bucket no Supabase."
+                );
+                bannerArquivo.value = "";
+            } finally {
+                estado.enviandoBanner = false;
+                bannerArquivo.disabled = false;
+                if (botaoSalvar) {
+                    botaoSalvar.disabled =
+                        !estado.administradorAutorizado ||
+                        estado.carregando;
                 }
-            });
-        }
+            }
+        });
     }
 
     /* =====================================================
@@ -669,6 +852,288 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    function formatarDetalhesCupom(cupom) {
+        const detalhes = [`${cupom.percentual}% de desconto`];
+
+        if (cupom.validade) {
+            const [ano, mes, dia] = cupom.validade.split("-");
+            detalhes.push(`válido até ${dia}/${mes}/${ano}`);
+        }
+
+        if (cupom.pedidoMinimo > 0) {
+            detalhes.push(`pedido mínimo ${formatarPreco(cupom.pedidoMinimo)}`);
+        }
+
+        if (cupom.limiteUso) {
+            detalhes.push(`limite de ${cupom.limiteUso} uso(s)`);
+        }
+
+        return detalhes.join(" · ");
+    }
+
+    function renderizarCupons() {
+        if (!listaCupons) return;
+
+        listaCupons.replaceChildren();
+
+        if (estado.cupons.length === 0) {
+            renderizarListaVazia(
+                listaCupons,
+                "Nenhum cupom cadastrado",
+                "Adicione um código e o percentual de desconto para começar."
+            );
+            return;
+        }
+
+        estado.cupons.forEach(cupom => {
+            const item = document.createElement("article");
+            item.className = "config-coupon-item";
+
+            const informacoes = document.createElement("div");
+            const codigo = document.createElement("h4");
+            codigo.textContent = cupom.codigo;
+
+            const detalhes = document.createElement("p");
+            detalhes.textContent = formatarDetalhesCupom(cupom);
+            informacoes.append(codigo, detalhes);
+
+            const remover = document.createElement("button");
+            remover.type = "button";
+            remover.className = "config-coupon-remove";
+            remover.textContent = "Remover";
+            remover.setAttribute("aria-label", `Remover cupom ${cupom.codigo}`);
+            remover.addEventListener("click", () => {
+                estado.cupons = estado.cupons.filter(
+                    itemAtual => itemAtual.codigo !== cupom.codigo
+                );
+                renderizarCupons();
+                marcarAlteracao();
+            });
+
+            item.append(informacoes, remover);
+            listaCupons.appendChild(item);
+        });
+    }
+
+    function configurarFormularioCupom() {
+        if (!formCupom) return;
+
+        formCupom.addEventListener("submit", evento => {
+            evento.preventDefault();
+
+            const codigoInput = document.querySelector("#cupom-codigo");
+            const percentualInput =
+                document.querySelector("#cupom-percentual");
+            const validadeInput = document.querySelector("#cupom-validade");
+            const pedidoMinimoInput =
+                document.querySelector("#cupom-pedido-minimo");
+            const limiteUsoInput =
+                document.querySelector("#cupom-limite-uso");
+
+            const codigo = normalizarCodigoCupom(codigoInput?.value);
+            const percentualTexto = normalizarTexto(percentualInput?.value);
+            const percentual = percentualTexto ? Number(percentualTexto) : NaN;
+            const validade = normalizarTexto(validadeInput?.value);
+            const pedidoMinimoTexto =
+                normalizarTexto(pedidoMinimoInput?.value);
+            const limiteUsoTexto = normalizarTexto(limiteUsoInput?.value);
+            const pedidoMinimo = pedidoMinimoTexto
+                ? Number(pedidoMinimoTexto)
+                : 0;
+            const limiteUso = limiteUsoTexto
+                ? Number(limiteUsoTexto)
+                : null;
+
+            if (!/^[A-Z0-9_-]{3,30}$/.test(codigo)) {
+                mostrarNotificacao(
+                    "Use de 3 a 30 caracteres no código: letras, números, hífen ou sublinhado.",
+                    "erro"
+                );
+                codigoInput?.focus();
+                return;
+            }
+
+            if (
+                !Number.isFinite(percentual) ||
+                percentual <= 0 ||
+                percentual > 100
+            ) {
+                mostrarNotificacao(
+                    "O desconto percentual deve ser maior que 0 e no máximo 100.",
+                    "erro"
+                );
+                percentualInput?.focus();
+                return;
+            }
+
+            if (validade && !validarDataCupom(validade)) {
+                mostrarNotificacao("Informe uma data de validade válida.", "erro");
+                validadeInput?.focus();
+                return;
+            }
+
+            if (!Number.isFinite(pedidoMinimo) || pedidoMinimo < 0) {
+                mostrarNotificacao(
+                    "O valor mínimo do pedido deve ser zero ou maior.",
+                    "erro"
+                );
+                pedidoMinimoInput?.focus();
+                return;
+            }
+
+            if (
+                limiteUso !== null &&
+                (!Number.isInteger(limiteUso) || limiteUso < 1)
+            ) {
+                mostrarNotificacao(
+                    "O limite de usos deve ser um número inteiro maior que zero.",
+                    "erro"
+                );
+                limiteUsoInput?.focus();
+                return;
+            }
+
+            if (estado.cupons.some(item => item.codigo === codigo)) {
+                mostrarNotificacao("Já existe um cupom com esse código.", "erro");
+                codigoInput?.focus();
+                return;
+            }
+
+            estado.cupons.push({
+                codigo,
+                percentual,
+                validade,
+                pedidoMinimo,
+                limiteUso
+            });
+
+            formCupom.reset();
+            renderizarCupons();
+            marcarAlteracao();
+            mostrarNotificacao(
+                "Cupom adicionado. Salve as configurações para publicá-lo.",
+                "sucesso"
+            );
+        });
+    }
+
+    function configurarFrete() {
+        const campos = [
+            freteCepOrigem,
+            freteRetiradaAtiva,
+            freteEnderecoRetirada,
+            freteMotoboyAtivo,
+            freteWhatsapp
+        ];
+
+        campos.forEach(campo => {
+            campo?.addEventListener("input", marcarAlteracao);
+            campo?.addEventListener("change", marcarAlteracao);
+        });
+
+        freteCepOrigem?.addEventListener("input", () => {
+            const cep = normalizarCep(freteCepOrigem.value);
+            freteCepOrigem.value = cep.length > 5
+                ? `${cep.slice(0, 5)}-${cep.slice(5)}`
+                : cep;
+        });
+    }
+
+    function carregarFrete(configuracaoFrete) {
+        const frete = configuracaoFrete &&
+            typeof configuracaoFrete === "object"
+            ? configuracaoFrete
+            : {};
+        const retirada = frete.retirada &&
+            typeof frete.retirada === "object"
+            ? frete.retirada
+            : {};
+        const motoboy = frete.motoboy &&
+            typeof frete.motoboy === "object"
+            ? frete.motoboy
+            : {};
+
+        estado.frete = {
+            provedor: "melhor_envio",
+            cepOrigem: normalizarCep(frete.cepOrigem) || "57800000",
+            retirada: {
+                ativa: retirada.ativa === true,
+                endereco: normalizarTexto(retirada.endereco)
+            },
+            motoboy: {
+                ativo: motoboy.ativo === true,
+                whatsapp: normalizarTexto(motoboy.whatsapp)
+            }
+        };
+
+        if (freteCepOrigem) {
+            const cep = estado.frete.cepOrigem;
+            freteCepOrigem.value = cep.length > 5
+                ? `${cep.slice(0, 5)}-${cep.slice(5)}`
+                : cep;
+        }
+        if (freteRetiradaAtiva) {
+            freteRetiradaAtiva.checked = estado.frete.retirada.ativa;
+        }
+        if (freteEnderecoRetirada) {
+            freteEnderecoRetirada.value = estado.frete.retirada.endereco;
+        }
+        if (freteMotoboyAtivo) {
+            freteMotoboyAtivo.checked = estado.frete.motoboy.ativo;
+        }
+        if (freteWhatsapp) {
+            freteWhatsapp.value = estado.frete.motoboy.whatsapp;
+        }
+    }
+
+    function validarFrete() {
+        const cepOrigem = normalizarCep(freteCepOrigem?.value);
+        const retiradaAtiva = Boolean(freteRetiradaAtiva?.checked);
+        const enderecoRetirada =
+            normalizarTexto(freteEnderecoRetirada?.value);
+        const motoboyAtivo = Boolean(freteMotoboyAtivo?.checked);
+        const whatsapp = normalizarTexto(freteWhatsapp?.value);
+
+        if (cepOrigem.length !== 8) {
+            mostrarNotificacao("Informe um CEP de origem válido.", "erro");
+            freteCepOrigem?.focus();
+            return false;
+        }
+
+        if (retiradaAtiva && enderecoRetirada.length < 10) {
+            mostrarNotificacao(
+                "Informe o endereço completo antes de disponibilizar a retirada.",
+                "erro"
+            );
+            freteEnderecoRetirada?.focus();
+            return false;
+        }
+
+        if (motoboyAtivo && whatsapp.replace(/\D/g, "").length < 12) {
+            mostrarNotificacao(
+                "Informe o WhatsApp com código do país e DDD antes de disponibilizar motoboy.",
+                "erro"
+            );
+            freteWhatsapp?.focus();
+            return false;
+        }
+
+        estado.frete = {
+            provedor: "melhor_envio",
+            cepOrigem,
+            retirada: {
+                ativa: retiradaAtiva,
+                endereco: enderecoRetirada
+            },
+            motoboy: {
+                ativo: motoboyAtivo,
+                whatsapp
+            }
+        };
+
+        return true;
+    }
+
     /* =====================================================
        8. CARREGAR CONFIGURAÇÕES SALVAS
        ===================================================== */
@@ -689,9 +1154,23 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         const configuracoes = data.configuracoes;
+        if (
+            typeof configuracoes !== "object" ||
+            Array.isArray(configuracoes)
+        ) {
+            throw new Error(
+                "As configurações salvas da loja têm um formato inválido."
+            );
+        }
 
-        // Cores
-        if (configuracoes.cores) {
+        estado.configuracoesSalvas = { ...configuracoes };
+        carregarFrete(configuracoes.frete);
+
+        // Ignora a paleta antiga até o administrador salvar explicitamente o novo tema.
+        if (
+            configuracoes.temaVisual === "personalizado" &&
+            configuracoes.cores
+        ) {
             camposCores.forEach(campo => {
                 const valorSalvo = configuracoes.cores[campo.nome];
                 const cor = converterParaHex(valorSalvo);
@@ -707,14 +1186,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 estado.cores[campo.nome] = cor;
             });
         }
+        atualizarPreviaTema();
 
         // Banner
         const bannerSalvo = validarUrlImagem(configuracoes.banner);
 
-        if (bannerSalvo && bannerUrl) {
-            bannerUrl.value = bannerSalvo;
+        if (bannerSalvo) {
             estado.banner = bannerSalvo;
-            visualizarBanner(bannerSalvo);
+            visualizarBanner(bannerSalvo, false);
         }
 
         // IDs de produtos em destaque
@@ -737,6 +1216,49 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }))
             : [];
 
+        estado.cupons = Array.isArray(configuracoes.cupons)
+            ? configuracoes.cupons.map(cupom => {
+                const codigo = normalizarCodigoCupom(cupom?.codigo);
+                const percentual = Number(cupom?.percentual);
+                const validade = normalizarTexto(cupom?.validade);
+                const pedidoMinimo = Number(cupom?.pedidoMinimo ?? 0);
+                const limiteUso = cupom?.limiteUso === null ||
+                    cupom?.limiteUso === undefined ||
+                    cupom?.limiteUso === ""
+                    ? null
+                    : Number(cupom.limiteUso);
+
+                if (
+                    !/^[A-Z0-9_-]{3,30}$/.test(codigo) ||
+                    !Number.isFinite(percentual) ||
+                    percentual <= 0 ||
+                    percentual > 100 ||
+                    (validade && !validarDataCupom(validade)) ||
+                    !Number.isFinite(pedidoMinimo) ||
+                    pedidoMinimo < 0 ||
+                    (limiteUso !== null &&
+                        (!Number.isInteger(limiteUso) || limiteUso < 1))
+                ) {
+                    throw new Error(
+                        `O cupom "${codigo || "sem código"}" salvo nas configurações é inválido.`
+                    );
+                }
+
+                return {
+                    codigo,
+                    percentual,
+                    validade,
+                    pedidoMinimo,
+                    limiteUso
+                };
+            })
+            : [];
+
+        if (new Set(estado.cupons.map(cupom => cupom.codigo)).size !== estado.cupons.length) {
+            throw new Error("Há códigos de cupom duplicados nas configurações salvas.");
+        }
+
+        renderizarCupons();
         renderizarListasProdutos();
     }
 
@@ -818,21 +1340,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        const bannerInformado = normalizarTexto(
-            bannerUrl?.value
-        );
-
-        if (bannerInformado && !validarUrlImagem(bannerInformado)) {
-            bannerUrl?.setCustomValidity(
-                "Informe uma URL de imagem válida."
-            );
-            bannerUrl?.reportValidity();
+        if (!validarFrete()) {
             return;
         }
 
-        if (bannerInformado && !estado.banner) {
+        if (estado.enviandoBanner) {
             mostrarNotificacao(
-                "Clique em Visualizar imagem e aguarde o carregamento do banner antes de salvar.",
+                "Aguarde o envio do banner terminar antes de salvar.",
                 "erro"
             );
             return;
@@ -843,16 +1357,23 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         const configuracoes = {
+            ...estado.configuracoesSalvas,
             cores: { ...estado.cores },
+            temaVisual: "personalizado",
             banner: estado.banner || "",
             destaques: estado.destaques,
             promocoes: estado.promocoes.map(item => ({
                 id: item.id,
                 preco: Number(item.preco)
-            }))
+            })),
+            cupons: estado.cupons.map(cupom => ({ ...cupom })),
+            frete: { ...estado.frete }
         };
 
         estado.carregando = true;
+        if (bannerArquivo) {
+            bannerArquivo.disabled = true;
+        }
 
         if (botaoSalvar) {
             botaoSalvar.disabled = true;
@@ -882,6 +1403,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 throw error;
             }
 
+            estado.configuracoesSalvas = configuracoes;
             estado.alteracoesPendentes = false;
 
             mostrarNotificacao(
@@ -903,10 +1425,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         } finally {
             estado.carregando = false;
+            if (bannerArquivo) {
+                bannerArquivo.disabled = false;
+            }
 
             if (botaoSalvar) {
                 botaoSalvar.disabled =
-                    !estado.administradorAutorizado;
+                    !estado.administradorAutorizado ||
+                    estado.enviandoBanner;
 
                 botaoSalvar.innerHTML =
                     '<i class="fa-solid fa-cloud-arrow-up"></i> Salvar configurações';
@@ -924,13 +1450,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         botaoSalvar.addEventListener("click", salvarConfiguracoes);
     }
 
+    function configurarBotaoRestaurarTema() {
+        botaoRestaurarTema?.addEventListener("click", restaurarTemaNova);
+    }
+
     /* =====================================================
        13. INICIALIZAÇÃO
        ===================================================== */
 
     configurarCamposCores();
+    configurarBotaoRestaurarTema();
     configurarBanner();
+    configurarFormularioCupom();
+    configurarFrete();
     configurarBotaoSalvar();
+    renderizarCupons();
 
     if (botaoSalvar) {
         botaoSalvar.disabled = true;

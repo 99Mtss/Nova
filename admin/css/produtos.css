@@ -108,22 +108,22 @@
 }
 
 .produto-stat-icon.purple {
-    background: rgba(139, 92, 246, 0.12);
+    background: var(--admin-accent-soft);
     color: var(--admin-purple);
 }
 
 .produto-stat-icon.green {
-    background: rgba(34, 197, 94, 0.12);
+    background: var(--admin-green-soft);
     color: var(--admin-green);
 }
 
 .produto-stat-icon.orange {
-    background: rgba(245, 158, 11, 0.12);
+    background: var(--admin-orange-soft);
     color: var(--admin-orange);
 }
 
 .produto-stat-icon.red {
-    background: rgba(239, 68, 68, 0.12);
+    background: var(--admin-red-soft);
     color: var(--admin-red);
 }
 
@@ -171,7 +171,7 @@
 
     transform: translateY(-50%);
 
-    color: #69717f;
+    color: var(--admin-text-soft);
 
     font-size: 12px;
 }
@@ -197,7 +197,7 @@
 }
 
 .produto-search input::placeholder {
-    color: #69717f;
+    color: var(--admin-text-soft);
 }
 
 .produtos-filtros select {
@@ -306,9 +306,9 @@
 
     padding: 0 18px;
 
-    background: rgba(15, 17, 23, 0.45);
+    background: var(--admin-card-hover);
 
-    color: #707886;
+    color: var(--admin-text-soft);
 
     text-align: left;
 
@@ -336,7 +336,7 @@
 }
 
 .produtos-table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.015);
+    background: var(--admin-card-hover);
 }
 
 
@@ -366,11 +366,11 @@
     background:
         linear-gradient(
             145deg,
-            #292e38,
-            #11141b
+            var(--admin-card-hover),
+            var(--admin-bg)
         );
 
-    color: #747b87;
+    color: var(--admin-text-soft);
 
     font-family: "Montserrat", sans-serif;
     font-size: 7px;
@@ -394,7 +394,7 @@
 }
 
 .produto-table-info span {
-    color: #69717f;
+    color: var(--admin-text-soft);
 
     font-size: 8px;
 }
@@ -474,12 +474,12 @@
 }
 
 .product-status.active {
-    background: rgba(34, 197, 94, 0.1);
+    background: var(--admin-green-soft);
     color: var(--admin-green);
 }
 
 .product-status.inactive {
-    background: rgba(239, 68, 68, 0.1);
+    background: var(--admin-red-soft);
     color: var(--admin-red);
 }
 
@@ -506,7 +506,7 @@
     border-radius: 6px;
 
     background: transparent;
-    color: #737b88;
+    color: var(--admin-text-soft);
 
     font-size: 10px;
 
@@ -539,7 +539,7 @@
 }
 
 .table-pagination > span {
-    color: #69717f;
+    color: var(--admin-text-soft);
 
     font-size: 9px;
 }
@@ -587,7 +587,7 @@
 .pagination-buttons > span {
     padding: 0 3px;
 
-    color: #69717f;
+    color: var(--admin-text-soft);
 
     font-size: 10px;
 }
@@ -716,16 +716,15 @@
 
     box-sizing: border-box;
 
-    background: #1e222b;
+    background: var(--admin-card);
 
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--admin-border);
 
     border-radius: 14px;
 
-    box-shadow:
-        0 25px 80px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 25px 80px rgb(25 25 22 / 20%);
 
-    color: #f5f7fa;
+    color: var(--admin-text);
 
     animation: produtoModalEntrada 0.25s ease;
 }
@@ -759,14 +758,14 @@
     padding: 20px 24px;
 
     border-bottom:
-        1px solid rgba(255, 255, 255, 0.08);
+        1px solid var(--admin-border);
 }
 
 
 .produto-modal-header h2 {
     margin: 0;
 
-    color: #f5f7fa;
+    color: var(--admin-text);
 
     font-size: 20px;
     font-weight: 600;
@@ -789,7 +788,7 @@
 
     background: transparent;
 
-    color: #aaa;
+    color: var(--admin-text-muted);
 
     font-size: 26px;
 
@@ -800,9 +799,9 @@
 
 
 .produto-modal-close:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--admin-border);
 
-    color: #fff;
+    color: var(--admin-text);
 }
 
 
@@ -836,7 +835,7 @@
 
 .produto-form label {
 
-    color: #d7d9df;
+    color: var(--admin-text-muted);
 
     font-size: 13px;
 
@@ -870,13 +869,13 @@
     padding: 0 13px;
 
     border: 1px solid
-        rgba(255, 255, 255, 0.10);
+        var(--admin-border);
 
     border-radius: 8px;
 
-    background: #15181f;
+    background: var(--admin-card-hover);
 
-    color: #f5f7fa;
+    color: var(--admin-text);
 
     outline: none;
 
@@ -889,7 +888,7 @@
 /* PLACEHOLDER */
 
 .produto-form input::placeholder {
-    color: #777;
+    color: var(--admin-text-muted);
 }
 
 
@@ -898,11 +897,11 @@
 .produto-form input:focus,
 .produto-form select:focus {
 
-    border-color: #8b5cf6;
+    border-color: var(--admin-purple);
 
     box-shadow:
         0 0 0 3px
-        rgba(139, 92, 246, 0.12);
+        var(--admin-accent-soft);
 }
 
 
@@ -956,7 +955,7 @@
     padding-top: 20px;
 
     border-top:
-        1px solid rgba(255, 255, 255, 0.08);
+        1px solid var(--admin-border);
 }
 
 
@@ -988,20 +987,20 @@
 .produto-form .btn-cancelar {
 
     border:
-        1px solid rgba(255, 255, 255, 0.10);
+        1px solid var(--admin-border);
 
     background: transparent;
 
-    color: #ccc;
+    color: var(--admin-text-muted);
 }
 
 
 .produto-form .btn-cancelar:hover {
 
     background:
-        rgba(255, 255, 255, 0.06);
+        var(--admin-card-hover);
 
-    color: #fff;
+    color: var(--admin-text);
 }
 
 
@@ -1011,7 +1010,7 @@
 
     border: none;
 
-    background: #8b5cf6;
+    background: var(--admin-purple);
 
     color: #fff;
 }
@@ -1019,7 +1018,7 @@
 
 .produto-form .btn-salvar:hover {
 
-    background: #7c3aed;
+    background: var(--admin-purple-dark);
 
     transform: translateY(-1px);
 }

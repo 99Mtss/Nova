@@ -30,13 +30,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const discountRow = document.querySelector("#checkout-discount-row");
     const discountElement = document.querySelector("#checkout-discount");
     const totalElement = document.querySelector("#checkout-total");
+    const couponForm = document.querySelector("#checkout-coupon-form");
+    const couponCodeInput = document.querySelector("#checkout-coupon-code");
+    const couponFeedback = document.querySelector("#checkout-coupon-feedback");
+    const couponApplyButton = document.querySelector("#checkout-coupon-apply");
+    const couponRemoveButton = document.querySelector("#checkout-coupon-remove");
 
     const paymentOptions = document.querySelectorAll(".payment-option");
     const paymentNotice = document.querySelector("#payment-notice");
     const cepInput = document.querySelector("#cep");
+    const calculateShippingButton =
+        document.querySelector("#checkout-calculate-shipping");
+    const shippingFeedback =
+        document.querySelector("#checkout-shipping-feedback");
+    const pickupOption = document.querySelector("#checkout-pickup-option");
+    const pickupAddress = document.querySelector("#checkout-pickup-address");
+    const motoboyOption = document.querySelector("#checkout-motoboy-option");
+    const motoboyLink = document.querySelector("#checkout-motoboy-link");
 
     let carrinho = [];
     let configuracoes = {};
+    let cupomAplicado = null;
 
     /* =====================================================
        UTILITÁRIOS
@@ -67,6 +81,46 @@ document.addEventListener("DOMContentLoaded", () => {
         if (formMessage) {
             formMessage.textContent = "";
             formMessage.hidden = true;
+        }
+    }
+
+    function renderizarOpcoesEntrega() {
+        const frete = configuracoes.frete &&
+            typeof configuracoes.frete === "object"
+            ? configuracoes.frete
+            : {};
+        const retirada = frete.retirada &&
+            typeof frete.retirada === "object"
+            ? frete.retirada
+            : {};
+        const motoboy = frete.motoboy &&
+            typeof frete.motoboy === "object"
+            ? frete.motoboy
+            : {};
+
+        if (
+            pickupOption &&
+            pickupAddress &&
+            retirada.ativa === true &&
+            typeof retirada.endereco === "string" &&
+            retirada.endereco.trim()
+        ) {
+            pickupAddress.textContent = retirada.endereco.trim();
+            pickupOption.hidden = false;
+        }
+
+        const whatsapp = String(motoboy.whatsapp || "").replace(/\D/g, "");
+        if (
+            motoboyOption &&
+            motoboyLink &&
+            motoboy.ativo === true &&
+            whatsapp.length >= 12
+        ) {
+            const texto = encodeURIComponent(
+                "Olá! Gostaria de combinar a entrega por motoboy para meu pedido."
+            );
+            motoboyLink.href = `https://wa.me/${whatsapp}?text=${texto}`;
+            motoboyOption.hidden = false;
         }
     }
 
@@ -156,6 +210,140 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
+    function obterCupomPorCodigo(codigo) {
+        const cupons = Array.isArray(configuracoes.cupons)
+            ? configuracoes.cupons
+            : [];
+        const codigoNormalizado = codigo.trim().toUpperCase();
+
+        return cupons.find(cupom =>
+            String(cupom?.codigo || "").trim().toUpperCase() ===
+            codigoNormalizado
+        ) || null;
+    }
+
+    function validarDataValidade(valor) {
+        const partes = String(valor || "").match(
+            /^(\d{4})-(\d{2})-(\d{2})$/
+        );
+
+        if (!partes) return false;
+
+        const [, ano, mes, dia] = partes;
+        const data = new Date(Number(ano), Number(mes) - 1, Number(dia));
+
+        return data.getFullYear() === Number(ano) &&
+            data.getMonth() === Number(mes) - 1 &&
+            data.getDate() === Number(dia);
+    }
+
+    function calcularDescontoCupom() {
+        if (!cupomAplicado) return 0;
+
+        return Math.round(
+            calcularSubtotal() * cupomAplicado.percentual
+        ) / 100;
+    }
+
+    function atualizarFeedbackCupom(mensagem, tipo = "info") {
+        if (!couponFeedback) return;
+
+        couponFeedback.textContent = mensagem;
+        couponFeedback.dataset.type = tipo;
+    }
+
+    function aplicarCupom(evento) {
+        evento.preventDefault();
+        cupomAplicado = null;
+
+        const codigo = String(couponCodeInput?.value || "").trim().toUpperCase();
+        const cupom = obterCupomPorCodigo(codigo);
+
+        if (!codigo || !cupom) {
+            atualizarFeedbackCupom("Cupom não encontrado.", "erro");
+            renderizarResumo();
+            return;
+        }
+
+        const percentual = Number(cupom.percentual);
+        const pedidoMinimo = Number(cupom.pedidoMinimo || 0);
+
+        if (!Number.isFinite(percentual) || percentual <= 0 || percentual > 100) {
+            atualizarFeedbackCupom(
+                "Este cupom possui uma configuração inválida. Entre em contato com a loja.",
+                "erro"
+            );
+            renderizarResumo();
+            return;
+        }
+
+        if (cupom.validade) {
+            const hoje = new Date();
+            const hojeLocal =
+                `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`;
+
+            if (
+                !validarDataValidade(cupom.validade) ||
+                cupom.validade < hojeLocal
+            ) {
+                atualizarFeedbackCupom("Este cupom está expirado.", "erro");
+                renderizarResumo();
+                return;
+            }
+        }
+
+        if (!Number.isFinite(pedidoMinimo) || pedidoMinimo < 0) {
+            atualizarFeedbackCupom(
+                "Este cupom possui um pedido mínimo inválido. Entre em contato com a loja.",
+                "erro"
+            );
+            renderizarResumo();
+            return;
+        }
+
+        if (calcularSubtotal() < pedidoMinimo) {
+            atualizarFeedbackCupom(
+                `O pedido mínimo para este cupom é ${formatarPreco(pedidoMinimo)}.`,
+                "erro"
+            );
+            renderizarResumo();
+            return;
+        }
+
+        cupomAplicado = {
+            codigo: String(cupom.codigo).trim().toUpperCase(),
+            percentual
+        };
+        if (couponCodeInput) {
+            couponCodeInput.value = cupomAplicado.codigo;
+        }
+
+        const limiteMensagem = cupom.limiteUso
+            ? " O limite de usos ainda será confirmado pelo servidor."
+            : "";
+        atualizarFeedbackCupom(
+            `Cupom aplicado para simulação: ${percentual}% de desconto. A compra continua indisponível até a validação segura no servidor.${limiteMensagem}`,
+            "sucesso"
+        );
+
+        renderizarResumo();
+    }
+
+    if (couponForm) {
+        couponForm.addEventListener("submit", aplicarCupom);
+    }
+
+    if (couponRemoveButton) {
+        couponRemoveButton.addEventListener("click", () => {
+            cupomAplicado = null;
+            if (couponCodeInput) couponCodeInput.value = "";
+            atualizarFeedbackCupom(
+                "Cupom removido. A compra segue indisponível até a configuração segura do checkout."
+            );
+            renderizarResumo();
+        });
+    }
+
     /* =====================================================
        CONFIGURAÇÕES E ESTOQUE
        ===================================================== */
@@ -183,6 +371,10 @@ document.addEventListener("DOMContentLoaded", () => {
             );
         } else {
             configuracoes = configData?.configuracoes || {};
+        }
+        renderizarOpcoesEntrega();
+        if (shippingElement) {
+            shippingElement.textContent = "Calcule pelo CEP";
         }
 
         const ids = [
@@ -380,7 +572,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const quantidade = calcularQuantidade();
         const subtotal = calcularSubtotal();
-        const desconto = calcularDesconto();
+        const desconto = calcularDesconto() + calcularDescontoCupom();
 
         if (itemsCountElement) {
             itemsCountElement.textContent =
@@ -404,6 +596,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (discountRow) {
             discountRow.hidden = desconto <= 0;
+        }
+
+        if (couponRemoveButton) {
+            couponRemoveButton.hidden = !cupomAplicado;
         }
 
         /* Ainda não existe cálculo automático de frete. */
@@ -476,6 +672,30 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             cepInput.value = valor;
+            if (shippingFeedback) {
+                shippingFeedback.textContent =
+                    "PAC e SEDEX estarão disponíveis após a configuração segura do Melhor Envio.";
+            }
+        });
+    }
+
+    if (calculateShippingButton) {
+        calculateShippingButton.addEventListener("click", () => {
+            const cep = String(cepInput?.value || "").replace(/\D/g, "");
+
+            if (cep.length !== 8) {
+                if (shippingFeedback) {
+                    shippingFeedback.textContent =
+                        "Informe um CEP válido com 8 números para consultar o frete.";
+                }
+                cepInput?.focus();
+                return;
+            }
+
+            if (shippingFeedback) {
+                shippingFeedback.textContent =
+                    "A cotação de PAC e SEDEX ainda não está ativa. A loja precisa criar a conta Melhor Envio e configurar a autorização no servidor. Nenhum preço ou prazo estimado foi inventado.";
+            }
         });
     }
 
@@ -609,7 +829,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     valor: 0,
                     observacoes: "Frete ainda não configurado."
                 },
-                paymentMethod: pagamento.value
+                paymentMethod: pagamento.value,
+                couponCode: cupomAplicado?.codigo || null
             };
 
             const resposta = await window.NovaPedidos.criarPedido(payload);
@@ -646,6 +867,10 @@ document.addEventListener("DOMContentLoaded", () => {
        ===================================================== */
 
     async function inicializar() {
+        if (couponApplyButton) {
+            couponApplyButton.disabled = true;
+        }
+
         if (finishButton) {
             finishButton.disabled = true;
             finishButton.setAttribute("aria-disabled", "true");
@@ -681,6 +906,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             await atualizarDadosDosProdutos();
             renderizarResumo();
+            if (couponApplyButton) {
+                couponApplyButton.disabled = false;
+            }
             mostrarMensagem(CHECKOUT_BLOQUEADO);
 
         } catch (erro) {

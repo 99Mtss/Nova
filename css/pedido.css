@@ -449,6 +449,13 @@
 
 @media (max-width: 650px) {
 
+    .pedido-header {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background: var(--fundo-principal);
+    }
+
     .pedido-page {
         padding: 45px 0 60px;
     }

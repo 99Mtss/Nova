@@ -131,11 +131,6 @@ function escaparHTML(valor) {
     })[caractere]);
 }
 
-function validarCor(cor) {
-    return typeof cor === "string" &&
-        /^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?$/.test(cor);
-}
-
 function validarImagem(url) {
     if (!url || typeof url !== "string") {
         return "";
@@ -270,44 +265,6 @@ async function carregarConfiguracoesSupabase() {
         typeof data.configuracoes === "object"
         ? data.configuracoes
         : {};
-}
-
-/* =========================================================
-   APLICAR CORES DO PAINEL ADM
-   ========================================================= */
-
-function aplicarCores() {
-    const cores = configuracoes.cores || {};
-    const raiz = document.documentElement;
-
-    const variaveis = {
-        "Fundo": "--nova-cor-fundo",
-        "Superfície": "--nova-cor-superficie",
-        "Destaque": "--nova-cor-destaque",
-        "Texto": "--nova-cor-texto"
-    };
-
-    Object.entries(variaveis).forEach(([nome, variavel]) => {
-        if (validarCor(cores[nome])) {
-            raiz.style.setProperty(variavel, cores[nome]);
-        }
-    });
-
-    if (validarCor(cores["Fundo"])) {
-        document.body.style.backgroundColor = cores["Fundo"];
-    }
-
-    if (validarCor(cores["Texto"])) {
-        document.body.style.color = cores["Texto"];
-    }
-
-    if (validarCor(cores["Superfície"])) {
-        document.querySelectorAll(
-            ".header, .footer, .filters, .shop-product-card"
-        ).forEach(elemento => {
-            elemento.style.backgroundColor = cores["Superfície"];
-        });
-    }
 }
 
 /* =========================================================
@@ -932,7 +889,9 @@ async function carregarLoja() {
         produtos = produtosBanco;
         configuracoes = configuracoesBanco || {};
 
-        aplicarCores();
+        if (typeof window.novaAplicarCores === "function") {
+            window.novaAplicarCores(configuracoes);
+        }
 
         filtrarProdutos();
 

@@ -36,7 +36,7 @@
 
     margin-bottom: 7px;
 
-    color: #8b5cf6;
+    color: var(--admin-purple);
 
     font-family: "Montserrat", sans-serif;
 
@@ -51,7 +51,7 @@
 .pedidos-top h2 {
     margin: 0;
 
-    color: #f5f7fa;
+    color: var(--admin-text);
 
     font-family: "Montserrat", sans-serif;
 
@@ -64,7 +64,7 @@
 .pedidos-top p {
     margin-top: 7px;
 
-    color: #a7adb8;
+    color: var(--admin-text-muted);
 
     font-family: "Poppins", sans-serif;
 
@@ -98,13 +98,13 @@
 
     gap: 15px;
 
-    background: #1e222b;
+    background: var(--admin-card);
 
-    border: 1px solid #2a2f3a;
+    border: 1px solid var(--admin-border);
 
     border-radius: 12px;
 
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--admin-shadow);
 
     transition:
         transform 0.2s ease,
@@ -113,9 +113,9 @@
 }
 
 .pedido-stat-card:hover {
-    background: #242936;
+    background: var(--admin-card-hover);
 
-    border-color: rgba(139, 92, 246, 0.3);
+    border-color: var(--admin-accent-soft-border);
 
     transform: translateY(-2px);
 }
@@ -141,27 +141,27 @@
 }
 
 .pedido-stat-icon.total {
-    background: rgba(139, 92, 246, 0.12);
+    background: var(--admin-accent-soft);
 
-    color: #8b5cf6;
+    color: var(--admin-purple);
 }
 
 .pedido-stat-icon.pendente {
-    background: rgba(245, 158, 11, 0.12);
+    background: var(--admin-orange-soft);
 
-    color: #f59e0b;
+    color: var(--admin-orange);
 }
 
 .pedido-stat-icon.enviado {
-    background: rgba(34, 197, 94, 0.12);
+    background: var(--admin-green-soft);
 
-    color: #22c55e;
+    color: var(--admin-green);
 }
 
 .pedido-stat-icon.cancelado {
-    background: rgba(239, 68, 68, 0.12);
+    background: var(--admin-red-soft);
 
-    color: #ef4444;
+    color: var(--admin-red);
 }
 
 
@@ -178,7 +178,7 @@
 }
 
 .pedido-stat-card span {
-    color: #737b89;
+    color: var(--admin-text-soft);
 
     font-family: "Poppins", sans-serif;
 
@@ -186,7 +186,7 @@
 }
 
 .pedido-stat-card strong {
-    color: #f5f7fa;
+    color: var(--admin-text);
 
     font-family: "Montserrat", sans-serif;
 
@@ -229,7 +229,7 @@
 
     transform: translateY(-50%);
 
-    color: #737b89;
+    color: var(--admin-text-soft);
 
     font-size: 13px;
 
@@ -242,11 +242,11 @@
 
     padding: 0 15px 0 40px;
 
-    background: #1e222b;
+    background: var(--admin-card);
 
-    color: #f5f7fa;
+    color: var(--admin-text);
 
-    border: 1px solid #2a2f3a;
+    border: 1px solid var(--admin-border);
 
     border-radius: 8px;
 
@@ -262,14 +262,14 @@
 }
 
 .pedido-search input::placeholder {
-    color: #737b89;
+    color: var(--admin-text-soft);
 }
 
 .pedido-search input:focus {
-    border-color: rgba(139, 92, 246, 0.55);
+    border-color: var(--admin-purple);
 
     box-shadow:
-        0 0 0 3px rgba(139, 92, 246, 0.08);
+        0 0 0 3px var(--admin-accent-soft);
 }
 
 
@@ -291,11 +291,11 @@
 
     padding: 0 34px 0 13px;
 
-    background: #1e222b;
+    background: var(--admin-card);
 
-    color: #f5f7fa;
+    color: var(--admin-text);
 
-    border: 1px solid #2a2f3a;
+    border: 1px solid var(--admin-border);
 
     border-radius: 8px;
 
@@ -309,7 +309,7 @@
 }
 
 .pedido-filter-group select:focus {
-    border-color: rgba(139, 92, 246, 0.55);
+    border-color: var(--admin-purple);
 }
 
 
@@ -328,7 +328,7 @@
 
     gap: 7px;
 
-    background: #8b5cf6;
+    background: var(--admin-purple);
 
     color: #ffffff;
 
@@ -349,7 +349,7 @@
 }
 
 .pedido-filter-button:hover {
-    background: #7c3aed;
+    background: var(--admin-purple-dark);
 
     transform: translateY(-1px);
 }
@@ -362,15 +362,15 @@
 .pedidos-table-card {
     width: 100%;
 
-    background: #1e222b;
+    background: var(--admin-card);
 
-    border: 1px solid #2a2f3a;
+    border: 1px solid var(--admin-border);
 
     border-radius: 12px;
 
     overflow: hidden;
 
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--admin-shadow);
 }
 
 
@@ -387,13 +387,13 @@
     align-items: center;
     justify-content: space-between;
 
-    border-bottom: 1px solid #2a2f3a;
+    border-bottom: 1px solid var(--admin-border);
 }
 
 .pedidos-table-header h3 {
     margin: 0;
 
-    color: #f5f7fa;
+    color: var(--admin-text);
 
     font-family: "Montserrat", sans-serif;
 
@@ -406,7 +406,7 @@
 
     margin-top: 4px;
 
-    color: #737b89;
+    color: var(--admin-text-soft);
 
     font-family: "Poppins", sans-serif;
 
@@ -438,7 +438,7 @@
    ========================================================= */
 
 .pedidos-table thead {
-    background: rgba(255, 255, 255, 0.015);
+    background: var(--admin-card-hover);
 }
 
 .pedidos-table th {
@@ -446,7 +446,7 @@
 
     padding: 0 18px;
 
-    color: #737b89;
+    color: var(--admin-text-soft);
 
     text-align: left;
 
@@ -461,7 +461,7 @@
 
     white-space: nowrap;
 
-    border-bottom: 1px solid #2a2f3a;
+    border-bottom: 1px solid var(--admin-border);
 }
 
 
@@ -472,13 +472,13 @@
 .pedidos-table td {
     padding: 15px 18px;
 
-    color: #a7adb8;
+    color: var(--admin-text-muted);
 
     font-family: "Poppins", sans-serif;
 
     font-size: 12px;
 
-    border-bottom: 1px solid #2a2f3a;
+    border-bottom: 1px solid var(--admin-border);
 
     vertical-align: middle;
 }
@@ -488,7 +488,7 @@
 }
 
 .pedidos-table tbody tr:hover {
-    background: rgba(139, 92, 246, 0.025);
+    background: var(--admin-accent-soft);
 }
 
 .pedidos-table tbody tr:last-child td {
@@ -501,7 +501,7 @@
    ========================================================= */
 
 .pedido-id {
-    color: #f5f7fa;
+    color: var(--admin-text);
 
     font-family: "Montserrat", sans-serif;
 
@@ -525,7 +525,7 @@
 }
 
 .cliente-info strong {
-    color: #f5f7fa;
+    color: var(--admin-text);
 
     font-size: 12px;
 
@@ -533,7 +533,7 @@
 }
 
 .cliente-info span {
-    color: #737b89;
+    color: var(--admin-text-soft);
 
     font-size: 10px;
 }
@@ -546,7 +546,7 @@
 .pedido-date {
     display: block;
 
-    color: #a7adb8;
+    color: var(--admin-text-muted);
 
     font-size: 11px;
 
@@ -558,7 +558,7 @@
 
     margin-top: 3px;
 
-    color: #737b89;
+    color: var(--admin-text-soft);
 
     font-size: 10px;
 }
@@ -569,7 +569,7 @@
    ========================================================= */
 
 .produtos-count {
-    color: #a7adb8;
+    color: var(--admin-text-muted);
 
     font-size: 11px;
 
@@ -582,7 +582,7 @@
    ========================================================= */
 
 .pedido-total {
-    color: #f5f7fa;
+    color: var(--admin-text);
 
     font-family: "Montserrat", sans-serif;
 
@@ -628,33 +628,33 @@
 }
 
 .pedido-status.pendente {
-    background: rgba(245, 158, 11, 0.12);
+    background: var(--admin-orange-soft);
 
-    color: #f59e0b;
+    color: var(--admin-orange);
 }
 
 .pedido-status.processando {
-    background: rgba(59, 130, 246, 0.12);
+    background: var(--admin-blue-soft);
 
-    color: #3b82f6;
+    color: var(--admin-blue);
 }
 
 .pedido-status.enviado {
-    background: rgba(34, 197, 94, 0.12);
+    background: var(--admin-green-soft);
 
-    color: #22c55e;
+    color: var(--admin-green);
 }
 
 .pedido-status.entregue {
-    background: rgba(34, 197, 94, 0.12);
+    background: var(--admin-green-soft);
 
-    color: #22c55e;
+    color: var(--admin-green);
 }
 
 .pedido-status.cancelado {
-    background: rgba(239, 68, 68, 0.12);
+    background: var(--admin-red-soft);
 
-    color: #ef4444;
+    color: var(--admin-red);
 }
 
 
@@ -679,7 +679,7 @@
 
     background: transparent;
 
-    color: #737b89;
+    color: var(--admin-text-soft);
 
     border: 1px solid transparent;
 
@@ -694,11 +694,11 @@
 }
 
 .pedido-actions button:hover {
-    background: rgba(139, 92, 246, 0.12);
+    background: var(--admin-accent-soft);
 
-    color: #8b5cf6;
+    color: var(--admin-purple);
 
-    border-color: rgba(139, 92, 246, 0.2);
+    border-color: var(--admin-accent-soft-border);
 }
 
 
@@ -718,11 +718,11 @@
 
     gap: 15px;
 
-    border-top: 1px solid #2a2f3a;
+    border-top: 1px solid var(--admin-border);
 }
 
 .table-pagination > span {
-    color: #737b89;
+    color: var(--admin-text-soft);
 
     font-family: "Poppins", sans-serif;
 
@@ -748,9 +748,9 @@
 
     background: transparent;
 
-    color: #a7adb8;
+    color: var(--admin-text-muted);
 
-    border: 1px solid #2a2f3a;
+    border: 1px solid var(--admin-border);
 
     border-radius: 7px;
 
@@ -767,19 +767,19 @@
 }
 
 .pagination-buttons button:hover:not(:disabled) {
-    background: rgba(139, 92, 246, 0.12);
+    background: var(--admin-accent-soft);
 
-    color: #8b5cf6;
+    color: var(--admin-purple);
 
-    border-color: rgba(139, 92, 246, 0.3);
+    border-color: var(--admin-accent-soft-border);
 }
 
 .pagination-buttons button.active {
-    background: #8b5cf6;
+    background: var(--admin-purple);
 
     color: #ffffff;
 
-    border-color: #8b5cf6;
+    border-color: var(--admin-purple);
 }
 
 .pagination-buttons button:disabled {
@@ -791,7 +791,7 @@
 .pagination-buttons span {
     padding: 0 3px;
 
-    color: #737b89;
+    color: var(--admin-text-soft);
 
     font-size: 11px;
 }

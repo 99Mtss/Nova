@@ -336,74 +336,27 @@ async function novaCarregarConfiguracoes() {
    ========================================================= */
 
 function novaAplicarCores(configuracoes) {
-    const cores = configuracoes.cores || {};
-
-    const raiz = document.documentElement;
-
-    const mapaCores = {
-        "Fundo": "--nova-cor-fundo",
-        "Superfície": "--nova-cor-superficie",
-        "Destaque": "--nova-cor-destaque",
-        "Texto": "--nova-cor-texto"
+    const cores = configuracoes?.temaVisual === "personalizado"
+        ? configuracoes.cores
+        : {};
+    const variaveis = {
+        Fundo: "--nova-cor-fundo",
+        Superfície: "--nova-cor-superficie",
+        Destaque: "--nova-cor-destaque",
+        Texto: "--nova-cor-texto"
     };
 
-    Object.entries(mapaCores).forEach(([chave, variavel]) => {
-        const cor = cores[chave];
-
-        if (
-            typeof cor === "string" &&
-            /^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?$/.test(cor)
-        ) {
-            raiz.style.setProperty(variavel, cor);
+    Object.entries(variaveis).forEach(([chave, variavel]) => {
+        const cor = cores?.[chave];
+        if (typeof cor === "string" && /^#[0-9a-f]{6}$/i.test(cor)) {
+            document.documentElement.style.setProperty(variavel, cor);
+        } else {
+            document.documentElement.style.removeProperty(variavel);
         }
     });
-
-    /*
-       Aplica as cores às áreas principais sem sobrescrever
-       indiscriminadamente todos os estilos do site.
-    */
-
-    const fundo = cores["Fundo"];
-    const superficie = cores["Superfície"];
-    const destaque = cores["Destaque"];
-    const texto = cores["Texto"];
-
-    if (fundo && /^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?$/.test(fundo)) {
-        document.body.style.backgroundColor = fundo;
-    }
-
-    if (texto && /^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?$/.test(texto)) {
-        document.body.style.color = texto;
-    }
-
-    if (
-        superficie &&
-        /^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?$/.test(superficie)
-    ) {
-        document.querySelectorAll(
-            ".header, .footer, .product-card, .benefit"
-        ).forEach((elemento) => {
-            elemento.style.setProperty(
-                "background-color",
-                superficie
-            );
-        });
-    }
-
-    if (
-        destaque &&
-        /^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?$/.test(destaque)
-    ) {
-        document.querySelectorAll(
-            ".btn-primary, .section-label"
-        ).forEach((elemento) => {
-            elemento.style.setProperty(
-                "border-color",
-                destaque
-            );
-        });
-    }
 }
+
+window.novaAplicarCores = novaAplicarCores;
 
 /* =========================================================
    APLICAR IMAGEM DO BANNER PRINCIPAL
@@ -414,17 +367,24 @@ function novaAplicarBanner(configuracoes) {
         "[data-nova-banner], #banner-principal, .hero"
     );
 
-    if (!hero) return;
+    if (hero) {
+        const bannerUrl = novaImagemValida(configuracoes.banner);
 
-    const url = novaImagemValida(configuracoes.banner);
+        if (bannerUrl) {
+            hero.style.backgroundImage =
+                `linear-gradient(rgba(25,25,22,0.42), rgba(25,25,22,0.42)), url("${bannerUrl}")`;
+            hero.classList.add("nova-banner-configurado");
+        }
+    }
 
-    if (!url) return;
+    const collection = document.querySelector("#banner-colecao");
+    const collectionUrl = novaImagemValida(configuracoes.bannerColecao);
 
-    hero.style.backgroundImage =
-        `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url("${url}")`;
-
-    hero.classList.add("nova-banner-configurado");
-    hero.dataset.bannerConfigurado = "true";
+    if (collection && collectionUrl) {
+        collection.style.backgroundImage =
+            `linear-gradient(rgba(25,25,22,0.48), rgba(25,25,22,0.48)), url("${collectionUrl}")`;
+        collection.classList.add("nova-banner-configurado");
+    }
 }
 
 /* =========================================================
@@ -813,6 +773,52 @@ function novaInicializarSincronizacaoCarrinho() {
     });
 }
 
+function novaRenderizarImagensCategorias(produtos) {
+    const normalizar = (valor) => String(valor ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+
+    document.querySelectorAll("[data-category-link]").forEach((card) => {
+        const categoria = normalizar(card.dataset.categoryLink);
+        const produto = produtos.find((item) =>
+            normalizar(item.categoria).includes(categoria)
+        );
+
+        if (!produto) return;
+
+        let imagens = produto.imagens;
+        if (typeof imagens === "string") {
+            try {
+                imagens = JSON.parse(imagens);
+            } catch (erro) {
+                console.error("Galeria de imagens do produto inválida:", erro);
+                imagens = [];
+            }
+        }
+
+        const candidatas = [
+            produto.imagem,
+            ...(Array.isArray(imagens) ? imagens.map((imagem) => {
+                if (typeof imagem === "string") return imagem;
+                if (!imagem || typeof imagem !== "object") return "";
+                return imagem.url || imagem.src || imagem.imagem || imagem.caminho || "";
+            }) : [])
+        ];
+        const url = candidatas.map(novaImagemValida).find(Boolean);
+
+        if (!url) return;
+
+        const imagem = document.createElement("img");
+        imagem.src = url;
+        imagem.alt = "";
+        imagem.loading = "lazy";
+        imagem.decoding = "async";
+        card.prepend(imagem);
+    });
+}
+
 /* =========================================================
    INICIALIZAÇÃO PRINCIPAL
    ========================================================= */
@@ -857,6 +863,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         novaAplicarCores(novaConfiguracoes);
         novaAplicarBanner(novaConfiguracoes);
+        novaRenderizarImagensCategorias(novaProdutos);
 
         novaRenderizarDestaques(
             novaProdutos,

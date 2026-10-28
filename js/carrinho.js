@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ELEMENTOS DO HTML */
     const cartProducts = document.querySelector(".cart-products");
     const cartList = document.querySelector("#cart-items-list");
+    const cartWarning = document.querySelector("#cart-warning");
     const cartEmpty = document.querySelector("#cart-empty");
     const cartError = document.querySelector("#cart-error");
     const cartLoading = document.querySelector("#cart-loading");
@@ -30,12 +31,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const couponButton = document.querySelector("#apply-coupon");
     const couponMessage = document.querySelector("#coupon-message");
 
+    let erroLeituraCarrinho = false;
     let carrinho = carregarCarrinho();
     let configuracoes = {};
     let produtosBanco = {};
     let carregando = false;
     let dadosDoBancoValidados = false;
-    let erroLeituraCarrinho = false;
 
     /* =====================================================
        SUPABASE
@@ -168,12 +169,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (error) {
             console.error("Não foi possível carregar as configurações:", error);
-            throw new Error(
-                "Não foi possível validar os preços promocionais do carrinho."
-            );
+            configuracoes = {};
+            return false;
         }
 
         configuracoes = data?.configuracoes || {};
+        return true;
     }
 
     function obterPromocao(id) {
@@ -683,8 +684,16 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (carrinho.length > 0) {
-                await carregarConfiguracoes();
+                const configuracoesCarregadas = await carregarConfiguracoes();
                 await atualizarProdutosDoBanco();
+                if (cartWarning) {
+                    cartWarning.textContent = configuracoesCarregadas
+                        ? ""
+                        : "As promoções não puderam ser carregadas. Os preços normais do cadastro estão sendo exibidos.";
+                    cartWarning.hidden = configuracoesCarregadas;
+                }
+            } else if (cartWarning) {
+                cartWarning.hidden = true;
             }
 
             const salvo = salvarCarrinho();

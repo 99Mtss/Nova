@@ -27,50 +27,62 @@
     <aside class="admin-sidebar" id="admin-sidebar">
 
         <div class="admin-logo">
-            <a href="index.html">
+            <a href="index.html" aria-label="Dashboard NØVA">
                 <span class="logo-symbol">NØVA</span>
                 <span class="logo-caption">ADMINISTRAÇÃO</span>
             </a>
         </div>
 
-        <nav class="admin-navigation">
+        <nav class="admin-nav" aria-label="Navegação administrativa">
+
+            <span class="nav-title">GERAL</span>
 
             <a href="index.html" class="admin-nav-link">
-                <i class="fa-solid fa-chart-line"></i>
+                <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
                 <span>Dashboard</span>
             </a>
 
             <a href="pedidos.html" class="admin-nav-link">
-                <i class="fa-solid fa-box"></i>
+                <i class="fa-solid fa-receipt" aria-hidden="true"></i>
                 <span>Pedidos</span>
             </a>
 
             <a href="produtos.html" class="admin-nav-link">
-                <i class="fa-solid fa-shirt"></i>
+                <i class="fa-solid fa-box" aria-hidden="true"></i>
                 <span>Produtos</span>
+            </a>
+
+            <span class="nav-title">LOJA</span>
+
+            <a href="../pages/loja.html" class="admin-nav-link">
+                <i class="fa-solid fa-store" aria-hidden="true"></i>
+                <span>Ver loja</span>
             </a>
 
         </nav>
 
-        <div class="admin-sidebar-bottom">
+        <div class="sidebar-bottom">
 
             <a href="config.html"
                class="admin-nav-link active"
+               id="admin-settings-link"
                aria-current="page">
-                <i class="fa-solid fa-gear"></i>
+                <i class="fa-solid fa-gear" aria-hidden="true"></i>
                 <span>Configurações</span>
             </a>
 
             <button type="button"
-                    class="admin-nav-link"
+                    class="admin-nav-link logout-link"
                     id="admin-logout">
-                <i class="fa-solid fa-right-from-bracket"></i>
+                <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
                 <span>Sair</span>
             </button>
 
         </div>
 
     </aside>
+
+    <div class="admin-sidebar-overlay" id="admin-sidebar-overlay" hidden></div>
 
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="admin-main">
@@ -81,13 +93,15 @@
                 <button type="button"
                         class="sidebar-toggle"
                         id="sidebar-toggle"
-                        aria-label="Abrir menu">
+                        aria-label="Abrir menu"
+                        aria-controls="admin-sidebar"
+                        aria-expanded="false">
                     <i class="fa-solid fa-bars"></i>
                 </button>
 
                 <div>
+                    <span class="admin-page-label">LOJA / ADMINISTRAÇÃO</span>
                     <h1>Configurações</h1>
-                    <p>Personalize a experiência da sua loja NØVA.</p>
                 </div>
             </div>
 
@@ -127,7 +141,10 @@
 
                     <div>
                         <h3>Identidade visual</h3>
-                        <p>Personalize as cores principais da loja.</p>
+                        <p>
+                            Personalize as cores principais da loja. As cores
+                            antigas serão substituídas após salvar esta identidade.
+                        </p>
                     </div>
                 </div>
 
@@ -136,45 +153,61 @@
                     <div class="config-field">
                         <label for="cor-fundo">Cor de fundo</label>
                         <div class="color-control">
-                            <input type="color" id="cor-fundo" value="#0B0B0D">
+                            <input type="color" id="cor-fundo" value="#F7F4EE">
                             <input type="text" id="hex-fundo"
-                                   value="#0B0B0D" placeholder="#0B0B0D">
+                                   value="#F7F4EE" placeholder="#F7F4EE">
                         </div>
                     </div>
 
                     <div class="config-field">
                         <label for="cor-superficie">Cor dos cartões</label>
                         <div class="color-control">
-                            <input type="color" id="cor-superficie" value="#151519">
+                            <input type="color" id="cor-superficie" value="#FFFFFF">
                             <input type="text" id="hex-superficie"
-                                   value="#151519" placeholder="#151519">
+                                   value="#FFFFFF" placeholder="#FFFFFF">
                         </div>
                     </div>
 
                     <div class="config-field">
                         <label for="cor-destaque">Cor de destaque</label>
                         <div class="color-control">
-                            <input type="color" id="cor-destaque" value="#FFFFFF">
+                            <input type="color" id="cor-destaque" value="#9A6A45">
                             <input type="text" id="hex-destaque"
-                                   value="#FFFFFF" placeholder="#FFFFFF">
+                                   value="#9A6A45" placeholder="#9A6A45">
                         </div>
                     </div>
 
                     <div class="config-field">
                         <label for="cor-texto">Cor dos textos</label>
                         <div class="color-control">
-                            <input type="color" id="cor-texto" value="#F5F5F5">
+                            <input type="color" id="cor-texto" value="#191916">
                             <input type="text" id="hex-texto"
-                                   value="#F5F5F5" placeholder="#F5F5F5">
+                                   value="#191916" placeholder="#191916">
                         </div>
                     </div>
 
                 </div>
 
                 <p class="config-help">
-                    Você poderá informar o código HEX ou RGB. As cores só serão
-                    aplicadas à loja depois da integração com o salvamento.
+                    Você pode ajustar as cores e salvar para aplicá-las à loja.
                 </p>
+
+                <div class="config-theme-preview" id="config-theme-preview" aria-live="polite">
+                    <span class="config-theme-preview-label">Prévia da identidade</span>
+                    <div class="config-theme-preview-swatch">
+                        <span id="preview-cor-destaque"></span>
+                        <div>
+                            <strong>NØVA Store</strong>
+                            <small>Estilo que vai com você.</small>
+                        </div>
+                        <button type="button" id="preview-botao-tema">Ver coleção</button>
+                    </div>
+                </div>
+
+                <button type="button" class="config-button config-button-secondary"
+                        id="restaurar-tema-nova">
+                    Restaurar identidade NØVA
+                </button>
 
             </section>
 
@@ -201,23 +234,16 @@
                 </div>
 
                 <div class="config-field">
-                    <label for="banner-url">URL da imagem</label>
-                    <input type="url"
-                           id="banner-url"
-                           placeholder="https://...">
-                </div>
-
-                <div class="config-actions">
-                    <button type="button" class="config-button config-button-secondary"
-                            id="preview-banner">
-                        <i class="fa-regular fa-eye"></i>
-                        Visualizar imagem
-                    </button>
+                    <label for="banner-arquivo">Enviar imagem do dispositivo</label>
+                    <input type="file"
+                           id="banner-arquivo"
+                           accept="image/jpeg,image/png,image/webp,image/gif">
                 </div>
 
                 <p class="config-help">
-                    O envio de imagens pelo computador ou celular será conectado
-                    ao Supabase Storage na próxima etapa.
+                    Formatos aceitos: JPG, PNG, WebP e GIF. Tamanho máximo:
+                    5 MB. O banner será enviado ao Supabase Storage; salve as
+                    configurações para publicá-lo na loja.
                 </p>
 
             </section>
@@ -234,15 +260,6 @@
                         <h3>Produtos em destaque</h3>
                         <p>Selecione os produtos que aparecerão na página inicial.</p>
                     </div>
-                </div>
-
-                <div class="config-empty-state">
-                    <i class="fa-solid fa-shirt"></i>
-                    <h4>Produtos do catálogo</h4>
-                    <p>
-                        Os produtos de <strong>produtos_nova</strong> serão
-                        carregados aqui quando conectarmos esta página ao Supabase.
-                    </p>
                 </div>
 
                 <div id="lista-produtos-destaque" class="config-product-list"></div>
@@ -274,8 +291,168 @@
                 <div id="lista-produtos-promocao" class="config-product-list"></div>
 
                 <p class="config-help">
-                    Os campos de preço e os controles de promoção serão
-                    disponibilizados após a conexão com o catálogo.
+                    Selecione os produtos e informe um preço promocional menor
+                    que o preço original. As alterações serão salvas no Supabase.
+                </p>
+
+            </section>
+
+            <!-- ENTREGA -->
+            <section class="config-card">
+
+                <div class="config-card-heading">
+                    <div class="config-icon">
+                        <i class="fa-solid fa-truck-fast" aria-hidden="true"></i>
+                    </div>
+
+                    <div>
+                        <h3>Frete e retirada</h3>
+                        <p>Prepare os dados de origem e as opções locais de entrega.</p>
+                    </div>
+                </div>
+
+                <div class="config-shipping-grid">
+                    <div class="config-field">
+                        <label for="frete-cep-origem">CEP de origem da loja</label>
+                        <input type="text"
+                               id="frete-cep-origem"
+                               inputmode="numeric"
+                               autocomplete="postal-code"
+                               maxlength="9"
+                               value="57800-000"
+                               required>
+                    </div>
+
+                    <div class="config-shipping-notice">
+                        <strong>Correios via Melhor Envio</strong>
+                        <p>
+                            A conta ainda precisa ser criada. PAC e SEDEX só
+                            poderão exibir preço e prazo quando a integração
+                            estiver autorizada no servidor.
+                        </p>
+                        <span class="config-shipping-status" id="frete-status-cotacao">
+                            Cotação pendente de configuração
+                        </span>
+                    </div>
+
+                    <div class="config-shipping-option">
+                        <label class="config-shipping-toggle" for="frete-retirada-ativa">
+                            <input type="checkbox" id="frete-retirada-ativa">
+                            <span>Disponibilizar retirada na loja</span>
+                        </label>
+                        <div class="config-field">
+                            <label for="frete-endereco-retirada">Endereço completo</label>
+                            <textarea id="frete-endereco-retirada"
+                                      rows="3"
+                                      maxlength="300"
+                                      placeholder="Preencha e confirme o endereço antes de ativar a retirada."></textarea>
+                        </div>
+                        <p class="config-help">
+                            O endereço ainda não foi confirmado e não será exibido
+                            aos clientes enquanto a opção permanecer desativada.
+                        </p>
+                    </div>
+
+                    <div class="config-shipping-option">
+                        <label class="config-shipping-toggle" for="frete-motoboy-ativo">
+                            <input type="checkbox" id="frete-motoboy-ativo">
+                            <span>Disponibilizar motoboy combinado via WhatsApp</span>
+                        </label>
+                        <div class="config-field">
+                            <label for="frete-whatsapp">WhatsApp da loja</label>
+                            <input type="tel"
+                                   id="frete-whatsapp"
+                                   inputmode="tel"
+                                   autocomplete="tel"
+                                   maxlength="20"
+                                   placeholder="+55 00 00000-0000">
+                        </div>
+                        <p class="config-help">
+                            O motoboy ficará oculto no checkout até o número
+                            ser informado e a opção ser ativada.
+                        </p>
+                    </div>
+                </div>
+
+                <p class="config-help">
+                    O token do Melhor Envio não deve ser salvo nestas configurações
+                    públicas. Ele será necessário como segredo no servidor para
+                    ativar as cotações reais.
+                </p>
+
+            </section>
+
+            <!-- CUPONS -->
+            <section class="config-card">
+
+                <div class="config-card-heading">
+                    <div class="config-icon">
+                        <i class="fa-solid fa-ticket"></i>
+                    </div>
+
+                    <div>
+                        <h3>Cupons de desconto</h3>
+                        <p>Cadastre códigos e regras de desconto para exibição no checkout.</p>
+                    </div>
+                </div>
+
+                <form id="form-cupom" class="config-coupon-form" novalidate>
+                    <div class="config-field">
+                        <label for="cupom-codigo">Código do cupom</label>
+                        <input type="text"
+                               id="cupom-codigo"
+                               maxlength="30"
+                               autocomplete="off"
+                               placeholder="EX.: NOVE10"
+                               required>
+                    </div>
+
+                    <div class="config-field">
+                        <label for="cupom-percentual">Desconto percentual (%)</label>
+                        <input type="number"
+                               id="cupom-percentual"
+                               min="0.01"
+                               max="100"
+                               step="0.01"
+                               placeholder="10"
+                               required>
+                    </div>
+
+                    <div class="config-field">
+                        <label for="cupom-validade">Validade (opcional)</label>
+                        <input type="date" id="cupom-validade">
+                    </div>
+
+                    <div class="config-field">
+                        <label for="cupom-pedido-minimo">Pedido mínimo (opcional)</label>
+                        <input type="number"
+                               id="cupom-pedido-minimo"
+                               min="0"
+                               step="0.01"
+                               placeholder="R$ 0,00">
+                    </div>
+
+                    <div class="config-field">
+                        <label for="cupom-limite-uso">Limite de usos (opcional)</label>
+                        <input type="number"
+                               id="cupom-limite-uso"
+                               min="1"
+                               step="1"
+                               placeholder="Sem limite">
+                    </div>
+
+                    <button type="submit" class="config-button config-button-secondary">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                        Adicionar cupom
+                    </button>
+                </form>
+
+                <div id="lista-cupons" class="config-coupon-list" aria-live="polite"></div>
+
+                <p class="config-help">
+                    As regras e o desconto serão salvos com as configurações da loja.
+                    O limite de usos e a aplicação real do desconto precisam ser
+                    confirmados pelo servidor antes de liberar o checkout.
                 </p>
 
             </section>
@@ -284,7 +461,7 @@
             <div class="config-save-bar">
                 <div>
                     <strong>Configurações da loja</strong>
-                    <p>As alterações ainda não são persistidas no banco de dados.</p>
+                    <p>As alterações serão salvas no Supabase após confirmar.</p>
                 </div>
 
                 <button type="button"

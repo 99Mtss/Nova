@@ -177,7 +177,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         toast.textContent = texto;
-        toast.style.borderColor = tipo === "erro" ? "#ef4444" : "#777";
+        toast.style.borderColor = tipo === "erro"
+            ? "#ef4444"
+            : tipo === "aviso"
+                ? "#f59e0b"
+                : "#777";
 
         clearTimeout(toast._timeout);
         toast._timeout = setTimeout(() => toast.remove(), 3000);
@@ -255,34 +259,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (error) {
             console.error("Não foi possível carregar as configurações:", error);
-            throw new Error(
-                "Não foi possível validar os preços promocionais do produto."
+            configuracoes = {};
+            mostrarMensagem(
+                "As promoções não puderam ser carregadas. O preço normal do cadastro será usado.",
+                "aviso"
             );
+            return;
         }
 
         configuracoes = data?.configuracoes || {};
-        aplicarCores();
-    }
-
-    function aplicarCores() {
-        const cores = configuracoes.cores || {};
-        const raiz = document.documentElement;
-
-        const variaveis = {
-            Fundo: "--nova-cor-fundo",
-            Superfície: "--nova-cor-superficie",
-            Destaque: "--nova-cor-destaque",
-            Texto: "--nova-cor-texto"
-        };
-
-        Object.entries(variaveis).forEach(([chave, variavel]) => {
-            const valor = cores[chave];
-
-            if (typeof valor === "string" &&
-                /^#[0-9a-f]{3,8}$/i.test(valor)) {
-                raiz.style.setProperty(variavel, valor);
-            }
-        });
+        if (typeof window.novaAplicarCores === "function") {
+            window.novaAplicarCores(configuracoes);
+        }
     }
 
     /* =====================================================
@@ -341,7 +329,20 @@ document.addEventListener("DOMContentLoaded", () => {
         atualizarEstoque();
         atualizarFavoritos();
         atualizarContadorCarrinho();
-        await carregarProdutosRelacionados();
+        try {
+            await carregarProdutosRelacionados();
+        } catch (erro) {
+            console.error("Erro ao carregar produtos relacionados:", erro);
+            if (relatedContainer) {
+                relatedContainer.setAttribute("aria-busy", "false");
+                relatedContainer.replaceChildren();
+
+                const mensagem = document.createElement("p");
+                mensagem.textContent =
+                    "Não foi possível carregar produtos relacionados.";
+                relatedContainer.appendChild(mensagem);
+            }
+        }
     }
 
     function mostrarErro(mensagem) {
@@ -632,7 +633,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const estoque = Number(produtoSelecionado?.estoque || 0);
 
         quantidade = Math.max(1, Math.min(
-            Number.parseInt(quantidadeInput?.value, 10) || quantidade || 1,
+            Number.parseInt(quantityInput?.value, 10) || quantidade || 1,
             Math.max(estoque, 1)
         ));
 
@@ -974,7 +975,11 @@ document.addEventListener("DOMContentLoaded", () => {
             await carregarProduto();
         } catch (erro) {
             console.error("Erro ao iniciar página do produto:", erro);
-            mostrarErro("Ocorreu um erro ao carregar o produto. Tente novamente.");
+            mostrarErro(
+                erro instanceof Error
+                    ? `Não foi possível carregar o produto: ${erro.message}`
+                    : "Ocorreu um erro ao carregar o produto. Tente novamente."
+            );
         }
     }
 

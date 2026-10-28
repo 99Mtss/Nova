@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const TABELA_PRODUTOS = "produtos_nova";
     const BUCKET_IMAGENS = "nova-produtos";
     const ITENS_POR_PAGINA = 5;
-    const TAMANHO_MAXIMO = 10 * 1024 * 1024;
+    const TAMANHO_MAXIMO = 5 * 1024 * 1024;
 
     const TIPOS_IMAGEM = [
         "image/jpeg",
@@ -126,11 +126,11 @@ document.addEventListener("DOMContentLoaded", () => {
             zIndex: "99999",
             maxWidth: "calc(100vw - 40px)",
             padding: "14px 20px",
-            color: "#F5F7FA",
-            background: "#1E222B",
-            border: "1px solid #8B5CF6",
+            color: "#191916",
+            background: "#FFFFFF",
+            border: "1px solid #9A6A45",
             borderRadius: "8px",
-            boxShadow: "0 8px 25px rgba(0,0,0,.3)"
+            boxShadow: "0 8px 25px rgba(25,25,22,.12)"
         });
 
         document.body.appendChild(mensagem);
@@ -486,7 +486,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (arquivo.size > TAMANHO_MAXIMO) {
-            throw new Error(`A imagem ${arquivo.name} ultrapassa 10 MB.`);
+            throw new Error(`A imagem ${arquivo.name} ultrapassa 5 MB.`);
         }
 
         const extensao = arquivo.name.split(".").pop().toLowerCase();
@@ -623,8 +623,8 @@ document.addEventListener("DOMContentLoaded", () => {
             overflowY: "auto",
             padding: "24px",
             borderRadius: "12px",
-            background: "#1E222B",
-            color: "#F5F7FA",
+            background: "#FFFFFF",
+            color: "#191916",
             boxSizing: "border-box"
         });
 
@@ -641,9 +641,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 Object.assign(campo.style, {
                     padding: "11px",
                     borderRadius: "6px",
-                    border: "1px solid #414653",
-                    background: "#0F1117",
-                    color: "#F5F7FA",
+                    border: "1px solid #DED8CD",
+                    background: "#F7F4EE",
+                    color: "#191916",
                     maxWidth: "100%",
                     boxSizing: "border-box"
                 });
