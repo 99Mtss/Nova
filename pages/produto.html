@@ -7,9 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0F1117">
 
-    <meta name="description" content="Conheça os detalhes dos produtos NØVA. Encontre seu próximo estilo.">
+    <meta name="description" content="Conheça os detalhes dos produtos Vértice. Encontre seu próximo estilo.">
 
-    <title>Produto | NØVA</title>
+    <title>Produto | Vértice</title>
 
     <!-- FONTES -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,22 +31,34 @@
     <header class="header">
         <div class="container header-container">
 
-            <a href="../index.html" class="logo">NØVA</a>
+            <a href="../index.html" class="logo">Vértice</a>
 
             <nav class="nav" id="nav-menu">
                 <a href="../index.html">Início</a>
                 <a href="loja.html" class="active">Loja</a>
-                <a href="loja.html#categorias">Categorias</a>
+                <div class="mobile-menu-categories">
+                    <span class="mobile-menu-heading">Categorias</span>
+                    <div id="mobile-menu-categories">
+                        <a href="loja.html?categoria=todos">Todos os produtos</a>
+                        <a href="loja.html?categoria=camisetas">Camisetas</a>
+                        <a href="loja.html?categoria=moletons">Moletons</a>
+                        <a href="loja.html?categoria=calcas">Calças</a>
+                        <a href="loja.html?categoria=acessorios">Acessórios</a>
+                    </div>
+                </div>
+                <a
+                    href="../admin/login.html"
+                    class="mobile-menu-admin"
+                    aria-label="Entrar no painel administrativo">
+                    <i class="fa-regular fa-user" aria-hidden="true"></i>
+                    <span>Painel administrativo</span>
+                </a>
             </nav>
 
             <div class="header-actions">
 
                 <a href="loja.html" class="header-icon" aria-label="Pesquisar produtos">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                </a>
-
-                <a href="loja.html" class="header-icon" aria-label="Minha conta">
-                    <i class="fa-regular fa-user"></i>
                 </a>
 
                 <a href="carrinho.html" class="header-icon cart-icon" aria-label="Carrinho">
@@ -131,7 +143,7 @@
                 <div class="product-information" id="product-information">
 
                     <span class="product-reference" id="product-reference">
-                        NØVA
+                        Vértice
                     </span>
 
                     <h1 id="product-name" data-product-name>
@@ -426,14 +438,13 @@
         <div class="container footer-container">
 
             <div class="footer-brand">
-                <a href="../index.html" class="logo">NØVA</a>
+                <a href="../index.html" class="logo">Vértice</a>
                 <p>Vista sua identidade.</p>
             </div>
 
             <div class="footer-links">
                 <a href="../index.html">Início</a>
                 <a href="loja.html">Loja</a>
-                <a href="loja.html#categorias">Categorias</a>
                 <a href="carrinho.html">Carrinho</a>
             </div>
 
@@ -452,7 +463,7 @@
         </div>
 
         <div class="container footer-bottom">
-            <p>© 2026 NØVA. Todos os direitos reservados.</p>
+            <p>© 2026 Vértice. Todos os direitos reservados.</p>
             <span>Designed by Mtss</span>
         </div>
 

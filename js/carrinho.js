@@ -1,6 +1,6 @@
 
 /* =========================================================
-   NØVA — CARRINHO DE COMPRAS
+   VÉRTICE — CARRINHO DE COMPRAS
    Integração com produtos e configurações do Supabase
    ========================================================= */
 
@@ -21,16 +21,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const cartCount = document.querySelector("#cart-count");
     const cartItemsCount = document.querySelector("#cart-items-count");
     const subtotalElement = document.querySelector("#cart-subtotal");
-    const shippingElement = document.querySelector("#cart-shipping");
     const discountRow = document.querySelector("#cart-discount-row");
     const discountElement = document.querySelector("#cart-discount");
     const totalElement = document.querySelector("#cart-total");
     const checkoutButton = document.querySelector("#checkout-button");
     const retryButton = document.querySelector("#retry-cart");
-    const couponInput = document.querySelector("#coupon");
-    const couponButton = document.querySelector("#apply-coupon");
-    const couponMessage = document.querySelector("#coupon-message");
-
     let erroLeituraCarrinho = false;
     let carrinho = carregarCarrinho();
     let configuracoes = {};
@@ -81,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 .map(produto => ({
                     ...produto,
                     id: produto.id ?? produto.produtoId ?? null,
-                    nome: produto.nome || "Produto NØVA",
+                    nome: produto.nome || "Produto Vértice",
                     categoria: produto.categoria || "Produto",
                     quantidade: Math.max(
                         1,
@@ -335,12 +330,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (totalElement) {
             totalElement.textContent = dadosDoBancoValidados
-                ? "A calcular"
+                ? "A calcular no checkout"
                 : "—";
-        }
-
-        if (shippingElement) {
-            shippingElement.textContent = "A calcular";
         }
 
         if (cartItemsCount) {
@@ -587,39 +578,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             salvarCarrinho();
             renderizarCarrinho();
-        });
-    }
-
-    /* =====================================================
-       CUPOM DE DESCONTO
-       ===================================================== */
-
-    if (couponButton) {
-        couponButton.addEventListener("click", () => {
-            const cupom = couponInput?.value.trim() || "";
-
-            if (!couponMessage) {
-                return;
-            }
-
-            couponMessage.hidden = false;
-
-            if (!cupom) {
-                couponMessage.textContent = "Digite um cupom para continuar.";
-                return;
-            }
-
-            couponMessage.textContent =
-                "A validação de cupons ainda não está configurada nesta loja.";
-        });
-    }
-
-    if (couponInput) {
-        couponInput.addEventListener("keydown", evento => {
-            if (evento.key === "Enter") {
-                evento.preventDefault();
-                couponButton?.click();
-            }
         });
     }
 

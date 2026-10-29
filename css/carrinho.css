@@ -1,5 +1,5 @@
 /* =====================================================
-   NØVA — CARRINHO
+   VÉRTICE — CARRINHO
    ===================================================== */
 
 
@@ -325,6 +325,10 @@
     font-size: 0.8rem;
 }
 
+#cart-discount-row[hidden] {
+    display: none;
+}
+
 .summary-row:last-child {
     margin-bottom: 0;
 }
@@ -333,81 +337,6 @@
     color: var(--texto);
     font-weight: 500;
 }
-
-.shipping-info {
-    color: var(--texto);
-}
-
-
-/* =====================================================
-   CUPOM
-   ===================================================== */
-
-.coupon {
-    padding: 22px 0;
-
-    border-bottom: 1px solid var(--borda);
-}
-
-.coupon label {
-    display: block;
-
-    margin-bottom: 10px;
-
-    font-size: 0.75rem;
-    font-weight: 500;
-}
-
-.coupon-input {
-    display: grid;
-    grid-template-columns: 1fr auto;
-
-    height: 43px;
-
-    border: 1px solid var(--borda);
-    border-radius: 5px;
-
-    overflow: hidden;
-
-    background: var(--fundo-principal);
-}
-
-.coupon-input input {
-    min-width: 0;
-
-    padding: 0 12px;
-
-    border: none;
-    outline: none;
-
-    background: transparent;
-
-    color: var(--texto);
-
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.72rem;
-}
-
-.coupon-input input::placeholder {
-    color: var(--texto-secundario);
-}
-
-.coupon-input button {
-    padding: 0 14px;
-
-    border: none;
-
-    background: transparent;
-
-    color: var(--destaque);
-
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.72rem;
-    font-weight: 600;
-
-    cursor: pointer;
-}
-
 
 /* =====================================================
    TOTAL

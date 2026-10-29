@@ -1,6 +1,6 @@
 
 /* =========================================================
-   NØVA ADM — CONFIGURAÇÕES
+   VÉRTICE ADM — CONFIGURAÇÕES
    Arquivo: admin/js/config.js
 
    Integração com:
@@ -38,6 +38,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const listaPromocoes =
         document.querySelector("#lista-produtos-promocao");
+    const buscaProdutoDestaque =
+        document.querySelector("#busca-produto-destaque");
+    const buscaProdutoPromocao =
+        document.querySelector("#busca-produto-promocao");
+    const resultadoBuscaDestaque =
+        document.querySelector("#resultado-busca-destaque");
+    const resultadoBuscaPromocao =
+        document.querySelector("#resultado-busca-promocao");
     const formCupom = document.querySelector("#form-cupom");
     const listaCupons = document.querySelector("#lista-cupons");
     const freteCepOrigem = document.querySelector("#frete-cep-origem");
@@ -113,6 +121,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function normalizarTexto(valor) {
         return String(valor ?? "").trim();
+    }
+
+    function normalizarBuscaProduto(valor) {
+        return normalizarTexto(valor)
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLocaleLowerCase("pt-BR");
     }
 
     function normalizarCodigoCupom(valor) {
@@ -300,7 +315,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             if (!seletor || !texto) {
                 console.warn(
-                    `[NØVA] Campo de cor ausente: ${campo.nome}`
+                    `[Vértice] Campo de cor ausente: ${campo.nome}`
                 );
                 return;
             }
@@ -448,7 +463,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         return new Promise(resolve => {
             const imagem = new Image();
-            imagem.alt = "Pré-visualização do banner da NØVA";
+            imagem.alt = "Pré-visualização do banner da Vértice";
 
             imagem.onload = () => {
                 bannerPreview.replaceChildren(imagem);
@@ -554,7 +569,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     "sucesso"
                 );
             } catch (erro) {
-                console.error("[NØVA Config] Erro ao enviar banner:", erro);
+                console.error("[Vértice Config] Erro ao enviar banner:", erro);
                 mostrarNotificacao(
                     erro.message || "Não foi possível enviar o banner.",
                     "erro"
@@ -660,7 +675,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const informacoes = criarInformacoesProduto(
             produto,
-            `${produto.categoria || "Sem categoria"} · ${formatarPreco(produto.preco)} · Estoque: ${produto.estoque}`
+            `Código: ${produto.id} · ${produto.categoria || "Sem categoria"} · ${formatarPreco(produto.preco)} · Estoque: ${produto.estoque}`
         );
 
         const controles = document.createElement("div");
@@ -670,7 +685,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const checkbox = document.createElement("input");
 
         checkbox.type = "checkbox";
-        checkbox.checked = estado.destaques.includes(produto.id);
+        checkbox.checked = estado.destaques.includes(String(produto.id));
         checkbox.disabled = !produto.ativo;
 
         label.append(
@@ -682,12 +697,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         checkbox.addEventListener("change", () => {
             if (checkbox.checked) {
-                if (!estado.destaques.includes(produto.id)) {
-                    estado.destaques.push(produto.id);
+                const id = String(produto.id);
+                if (!estado.destaques.includes(id)) {
+                    estado.destaques.push(id);
                 }
             } else {
                 estado.destaques = estado.destaques.filter(
-                    id => id !== produto.id
+                    id => id !== String(produto.id)
                 );
             }
 
@@ -708,14 +724,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const informacoes = criarInformacoesProduto(
             produto,
-            `Preço original: ${formatarPreco(produto.preco)}`
+            `Código: ${produto.id} · Preço original: ${formatarPreco(produto.preco)}`
         );
 
         const controles = document.createElement("div");
         controles.className = "config-product-controls";
 
         const promocaoAtual = estado.promocoes.find(
-            promocao => promocao.id === produto.id
+            promocao => promocao.id === String(produto.id)
         );
 
         const label = document.createElement("label");
@@ -749,12 +765,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         checkbox.addEventListener("change", () => {
             if (checkbox.checked) {
                 estado.promocoes.push({
-                    id: produto.id,
+                    id: String(produto.id),
                     preco: ""
                 });
             } else {
                 estado.promocoes = estado.promocoes.filter(
-                    promocao => promocao.id !== produto.id
+                    promocao => promocao.id !== String(produto.id)
                 );
 
                 campoPreco.value = "";
@@ -768,7 +784,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         campoPreco.addEventListener("input", () => {
             const promocao = estado.promocoes.find(
-                item => item.id === produto.id
+                item => item.id === String(produto.id)
             );
 
             if (!promocao) return;
@@ -814,43 +830,57 @@ document.addEventListener("DOMContentLoaded", async () => {
         container.appendChild(mensagem);
     }
 
-    function renderizarListasProdutos() {
-        if (listaDestaques) {
-            listaDestaques.replaceChildren();
+    function renderizarListaProdutos(container, buscaInput, status, criarItem) {
+        if (!container) return;
 
-            if (estado.produtos.length === 0) {
-                renderizarListaVazia(
-                    listaDestaques,
-                    "Nenhum produto encontrado",
-                    "Confira se há produtos cadastrados e se as permissões de leitura estão corretas."
-                );
-            } else {
-                estado.produtos.forEach(produto => {
-                    listaDestaques.appendChild(
-                        criarProdutoDestaque(produto)
-                    );
-                });
-            }
+        container.replaceChildren();
+        const termo = normalizarBuscaProduto(buscaInput?.value);
+        const correspondencias = termo
+            ? estado.produtos.filter(produto =>
+                normalizarBuscaProduto(produto.nome).includes(termo) ||
+                normalizarBuscaProduto(produto.id).includes(termo)
+            )
+            : estado.produtos.slice(0, 5);
+
+        if (status) {
+            status.textContent = termo
+                ? `${correspondencias.length} produto(s) encontrado(s).`
+                : `Exibindo ${correspondencias.length} de ${estado.produtos.length}. Digite o nome ou código para buscar outros produtos.`;
         }
 
-        if (listaPromocoes) {
-            listaPromocoes.replaceChildren();
-
-            if (estado.produtos.length === 0) {
-                renderizarListaVazia(
-                    listaPromocoes,
-                    "Nenhum produto encontrado",
-                    "Os produtos disponíveis para promoção aparecerão aqui."
-                );
-            } else {
-                estado.produtos.forEach(produto => {
-                    listaPromocoes.appendChild(
-                        criarProdutoPromocao(produto)
-                    );
-                });
-            }
+        if (correspondencias.length === 0) {
+            renderizarListaVazia(
+                container,
+                termo ? "Nenhum produto encontrado" : "Nenhum produto cadastrado",
+                termo
+                    ? "Tente outro nome ou código de produto."
+                    : "Confira se há produtos cadastrados e se as permissões de leitura estão corretas."
+            );
+            return;
         }
+
+        correspondencias.forEach(produto => {
+            container.appendChild(criarItem(produto));
+        });
     }
+
+    function renderizarListasProdutos() {
+        renderizarListaProdutos(
+            listaDestaques,
+            buscaProdutoDestaque,
+            resultadoBuscaDestaque,
+            criarProdutoDestaque
+        );
+        renderizarListaProdutos(
+            listaPromocoes,
+            buscaProdutoPromocao,
+            resultadoBuscaPromocao,
+            criarProdutoPromocao
+        );
+    }
+
+    buscaProdutoDestaque?.addEventListener("input", renderizarListasProdutos);
+    buscaProdutoPromocao?.addEventListener("input", renderizarListasProdutos);
 
     function formatarDetalhesCupom(cupom) {
         const detalhes = [`${cupom.percentual}% de desconto`];
@@ -1269,7 +1299,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     function validarPromocoes() {
         for (const promocao of estado.promocoes) {
             const produto = estado.produtos.find(
-                item => item.id === promocao.id
+                item => String(item.id) === String(promocao.id)
             );
 
             if (!produto) {
@@ -1413,7 +1443,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         } catch (erro) {
             console.error(
-                "[NØVA Config] Erro ao salvar:",
+                "[Vértice Config] Erro ao salvar:",
                 erro
             );
 
@@ -1476,7 +1506,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             "erro"
         );
 
-        console.error("[NØVA Config] window.supabaseClient não existe.");
+        console.error("[Vértice Config] window.supabaseClient não existe.");
         return;
     }
 
@@ -1486,7 +1516,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         try {
             await verificarPermissaoAdmin();
         } catch (erroAuth) {
-            console.warn("[NØVA Config] Verificação de administrador:", erroAuth.message);
+            console.warn("[Vértice Config] Verificação de administrador:", erroAuth.message);
         }
 
         // Carrega catálogo e configurações.
@@ -1510,7 +1540,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         console.log(
-            "[NØVA Config] Inicialização concluída.",
+            "[Vértice Config] Inicialização concluída.",
             {
                 produtos: estado.produtos.length,
                 administradorAutorizado:
@@ -1520,7 +1550,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     } catch (erro) {
         console.error(
-            "[NØVA Config] Erro ao carregar dados:",
+            "[Vértice Config] Erro ao carregar dados:",
             erro
         );
 

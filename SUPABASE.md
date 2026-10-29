@@ -31,13 +31,13 @@ fallbacks; missing database imagery renders without an image.
 The admin product editor and store settings page upload image files directly
 to the `nova-produtos` bucket. Uploads accept JPEG, PNG, WebP, and GIF files up
 to 5 MB, and require an authenticated admin Storage policy. The draft policy
-is in `supabase/002_nova_permissions.sql`; verify the live bucket settings and
+is in `supabase/002_vertice_permissions.sql`; verify the live bucket settings and
 policies before expecting uploads to work. A successful banner upload still
 requires saving the store settings to update the database reference.
 
 ## Storefront theme
 
-The storefront uses the new neutral NØVA palette by default. Saved colors in
+The storefront uses the new neutral Vértice palette by default. Saved colors in
 `configuracoes_nova.configuracoes.cores` are applied only when the same JSON
 object includes `temaVisual: "personalizado"`. This prevents older saved colors
 from overriding the redesigned palette. The admin settings page loads the
@@ -45,12 +45,12 @@ defaults for older configurations; saving the identity settings writes the new
 colors and the marker together.
 
 A draft schema proposal for the storefront/admin contract is available at
-[`supabase/001_nova_schema.sql`](./supabase/001_nova_schema.sql). It is a
+[`supabase/001_vertice_schema.sql`](./supabase/001_vertice_schema.sql). It is a
 reviewable starting point based on the client-side app contract and must be
 validated against the real Supabase project before execution.
 
 The permission baseline is in
-[`supabase/002_nova_permissions.sql`](./supabase/002_nova_permissions.sql). It
+[`supabase/002_vertice_permissions.sql`](./supabase/002_vertice_permissions.sql). It
 allows storefront reads, grants catalog/configuration writes only to
 authenticated sessions that pass the admin RLS policies, and keeps order
 access admin-only. The policies are recreated safely on each run. Review the

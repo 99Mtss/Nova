@@ -9,10 +9,10 @@
 
     <meta
         name="description"
-        content="Confira seu carrinho NØVA, revise seus produtos e continue para finalizar sua compra."
+        content="Confira seu carrinho Vértice, revise seus produtos e continue para finalizar sua compra."
     >
 
-    <title>Carrinho | NØVA</title>
+    <title>Carrinho | Vértice</title>
 
     <!-- FONTES -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,12 +41,28 @@
 
         <div class="container header-container">
 
-            <a href="../index.html" class="logo">NØVA</a>
+            <a href="../index.html" class="logo">Vértice</a>
 
             <nav class="nav" id="nav-menu">
                 <a href="../index.html">Início</a>
                 <a href="loja.html">Loja</a>
-                <a href="loja.html#categorias">Categorias</a>
+                <div class="mobile-menu-categories">
+                    <span class="mobile-menu-heading">Categorias</span>
+                    <div id="mobile-menu-categories">
+                        <a href="loja.html?categoria=todos">Todos os produtos</a>
+                        <a href="loja.html?categoria=camisetas">Camisetas</a>
+                        <a href="loja.html?categoria=moletons">Moletons</a>
+                        <a href="loja.html?categoria=calcas">Calças</a>
+                        <a href="loja.html?categoria=acessorios">Acessórios</a>
+                    </div>
+                </div>
+                <a
+                    href="../admin/login.html"
+                    class="mobile-menu-admin"
+                    aria-label="Entrar no painel administrativo">
+                    <i class="fa-regular fa-user" aria-hidden="true"></i>
+                    <span>Painel administrativo</span>
+                </a>
             </nav>
 
             <div class="header-actions">
@@ -57,14 +73,6 @@
                     aria-label="Pesquisar produtos"
                 >
                     <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                </a>
-
-                <a
-                    href="loja.html"
-                    class="header-icon"
-                    aria-label="Continuar comprando"
-                >
-                    <i class="fa-regular fa-user" aria-hidden="true"></i>
                 </a>
 
                 <a
@@ -227,19 +235,6 @@
 
                             </div>
 
-                            <div class="summary-row">
-
-                                <span>Frete</span>
-
-                                <span
-                                    class="shipping-info"
-                                    id="cart-shipping"
-                                >
-                                    A calcular
-                                </span>
-
-                            </div>
-
                             <div
                                 class="summary-row"
                                 id="cart-discount-row"
@@ -253,42 +248,6 @@
                                 </strong>
 
                             </div>
-
-                        </div>
-
-                        <!-- CUPOM -->
-                        <div class="coupon">
-
-                            <label for="coupon">
-                                Cupom de desconto
-                            </label>
-
-                            <div class="coupon-input">
-
-                                <input
-                                    type="text"
-                                    id="coupon"
-                                    name="coupon"
-                                    placeholder="Digite seu cupom"
-                                    autocomplete="off"
-                                    maxlength="50"
-                                >
-
-                                <button
-                                    type="button"
-                                    id="apply-coupon"
-                                >
-                                    Aplicar
-                                </button>
-
-                            </div>
-
-                            <p
-                                id="coupon-message"
-                                role="status"
-                                aria-live="polite"
-                                hidden
-                            ></p>
 
                         </div>
 
@@ -356,7 +315,7 @@
 
             <div class="footer-brand">
 
-                <a href="../index.html" class="logo">NØVA</a>
+                <a href="../index.html" class="logo">Vértice</a>
 
                 <p>Vista sua identidade.</p>
 
@@ -366,7 +325,6 @@
 
                 <a href="../index.html">Início</a>
                 <a href="loja.html">Loja</a>
-                <a href="loja.html#categorias">Categorias</a>
                 <a href="carrinho.html">Carrinho</a>
 
             </div>
@@ -387,7 +345,7 @@
 
         <div class="container footer-bottom">
 
-            <p>© 2026 NØVA. Todos os direitos reservados.</p>
+            <p>© 2026 Vértice. Todos os direitos reservados.</p>
 
             <span>Designed by Mtss</span>
 

@@ -1,5 +1,5 @@
 /* =====================================================
-   NØVA — CHECKOUT
+   VÉRTICE — CHECKOUT
    ===================================================== */
 
 
@@ -34,6 +34,10 @@
     padding: 75px 0 110px;
 }
 
+.checkout-page [hidden] {
+    display: none !important;
+}
+
 
 /* =====================================================
    CABEÇALHO
@@ -59,68 +63,6 @@
 .checkout-heading p {
     color: var(--texto-secundario);
     font-size: 0.88rem;
-}
-
-
-/* =====================================================
-   PROGRESSO
-   ===================================================== */
-
-.checkout-progress {
-    display: flex;
-    align-items: center;
-
-    max-width: 700px;
-
-    margin-bottom: 55px;
-}
-
-.progress-step {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    color: var(--texto-secundario);
-
-    white-space: nowrap;
-}
-
-.progress-step span {
-    width: 32px;
-    height: 32px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border: 1px solid var(--borda);
-    border-radius: 50%;
-
-    font-size: 0.7rem;
-}
-
-.progress-step strong {
-    font-size: 0.72rem;
-    font-weight: 500;
-}
-
-.progress-step.active {
-    color: var(--texto);
-}
-
-.progress-step.active span {
-    border-color: var(--destaque);
-    background: var(--destaque);
-    color: white;
-}
-
-.progress-line {
-    width: 70px;
-    height: 1px;
-
-    margin: 0 14px;
-
-    background: var(--borda);
 }
 
 
@@ -922,24 +864,6 @@
 
     .checkout-heading p {
         font-size: 0.78rem;
-    }
-
-    .checkout-progress {
-        width: 100%;
-        margin-bottom: 40px;
-    }
-
-    .progress-step {
-        gap: 6px;
-    }
-
-    .progress-step strong {
-        display: none;
-    }
-
-    .progress-line {
-        flex: 1;
-        margin: 0 9px;
     }
 
     .checkout-card {

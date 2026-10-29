@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <meta name="description"
-        content="Explore a coleção NØVA. Roupas streetwear com atitude, conforto e identidade.">
+        content="Explore a coleção Vértice. Roupas streetwear com atitude, conforto e identidade.">
 
     <meta name="theme-color" content="#0f1117">
 
-    <title>Loja | NØVA</title>
+    <title>Loja | Vértice</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,11 +38,11 @@
 
         <div class="container header-container">
 
-            <a href="../index.html" class="logo" aria-label="NØVA - Página inicial">
-                NØVA
+            <a href="../index.html" class="logo" aria-label="Vértice - Página inicial">
+                Vértice
             </a>
 
-            <nav class="nav" aria-label="Navegação principal">
+            <nav class="nav" id="nav-menu" aria-label="Navegação principal">
 
                 <a href="../index.html" class="nav-link">
                     Início
@@ -52,8 +52,17 @@
                     Loja
                 </a>
 
-                <a href="#categorias" class="nav-link">
-                    Categorias
+                <div class="mobile-menu-categories">
+                    <span class="mobile-menu-heading">Categorias</span>
+                    <div id="mobile-menu-categories"></div>
+                </div>
+
+                <a
+                    href="../admin/login.html"
+                    class="mobile-menu-admin"
+                    aria-label="Entrar no painel administrativo">
+                    <i class="fa-regular fa-user" aria-hidden="true"></i>
+                    <span>Painel administrativo</span>
                 </a>
 
             </nav>
@@ -66,15 +75,6 @@
                     aria-label="Pesquisar produtos">
 
                     <i class="fa-solid fa-magnifying-glass"></i>
-
-                </a>
-
-                <a
-                    href="../admin/login.html"
-                    class="header-icon"
-                    aria-label="Minha conta">
-
-                    <i class="fa-regular fa-user"></i>
 
                 </a>
 
@@ -98,7 +98,8 @@
                     id="menu-mobile"
                     type="button"
                     aria-label="Abrir menu"
-                    aria-expanded="false">
+                    aria-expanded="false"
+                    aria-controls="nav-menu">
 
                     <i class="fa-solid fa-bars"></i>
 
@@ -118,7 +119,7 @@
             <div class="container">
 
                 <span class="section-label">
-                    NØVA STORE
+                    VÉRTICE STORE
                 </span>
 
                 <h1>
@@ -354,15 +355,6 @@
 
                     </div>
 
-                    <button
-                        type="button"
-                        id="apply-filters"
-                        class="btn btn-primary">
-
-                        Aplicar filtros
-
-                    </button>
-
                 </aside>
 
                 <!-- LISTAGEM -->
@@ -535,7 +527,7 @@
             <div class="footer-brand">
 
                 <a href="../index.html" class="logo">
-                    NØVA
+                    Vértice
                 </a>
 
                 <p>
@@ -554,10 +546,6 @@
                     Loja
                 </a>
 
-                <a href="#categorias">
-                    Categorias
-                </a>
-
                 <a href="carrinho.html">
                     Carrinho
                 </a>
@@ -569,7 +557,7 @@
                 <a href="https://www.instagram.com/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label="Instagram da NØVA">
+                    aria-label="Instagram da Vértice">
 
                     <i class="fa-brands fa-instagram"></i>
 
@@ -578,7 +566,7 @@
                 <a href="https://www.tiktok.com/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label="TikTok da NØVA">
+                    aria-label="TikTok da Vértice">
 
                     <i class="fa-brands fa-tiktok"></i>
 
@@ -591,7 +579,7 @@
         <div class="container footer-bottom">
 
             <p>
-                © 2026 NØVA. Todos os direitos reservados.
+                © 2026 Vértice. Todos os direitos reservados.
             </p>
 
             <span>

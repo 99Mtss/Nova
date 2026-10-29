@@ -1,6 +1,6 @@
 
 /* =========================================================
-   NØVA — PÁGINA DO PRODUTO
+   VÉRTICE — PÁGINA DO PRODUTO
    Supabase + imagens + promoções + carrinho + relacionados
    ========================================================= */
 
@@ -371,12 +371,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const precoPromocional = obterPrecoPromocional(produto);
 
         if (productTitle) {
-            productTitle.textContent = produto.nome || "Produto NØVA";
+            productTitle.textContent = produto.nome || "Produto Vértice";
         }
 
         if (productReference) {
             productReference.textContent =
-                produto.categoria?.toUpperCase() || "NØVA";
+                produto.categoria?.toUpperCase() || "VÉRTICE";
         }
 
         if (breadcrumb) {
@@ -385,7 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (description) {
             description.textContent =
-                produto.descricao || "Conheça os detalhes desta peça NØVA.";
+                produto.descricao || "Conheça os detalhes desta peça Vértice.";
         }
 
         const precoOriginal = Number(produto.preco || 0);
@@ -435,7 +435,7 @@ document.addEventListener("DOMContentLoaded", () => {
             addToCartText.textContent = "Adicionar ao carrinho";
         }
 
-        document.title = `${produto.nome || "Produto"} | NØVA`;
+        document.title = `${produto.nome || "Produto"} | Vértice`;
     }
 
     /* =====================================================
@@ -464,7 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function selecionarImagem(url, botao) {
             mainImage.hidden = false;
-            mainImage.alt = produtoSelecionado.nome || "Produto NØVA";
+            mainImage.alt = produtoSelecionado.nome || "Produto Vértice";
 
             mainImage.onload = () => {
                 mainImage.hidden = false;
@@ -913,7 +913,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const imagem = document.createElement("img");
             imagem.className = "related-product-image";
-            imagem.alt = produto.nome || "Produto NØVA";
+            imagem.alt = produto.nome || "Produto Vértice";
             imagem.loading = "lazy";
 
             if (imagens[0]) {
@@ -929,7 +929,7 @@ document.addEventListener("DOMContentLoaded", () => {
             linkImagem.appendChild(imagem);
 
             const nome = document.createElement("h3");
-            nome.textContent = produto.nome || "Produto NØVA";
+            nome.textContent = produto.nome || "Produto Vértice";
 
             const linkNome = document.createElement("a");
             linkNome.href =
@@ -939,7 +939,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const categoria = document.createElement("p");
             categoria.className = "related-product-category";
-            categoria.textContent = produto.categoria || "NØVA";
+            categoria.textContent = produto.categoria || "VÉRTICE";
 
             const precoEl = document.createElement("p");
             precoEl.className = "related-product-price";

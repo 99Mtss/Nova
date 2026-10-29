@@ -1,6 +1,6 @@
 
 /* =========================================================
-   NØVA — CONFIRMAÇÃO DO PEDIDO
+   VÉRTICE — CONFIRMAÇÃO DO PEDIDO
    Dados oficiais consultados no Supabase
    ========================================================= */
 
@@ -242,7 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 imagem.src = imagemUrl;
                 imagem.alt = obterTexto(
                     produto.nome,
-                    "Produto NØVA"
+                    "Produto Vértice"
                 );
                 imagem.loading = "lazy";
 
@@ -250,7 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     imagem.remove();
 
                     const fallback = document.createElement("span");
-                    fallback.textContent = "NØVA";
+                    fallback.textContent = "VÉRTICE";
 
                     imagemContainer.appendChild(fallback);
                 }, { once: true });
@@ -258,7 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 imagemContainer.appendChild(imagem);
             } else {
                 const fallback = document.createElement("span");
-                fallback.textContent = "NØVA";
+                fallback.textContent = "VÉRTICE";
 
                 imagemContainer.appendChild(fallback);
             }
@@ -269,7 +269,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const nome = document.createElement("h3");
             nome.textContent = obterTexto(
                 produto.nome,
-                "Produto NØVA"
+                "Produto Vértice"
             );
 
             const detalhes = document.createElement("p");

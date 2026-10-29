@@ -1,5 +1,5 @@
 
-
+-- Legacy Supabase object names are retained for compatibility.
 create or replace function public.is_nova_admin()
 returns boolean
 language sql

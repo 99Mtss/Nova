@@ -1,6 +1,6 @@
 
 /* =========================================================
-   NØVA ADM — CONFIGURAÇÕES
+   VÉRTICE ADM — CONFIGURAÇÕES
    Arquivo: admin/css/config.css
    ========================================================= */
 
@@ -562,6 +562,45 @@
 }
 
 /* LISTAS DINÂMICAS DE PRODUTOS */
+.config-product-search {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 46px;
+    margin-top: 18px;
+    padding: 0 14px;
+    color: var(--config-muted);
+    background: var(--config-card);
+    border: 1px solid var(--config-border);
+    border-radius: 8px;
+}
+
+.config-product-search:focus-within {
+    border-color: var(--config-accent);
+    box-shadow: 0 0 0 3px #9a6a4520;
+}
+
+.config-product-search input {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    padding: 0;
+    color: var(--config-text);
+    background: transparent;
+    border: 0;
+    outline: none;
+    font: inherit;
+    font-size: 12px;
+}
+
+.config-product-search-status {
+    min-height: 16px;
+    margin: 8px 0 0;
+    color: var(--config-muted);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
 .config-product-list {
     display: flex;
     flex-direction: column;

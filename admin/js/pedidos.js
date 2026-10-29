@@ -836,5 +836,5 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await carregarPedidos();
 
-    console.log("NØVA ADM — Pedidos conectados ao Supabase.");
+    console.log("Vértice ADM — Pedidos conectados ao Supabase.");
 });

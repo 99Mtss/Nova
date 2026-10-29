@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Configurações | NØVA ADM</title>
+    <title>Configurações | Vértice ADM</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,8 +27,8 @@
     <aside class="admin-sidebar" id="admin-sidebar">
 
         <div class="admin-logo">
-            <a href="index.html" aria-label="Dashboard NØVA">
-                <span class="logo-symbol">NØVA</span>
+            <a href="index.html" aria-label="Dashboard Vértice">
+                <span class="logo-symbol">Vértice</span>
                 <span class="logo-caption">ADMINISTRAÇÃO</span>
             </a>
         </div>
@@ -122,7 +122,7 @@
             <!-- INTRODUÇÃO -->
             <div class="config-intro">
                 <div>
-                    <span class="config-eyebrow">NØVA STORE / PERSONALIZAÇÃO</span>
+                    <span class="config-eyebrow">VÉRTICE STORE / PERSONALIZAÇÃO</span>
                     <h2>Controle sua loja</h2>
                     <p>
                         Gerencie as cores, os banners, os produtos em destaque
@@ -197,7 +197,7 @@
                     <div class="config-theme-preview-swatch">
                         <span id="preview-cor-destaque"></span>
                         <div>
-                            <strong>NØVA Store</strong>
+                            <strong>Vértice Store</strong>
                             <small>Estilo que vai com você.</small>
                         </div>
                         <button type="button" id="preview-botao-tema">Ver coleção</button>
@@ -206,7 +206,7 @@
 
                 <button type="button" class="config-button config-button-secondary"
                         id="restaurar-tema-nova">
-                    Restaurar identidade NØVA
+                    Restaurar identidade Vértice
                 </button>
 
             </section>
@@ -262,6 +262,20 @@
                     </div>
                 </div>
 
+                <div class="config-product-search">
+                    <label class="sr-only" for="busca-produto-destaque">
+                        Buscar destaque por nome ou código
+                    </label>
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <input
+                        type="search"
+                        id="busca-produto-destaque"
+                        placeholder="Buscar por nome ou código do produto"
+                        autocomplete="off"
+                        aria-controls="lista-produtos-destaque">
+                </div>
+                <p id="resultado-busca-destaque" class="config-product-search-status"
+                   role="status" aria-live="polite"></p>
                 <div id="lista-produtos-destaque" class="config-product-list"></div>
 
             </section>
@@ -288,6 +302,20 @@
                     </p>
                 </div>
 
+                <div class="config-product-search">
+                    <label class="sr-only" for="busca-produto-promocao">
+                        Buscar promoção por nome ou código
+                    </label>
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <input
+                        type="search"
+                        id="busca-produto-promocao"
+                        placeholder="Buscar por nome ou código do produto"
+                        autocomplete="off"
+                        aria-controls="lista-produtos-promocao">
+                </div>
+                <p id="resultado-busca-promocao" class="config-product-search-status"
+                   role="status" aria-live="polite"></p>
                 <div id="lista-produtos-promocao" class="config-product-list"></div>
 
                 <p class="config-help">

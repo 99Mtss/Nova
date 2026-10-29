@@ -1,4 +1,5 @@
--- Proposed schema for the NØVA storefront/admin project.
+-- Proposed schema for the Vértice storefront/admin project.
+-- Legacy Supabase object names are retained for compatibility.
 -- This file is intentionally a draft for review in the Supabase SQL Editor.
 -- It is based on the client-side contract observed in the app, not on a verified
 -- remote schema. Adjust the admin UUID and policies to match the real project.

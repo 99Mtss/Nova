@@ -1,6 +1,6 @@
 
 /* =========================================================
-   NØVA — JAVASCRIPT PRINCIPAL
+   VÉRTICE — JAVASCRIPT PRINCIPAL
    Loja, carrinho e configurações do Supabase
    ========================================================= */
 
@@ -276,7 +276,7 @@ function novaAdicionarProduto(produto) {
     } else {
         novaCarrinho.push({
             id: produto.id,
-            nome: produto.nome || produto.name || "Produto NØVA",
+            nome: produto.nome || produto.name || "Produto Vértice",
             preco: novaConverterPreco(produto.preco ?? produto.price),
             imagem: produto.imagem || produto.image || "",
             categoria: produto.categoria || "PRODUTO",
@@ -475,7 +475,7 @@ function novaRenderizarDestaques(produtos, configuracoes) {
     lista.innerHTML = destaques.map((produto) => {
         const id = novaEscaparHTML(produto.id);
         const nome = novaEscaparHTML(produto.nome);
-        const categoria = novaEscaparHTML(produto.categoria || "NØVA");
+        const categoria = novaEscaparHTML(produto.categoria || "VÉRTICE");
         const descricao = novaEscaparHTML(produto.descricao || "");
         const imagem = novaImagemValida(produto.imagem);
 
@@ -524,7 +524,7 @@ function novaRenderizarDestaques(produtos, configuracoes) {
             `
             : `
                 <div class="nova-imagem-indisponivel">
-                    NØVA
+                    VÉRTICE
                 </div>
             `;
 
@@ -625,6 +625,41 @@ function novaInicializarMenuMobile() {
             "aria-expanded",
             String(aberto)
         );
+        menuMobile.setAttribute(
+            "aria-label",
+            aberto ? "Fechar menu" : "Abrir menu"
+        );
+
+        const icone = menuMobile.querySelector("i");
+        icone?.classList.toggle("fa-bars", !aberto);
+        icone?.classList.toggle("fa-xmark", aberto);
+    });
+
+    nav.addEventListener("click", evento => {
+        if (!evento.target.closest("a")) return;
+
+        nav.classList.remove("menu-open");
+        menuMobile.setAttribute("aria-expanded", "false");
+        menuMobile.setAttribute("aria-label", "Abrir menu");
+
+        const icone = menuMobile.querySelector("i");
+        icone?.classList.add("fa-bars");
+        icone?.classList.remove("fa-xmark");
+    });
+
+    document.addEventListener("keydown", evento => {
+        if (evento.key !== "Escape" || !nav.classList.contains("menu-open")) {
+            return;
+        }
+
+        nav.classList.remove("menu-open");
+        menuMobile.setAttribute("aria-expanded", "false");
+        menuMobile.setAttribute("aria-label", "Abrir menu");
+        menuMobile.focus();
+
+        const icone = menuMobile.querySelector("i");
+        icone?.classList.add("fa-bars");
+        icone?.classList.remove("fa-xmark");
     });
 }
 
@@ -824,7 +859,7 @@ function novaRenderizarImagensCategorias(produtos) {
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
-    console.log("NØVA JS carregado.");
+    console.log("Vértice JS carregado.");
 
     novaCarregarCarrinho();
     novaAtualizarContadorCarrinho();
@@ -870,7 +905,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             novaConfiguracoes
         );
 
-        console.log("Configurações da NØVA carregadas.");
+        console.log("Configurações da Vértice carregadas.");
         console.log("Produtos disponíveis:", novaProdutos.length);
     } catch (erro) {
         console.error(
@@ -888,5 +923,5 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    console.log("NØVA APP.JS inicializado.");
+    console.log("Vértice APP.JS inicializado.");
 });

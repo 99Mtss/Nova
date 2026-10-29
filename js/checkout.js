@@ -1,6 +1,6 @@
 
 /* =========================================================
-   NØVA — CHECKOUT
+   VÉRTICE — CHECKOUT
    Validação e resumo dos dados atuais do carrinho
    ========================================================= */
 

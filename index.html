@@ -6,10 +6,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="description" content="NØVA — Estilo que vai com você.">
+    <meta name="description" content="Vértice — Estilo que vai com você.">
     <meta name="theme-color" content="#F7F4EE">
 
-    <title>NØVA — Loja</title>
+    <title>Vértice — Loja</title>
 
     <!-- GOOGLE FONTS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,17 +35,30 @@
     <header class="header">
         <div class="container header-container">
 
-            <a href="index.html" class="logo">NØVA</a>
+            <a href="index.html" class="logo">Vértice</a>
 
             <nav class="nav" id="nav-menu" aria-label="Navegação principal">
                 <a href="index.html" class="nav-link active">Início</a>
 
                 <a href="pages/loja.html" class="nav-link">Loja</a>
 
+                <div class="mobile-menu-categories">
+                    <span class="mobile-menu-heading">Categorias</span>
+                    <div id="mobile-menu-categories">
+                        <a href="pages/loja.html?categoria=todos">Todos os produtos</a>
+                        <a href="pages/loja.html?categoria=camisetas">Camisetas</a>
+                        <a href="pages/loja.html?categoria=moletons">Moletons</a>
+                        <a href="pages/loja.html?categoria=calcas">Calças</a>
+                        <a href="pages/loja.html?categoria=acessorios">Acessórios</a>
+                    </div>
+                </div>
+
                 <a
-                    href="pages/loja.html#categorias"
-                    class="nav-link">
-                    Categorias
+                    href="admin/login.html"
+                    class="mobile-menu-admin"
+                    aria-label="Entrar no painel administrativo">
+                    <i class="fa-regular fa-user" aria-hidden="true"></i>
+                    <span>Painel administrativo</span>
                 </a>
             </nav>
 
@@ -56,13 +69,6 @@
                     class="header-icon"
                     aria-label="Pesquisar produtos">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                </a>
-
-                <a
-                    href="admin/index.html"
-                    class="header-icon"
-                    aria-label="Painel administrativo">
-                    <i class="fa-regular fa-user"></i>
                 </a>
 
                 <a
@@ -208,7 +214,7 @@
                         <h2>Mais vendidos</h2>
 
                         <p>
-                            Os favoritos da comunidade NØVA.
+                            Os favoritos da comunidade Vértice.
                         </p>
                     </div>
 
@@ -248,7 +254,7 @@
 
             <div class="container collection-content">
 
-                <span>NØVA COLLECTION</span>
+                <span>VÉRTICE COLLECTION</span>
 
                 <h2>OUTONO / INVERNO</h2>
 
@@ -364,7 +370,7 @@
 
             <div class="footer-brand">
 
-                <a href="index.html" class="logo">NØVA</a>
+                <a href="index.html" class="logo">Vértice</a>
 
                 <p>Mais que roupas, um estilo de vida.</p>
 
@@ -374,7 +380,7 @@
                         href="https://www.instagram.com/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label="Instagram da NØVA">
+                        aria-label="Instagram da Vértice">
                         <i class="fa-brands fa-instagram"></i>
                     </a>
 
@@ -382,7 +388,7 @@
                         href="https://www.tiktok.com/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label="TikTok da NØVA">
+                        aria-label="TikTok da Vértice">
                         <i class="fa-brands fa-tiktok"></i>
                     </a>
 
@@ -395,7 +401,6 @@
 
                 <a href="index.html">Início</a>
                 <a href="pages/loja.html">Loja</a>
-                <a href="index.html#categorias">Categorias</a>
                 <a href="pages/carrinho.html">Carrinho</a>
 
             </div>
@@ -404,7 +409,7 @@
 
                 <h3>Atendimento</h3>
 
-                <span>Segunda a sexta</span>
+                <span>Segunda a sabado</span>
                 <span>09h às 18h</span>
 
                 <a href="mailto:contato@nova.com">
@@ -418,7 +423,7 @@
         <div class="container footer-bottom">
 
             <p>
-                © 2026 NØVA. Todos os direitos reservados.
+                © 2026 Vértice. Todos os direitos reservados.
             </p>
 
             <span>Feito com estilo.</span>
@@ -429,7 +434,7 @@
     <!-- SUPABASE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- CLIENTE SUPABASE DA NØVA -->
+    <!-- CLIENTE SUPABASE DA VÉRTICE -->
     <script src="admin/js/supabase.js"></script>
 
     <!-- LÓGICA DA PÁGINA INICIAL -->

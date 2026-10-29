@@ -1,6 +1,6 @@
 
 /* =========================================================
-   NØVA — LOJA
+   VÉRTICE — LOJA
    Supabase, configurações, produtos, filtros e favoritos
    ========================================================= */
 
@@ -46,9 +46,6 @@ function obterElementos() {
 
     elementos.limparFiltros =
         document.querySelector(".clear-filters");
-
-    elementos.aplicarFiltros =
-        document.querySelector("#apply-filters");
 
     elementos.ordenacao =
         document.querySelector(".sort-products");
@@ -312,7 +309,7 @@ function criarCardProduto(produto) {
     card.dataset.id = produto.id;
     card.dataset.categoria = produto.categoria || "";
 
-    const nome = escaparHTML(produto.nome || "Produto NØVA");
+    const nome = escaparHTML(produto.nome || "Produto Vértice");
     const categoria = escaparHTML(produto.categoria || "Produto");
     const imagem = obterImagem(produto);
     const precoOriginal = converterPreco(produto.preco);
@@ -329,7 +326,7 @@ function criarCardProduto(produto) {
         `
         : `
             <div class="product-placeholder">
-                <span>NØVA</span>
+                <span>VÉRTICE</span>
             </div>
         `;
 
@@ -722,6 +719,74 @@ function limparFiltros() {
     filtrarProdutos();
 }
 
+function aplicarCategoriaDaUrl() {
+    const categoriaSolicitada = new URLSearchParams(
+        window.location.search
+    ).get("categoria");
+
+    if (!categoriaSolicitada) return;
+
+    const abaSelecionada = elementos.abasCategoria.find(aba =>
+        obterCategoria(aba.dataset.category || aba.textContent) ===
+        obterCategoria(categoriaSolicitada)
+    );
+
+    if (!abaSelecionada) return;
+
+    elementos.abasCategoria.forEach(aba => {
+        const selecionada = aba === abaSelecionada;
+        aba.classList.toggle("active", selecionada);
+        aba.setAttribute("aria-pressed", String(selecionada));
+    });
+
+    const categoriaSelecionada = obterCategoria(
+        abaSelecionada.dataset.category || abaSelecionada.textContent
+    );
+
+    elementos.checkboxesCategoria.forEach(checkbox => {
+        checkbox.checked = obterCategoria(checkbox.value) ===
+            categoriaSelecionada;
+    });
+}
+
+function inicializarCategoriasMenuMobile() {
+    const listaCategorias = document.querySelector("#mobile-menu-categories");
+    if (!listaCategorias) return;
+
+    const abas = elementos.abasCategoria;
+
+    abas.forEach(aba => {
+        const categoria = aba.dataset.category || aba.textContent.trim();
+        const link = document.createElement("a");
+
+        link.href = "#categorias";
+        link.dataset.menuCategory = obterCategoria(categoria);
+        link.textContent = obterCategoria(categoria) === "todo"
+            ? "Todos os produtos"
+            : categoria;
+        listaCategorias.appendChild(link);
+    });
+
+    listaCategorias.addEventListener("click", evento => {
+        const link = evento.target.closest("[data-menu-category]");
+        if (!link) return;
+
+        const aba = abas.find(item =>
+            obterCategoria(item.dataset.category || item.textContent) ===
+            link.dataset.menuCategory
+        );
+
+        if (aba) {
+            evento.preventDefault();
+            aba.click();
+            document.querySelector("#categorias")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
+    });
+}
+
 /* =========================================================
    EVENTOS DOS FILTROS
    ========================================================= */
@@ -791,8 +856,6 @@ function inicializarFiltros() {
     });
 
     elementos.ordenacao?.addEventListener("change", filtrarProdutos);
-
-    elementos.aplicarFiltros?.addEventListener("click", filtrarProdutos);
 
     elementos.limparFiltros?.addEventListener("click", limparFiltros);
 
@@ -895,7 +958,7 @@ async function carregarLoja() {
 
         filtrarProdutos();
 
-        console.log("NØVA Loja carregada.");
+        console.log("Vértice Loja carregada.");
         console.log("Produtos encontrados:", produtos.length);
     } catch (erro) {
         console.error("Erro ao inicializar a loja:", erro);
@@ -932,6 +995,8 @@ async function iniciarLoja() {
     obterElementos();
 
     inicializarFiltros();
+    inicializarCategoriasMenuMobile();
+    aplicarCategoriaDaUrl();
     atualizarContadorCarrinho();
 
     await carregarLoja();
