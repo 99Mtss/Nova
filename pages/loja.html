@@ -70,15 +70,6 @@
             <div class="header-actions">
 
                 <a
-                    href="#busca-produtos"
-                    class="header-icon"
-                    aria-label="Pesquisar produtos">
-
-                    <i class="fa-solid fa-magnifying-glass"></i>
-
-                </a>
-
-                <a
                     href="carrinho.html"
                     class="header-icon cart-icon"
                     aria-label="Carrinho">
@@ -164,70 +155,6 @@
 
         </section>
 
-        <!-- CATEGORIAS -->
-        <section class="shop-categories" id="categorias">
-
-            <div class="container">
-
-                <div class="category-tabs" role="group"
-                    aria-label="Filtrar por categoria">
-
-                    <button
-                        type="button"
-                        class="category-tab active"
-                        data-category="todos"
-                        aria-pressed="true">
-
-                        Todos
-
-                    </button>
-
-                    <button
-                        type="button"
-                        class="category-tab"
-                        data-category="Camisetas"
-                        aria-pressed="false">
-
-                        Camisetas
-
-                    </button>
-
-                    <button
-                        type="button"
-                        class="category-tab"
-                        data-category="Moletons"
-                        aria-pressed="false">
-
-                        Moletons
-
-                    </button>
-
-                    <button
-                        type="button"
-                        class="category-tab"
-                        data-category="Calças"
-                        aria-pressed="false">
-
-                        Calças
-
-                    </button>
-
-                    <button
-                        type="button"
-                        class="category-tab"
-                        data-category="Acessórios"
-                        aria-pressed="false">
-
-                        Acessórios
-
-                    </button>
-
-                </div>
-
-            </div>
-
-        </section>
-
         <!-- PRODUTOS E FILTROS -->
         <section class="shop-products">
 
@@ -252,7 +179,7 @@
                     </div>
 
                     <!-- FILTRO POR CATEGORIA -->
-                    <div class="filter-group">
+                    <div class="filter-group" id="categorias">
 
                         <h3>Categoria</h3>
 
@@ -295,32 +222,50 @@
 
                             <span>Acessórios</span>
                         </label>
+                        <label class="filter-option">
+                            <input type="checkbox" name="categoria" value="Bermudas e shorts" data-filter-category>
+                            <span>Bermudas e shorts</span>
+                        </label>
+                        <label class="filter-option" data-category-extra hidden>
+                            <input type="checkbox" name="categoria" value="Jaquetas" data-filter-category>
+                            <span>Jaquetas</span>
+                        </label>
+                        <label class="filter-option" data-category-extra hidden>
+                            <input type="checkbox" name="categoria" value="Regatas" data-filter-category>
+                            <span>Regatas</span>
+                        </label>
+                        <label class="filter-option" data-category-extra hidden>
+                            <input type="checkbox" name="categoria" value="Tênis" data-filter-category>
+                            <span>Tênis</span>
+                        </label>
+                        <label class="filter-option" data-category-extra hidden>
+                            <input type="checkbox" name="categoria" value="Sandálias e chinelos" data-filter-category>
+                            <span>Sandálias e chinelos</span>
+                        </label>
+                        <label class="filter-option" data-category-extra hidden>
+                            <input type="checkbox" name="categoria" value="Bonés" data-filter-category>
+                            <span>Bonés</span>
+                        </label>
+                        <label class="filter-option" data-category-extra hidden>
+                            <input type="checkbox" name="categoria" value="Meias" data-filter-category>
+                            <span>Meias</span>
+                        </label>
+                        <label class="filter-option" data-category-extra hidden>
+                            <input type="checkbox" name="categoria" value="Cintos" data-filter-category>
+                            <span>Cintos</span>
+                        </label>
+                        <label class="filter-option" data-category-extra hidden>
+                            <input type="checkbox" name="categoria" value="Óculos" data-filter-category>
+                            <span>Óculos</span>
+                        </label>
 
-                    </div>
-
-                    <!-- FILTRO POR TAMANHO -->
-                    <div class="filter-group">
-
-                        <h3>Tamanho</h3>
-
-                        <div class="size-options">
-
-                            <button type="button" data-filter-size="PP"
-                                aria-pressed="false">PP</button>
-
-                            <button type="button" data-filter-size="P"
-                                aria-pressed="false">P</button>
-
-                            <button type="button" data-filter-size="M"
-                                aria-pressed="false">M</button>
-
-                            <button type="button" data-filter-size="G"
-                                aria-pressed="false">G</button>
-
-                            <button type="button" data-filter-size="GG"
-                                aria-pressed="false">GG</button>
-
-                        </div>
+                        <button
+                            type="button"
+                            class="category-expand"
+                            id="category-expand"
+                            aria-expanded="false">
+                            Ver mais
+                        </button>
 
                     </div>
 
@@ -362,16 +307,6 @@
 
                     <!-- BARRA DE ORDENAÇÃO -->
                     <div class="shop-toolbar">
-
-                        <span
-                            class="products-count"
-                            id="products-count"
-                            aria-live="polite">
-
-                            Carregando produtos...
-
-                        </span>
-
                         <label for="sort-products">
                             Ordenar por
                         </label>
@@ -398,6 +333,15 @@
                             </option>
 
                         </select>
+
+                        <button
+                            type="button"
+                            class="toggle-favorites"
+                            id="toggle-favorites"
+                            aria-pressed="false">
+                            <i class="fa-regular fa-heart" aria-hidden="true"></i>
+                            <span>Ver favoritos</span>
+                        </button>
 
                     </div>
 

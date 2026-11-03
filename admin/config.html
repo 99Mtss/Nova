@@ -221,29 +221,73 @@
 
                     <div>
                         <h3>Banner principal</h3>
-                        <p>Escolha a imagem de destaque da página inicial.</p>
+                        <p>Adicione até três imagens para alternar no banner da página inicial.</p>
                     </div>
                 </div>
 
-                <div class="config-banner-preview" id="banner-preview">
-                    <div class="banner-placeholder">
-                        <i class="fa-regular fa-images"></i>
-                        <span>Pré-visualização do banner</span>
-                        <small>Recomendado: imagem horizontal de alta resolução</small>
+                <div class="banner-slides-admin">
+                    <div class="banner-admin-slide">
+                        <h4>Imagem 1</h4>
+                        <div class="config-banner-preview" data-banner-preview="0">
+                            <div class="banner-placeholder">
+                                <i class="fa-regular fa-images"></i>
+                                <span>Pré-visualização da imagem 1</span>
+                                <small>Recomendado: imagem horizontal</small>
+                            </div>
+                        </div>
+                        <div class="config-field">
+                            <label for="banner-arquivo-1">Enviar imagem</label>
+                            <input type="file" id="banner-arquivo-1"
+                                   data-banner-file="0"
+                                   accept="image/jpeg,image/png,image/webp,image/gif">
+                        </div>
+                        <button type="button" class="config-button config-button-secondary"
+                                data-banner-clear="0">Remover imagem</button>
                     </div>
-                </div>
 
-                <div class="config-field">
-                    <label for="banner-arquivo">Enviar imagem do dispositivo</label>
-                    <input type="file"
-                           id="banner-arquivo"
-                           accept="image/jpeg,image/png,image/webp,image/gif">
+                    <div class="banner-admin-slide">
+                        <h4>Imagem 2</h4>
+                        <div class="config-banner-preview" data-banner-preview="1">
+                            <div class="banner-placeholder">
+                                <i class="fa-regular fa-images"></i>
+                                <span>Pré-visualização da imagem 2</span>
+                                <small>Opcional</small>
+                            </div>
+                        </div>
+                        <div class="config-field">
+                            <label for="banner-arquivo-2">Enviar imagem</label>
+                            <input type="file" id="banner-arquivo-2"
+                                   data-banner-file="1"
+                                   accept="image/jpeg,image/png,image/webp,image/gif">
+                        </div>
+                        <button type="button" class="config-button config-button-secondary"
+                                data-banner-clear="1">Remover imagem</button>
+                    </div>
+
+                    <div class="banner-admin-slide">
+                        <h4>Imagem 3</h4>
+                        <div class="config-banner-preview" data-banner-preview="2">
+                            <div class="banner-placeholder">
+                                <i class="fa-regular fa-images"></i>
+                                <span>Pré-visualização da imagem 3</span>
+                                <small>Opcional</small>
+                            </div>
+                        </div>
+                        <div class="config-field">
+                            <label for="banner-arquivo-3">Enviar imagem</label>
+                            <input type="file" id="banner-arquivo-3"
+                                   data-banner-file="2"
+                                   accept="image/jpeg,image/png,image/webp,image/gif">
+                        </div>
+                        <button type="button" class="config-button config-button-secondary"
+                                data-banner-clear="2">Remover imagem</button>
+                    </div>
                 </div>
 
                 <p class="config-help">
                     Formatos aceitos: JPG, PNG, WebP e GIF. Tamanho máximo:
-                    5 MB. O banner será enviado ao Supabase Storage; salve as
-                    configurações para publicá-lo na loja.
+                    5 MB por imagem. As imagens serão enviadas ao Supabase
+                    Storage; salve as configurações para publicá-las na loja.
                 </p>
 
             </section>

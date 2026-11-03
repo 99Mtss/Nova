@@ -406,13 +406,33 @@
 }
 
 /* BANNER */
+.banner-slides-admin {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.banner-admin-slide {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--config-border);
+    border-radius: 10px;
+    background: var(--config-bg);
+}
+
+.banner-admin-slide h4 {
+    margin: 0 0 12px;
+    color: var(--config-text);
+    font-size: 13px;
+}
+
 .config-banner-preview {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 220px;
-    margin-bottom: 24px;
+    min-height: 150px;
+    margin-bottom: 14px;
     overflow: hidden;
     background:
         radial-gradient(ellipse at center, var(--config-card-hover) 0%, var(--config-bg) 65%);
@@ -428,8 +448,12 @@
 .config-banner-preview img {
     display: block;
     width: 100%;
-    max-height: 420px;
+    height: 150px;
     object-fit: cover;
+}
+
+.banner-admin-slide .config-button {
+    margin-top: 12px;
 }
 
 .banner-placeholder {
@@ -806,6 +830,10 @@
 
 /* TABLETS */
 @media (max-width: 900px) {
+    .banner-slides-admin {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .config-page {
         padding: 24px;
     }
@@ -825,6 +853,10 @@
 
 /* CELULARES */
 @media (max-width: 600px) {
+    .banner-slides-admin {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .config-page {
         padding: 16px;
     }

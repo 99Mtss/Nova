@@ -23,6 +23,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let produtosFiltrados = [];
     let paginaAtual = 1;
     let carregando = false;
+    let imagensExistentesModal = [];
+    const arquivosImagemSelecionados = [null, null, null];
+    const urlsPrevisualizacaoImagens = [null, null, null];
 
     // =========================================
     // ELEMENTOS DO HTML
@@ -89,6 +92,14 @@ document.addEventListener("DOMContentLoaded", () => {
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+    }
+
+    function normalizarCategoria(valor) {
+        return String(valor ?? "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim()
+            .toLocaleLowerCase("pt-BR");
     }
 
     function normalizarProduto(registro) {
@@ -244,7 +255,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function aplicarFiltros() {
         const termo = busca?.value.trim().toLowerCase() || "";
         const status = filtroStatus?.value.toLowerCase() || "";
-        const categoria = filtroCategoria?.value.toLowerCase() || "";
+        const categoria = normalizarCategoria(filtroCategoria?.value);
 
         produtosFiltrados = produtos.filter(produto => {
             const correspondeBusca =
@@ -277,7 +288,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const correspondeCategoria =
                 !categoria ||
                 ["todos", "all"].includes(categoria) ||
-                produto.categoria.toLowerCase() === categoria;
+                normalizarCategoria(produto.categoria) === categoria;
 
             return (
                 correspondeBusca &&
@@ -547,7 +558,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     <label>
                         Categoria *
-                        <input id="produto-categoria" required maxlength="80">
+                        <input id="produto-categoria" list="categorias-produto" required maxlength="80">
+                        <datalist id="categorias-produto">
+                            <option value="Camisetas">
+                            <option value="Moletons">
+                            <option value="Calças">
+                            <option value="Acessórios">
+                            <option value="Bermudas e shorts">
+                            <option value="Jaquetas">
+                            <option value="Regatas">
+                            <option value="Tênis">
+                            <option value="Sandálias e chinelos">
+                            <option value="Bonés">
+                            <option value="Meias">
+                            <option value="Cintos">
+                            <option value="Óculos">
+                        </datalist>
                     </label>
 
                     <label>
@@ -575,19 +601,32 @@ document.addEventListener("DOMContentLoaded", () => {
                         <textarea id="produto-descricao" rows="4"></textarea>
                     </label>
 
-                    <label>
-                        Imagens
-                        <input id="produto-imagens-arquivos" type="file"
-                            accept="image/jpeg,image/png,image/webp,image/gif"
-                            multiple>
-                    </label>
-
-                    <div id="produto-imagens-existentes"></div>
-
-                    <label>
-                        <input id="produto-remover-imagens" type="checkbox">
-                        Remover imagens atuais
-                    </label>
+                    <fieldset class="produto-image-fieldset">
+                        <legend>Imagens do produto</legend>
+                        <div class="produto-image-slots">
+                            ${[0, 1, 2].map(indice => `
+                                <div class="produto-image-slot" data-image-slot="${indice}">
+                                    <img data-image-preview="${indice}" alt="Prévia da imagem ${indice + 1}" hidden>
+                                    <span class="produto-image-slot-placeholder" data-image-placeholder="${indice}">
+                                        <i class="fa-regular fa-image" aria-hidden="true"></i>
+                                        <span>Imagem ${indice + 1}</span>
+                                    </span>
+                                    <label class="produto-image-select" for="produto-imagem-${indice}">
+                                        Escolher imagem
+                                        <input id="produto-imagem-${indice}"
+                                            data-image-file="${indice}"
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/webp,image/gif">
+                                    </label>
+                                    <button type="button" class="produto-image-remove"
+                                        data-image-remove="${indice}" hidden>
+                                        Remover
+                                    </button>
+                                </div>
+                            `).join("")}
+                        </div>
+                        <p class="produto-image-help">Adicione até 3 imagens. Cada arquivo pode ter no máximo 5 MB.</p>
+                    </fieldset>
 
                     <div class="modal-produto-acoes">
                         <button type="button" id="cancelar-modal-produto">
@@ -631,12 +670,14 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.querySelector("form").style.display = "grid";
         modal.querySelector("form").style.gap = "14px";
 
-        modal.querySelectorAll("label").forEach(label => {
+        modal.querySelectorAll("form > label").forEach(label => {
             label.style.display = "grid";
             label.style.gap = "7px";
         });
 
-        modal.querySelectorAll("input:not([type=checkbox]), textarea, select")
+        modal.querySelectorAll(
+            "input:not([type=checkbox]):not([data-image-file]), textarea, select"
+        )
             .forEach(campo => {
                 Object.assign(campo.style, {
                     padding: "11px",
@@ -663,27 +704,73 @@ document.addEventListener("DOMContentLoaded", () => {
 
         modal.querySelector("#form-produto-nova")
             .addEventListener("submit", salvarProduto);
+
+        modal.querySelectorAll("[data-image-file]").forEach(arquivo => {
+            const indice = Number(arquivo.dataset.imageFile);
+            arquivo.addEventListener("change", () => {
+                const imagemSelecionada = arquivo.files?.[0];
+                if (!imagemSelecionada) return;
+
+                if (urlsPrevisualizacaoImagens[indice]) {
+                    URL.revokeObjectURL(urlsPrevisualizacaoImagens[indice]);
+                }
+
+                arquivosImagemSelecionados[indice] = imagemSelecionada;
+                urlsPrevisualizacaoImagens[indice] =
+                    URL.createObjectURL(imagemSelecionada);
+                atualizarSlotImagem(
+                    indice,
+                    urlsPrevisualizacaoImagens[indice]
+                );
+            });
+        });
+
+        modal.querySelectorAll("[data-image-remove]").forEach(botao => {
+            botao.addEventListener("click", () => {
+                const indice = Number(botao.dataset.imageRemove);
+                imagensExistentesModal[indice] = "";
+
+                const arquivo = modal.querySelector(
+                    `[data-image-file="${indice}"]`
+                );
+                if (arquivo) arquivo.value = "";
+                arquivosImagemSelecionados[indice] = null;
+
+                if (urlsPrevisualizacaoImagens[indice]) {
+                    URL.revokeObjectURL(urlsPrevisualizacaoImagens[indice]);
+                    urlsPrevisualizacaoImagens[indice] = null;
+                }
+
+                atualizarSlotImagem(indice);
+            });
+        });
     }
 
-    function mostrarImagens(imagens) {
-        const area = document.querySelector("#produto-imagens-existentes");
-        if (!area) return;
+    function atualizarSlotImagem(indice, url = "") {
+        const preview = document.querySelector(
+            `[data-image-preview="${indice}"]`
+        );
+        const placeholder = document.querySelector(
+            `[data-image-placeholder="${indice}"]`
+        );
+        const remover = document.querySelector(
+            `[data-image-remove="${indice}"]`
+        );
 
-        area.innerHTML = "";
+        if (!preview || !placeholder || !remover) return;
 
-        imagens.forEach(url => {
-            const imagem = document.createElement("img");
-            imagem.src = url;
-            imagem.alt = "Imagem do produto";
+        preview.hidden = !url;
+        preview.removeAttribute("src");
+        if (url) preview.src = url;
+        placeholder.hidden = Boolean(url);
+        remover.hidden = !url;
+    }
 
-            Object.assign(imagem.style, {
-                width: "75px",
-                height: "85px",
-                objectFit: "cover",
-                borderRadius: "6px"
-            });
-
-            area.appendChild(imagem);
+    function limparPreviewsTemporarias() {
+        urlsPrevisualizacaoImagens.forEach((url, indice) => {
+            if (url) URL.revokeObjectURL(url);
+            urlsPrevisualizacaoImagens[indice] = null;
+            arquivosImagemSelecionados[indice] = null;
         });
     }
 
@@ -694,6 +781,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const formulario = document.querySelector("#form-produto-nova");
 
         formulario.reset();
+        limparPreviewsTemporarias();
 
         document.querySelector("#produto-id-original").value =
             produto?.id || "";
@@ -720,15 +808,20 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector("#produto-ativo").value =
             produto?.ativo === false ? "false" : "true";
 
-        document.querySelector("#produto-remover-imagens").checked = false;
+        imagensExistentesModal = produto?.imagens?.length
+            ? [...produto.imagens]
+            : produto?.imagem
+                ? [produto.imagem]
+                : [];
 
-        mostrarImagens(
-            produto?.imagens?.length
-                ? produto.imagens
-                : produto?.imagem
-                    ? [produto.imagem]
-                    : []
-        );
+        [0, 1, 2].forEach(indice => {
+            const arquivo = document.querySelector(
+                `[data-image-file="${indice}"]`
+            );
+            if (arquivo) arquivo.value = "";
+
+            atualizarSlotImagem(indice, imagensExistentesModal[indice] || "");
+        });
 
         modal.style.display = "flex";
         document.body.style.overflow = "hidden";
@@ -742,6 +835,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         document.body.style.overflow = "";
+        limparPreviewsTemporarias();
     }
 
     // =========================================
@@ -779,13 +873,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const ativo =
             document.querySelector("#produto-ativo").value === "true";
 
-        const arquivos = Array.from(
-            document.querySelector("#produto-imagens-arquivos").files
-        );
-
-        const removerImagens =
-            document.querySelector("#produto-remover-imagens").checked;
-
         if (!id || !nome || !categoria) {
             mostrarMensagem("Preencha o código, nome e categoria.");
             return;
@@ -813,22 +900,23 @@ document.addEventListener("DOMContentLoaded", () => {
             produto => produto.id === (idOriginal || id)
         );
 
-        let imagens = removerImagens
-            ? []
-            : [...(existente?.imagens || [])];
-
-        if (!imagens.length && !removerImagens && existente?.imagem) {
-            imagens = [existente.imagem];
-        }
+        let imagens = [...imagensExistentesModal];
+        if (!imagens.length && existente?.imagem) imagens = [existente.imagem];
 
         botao.disabled = true;
         botao.textContent = "Salvando...";
 
         try {
-            for (const arquivo of arquivos) {
-                const url = await enviarImagem(arquivo, idOriginal || id);
-                imagens.push(url);
+            for (let indice = 0; indice < arquivosImagemSelecionados.length; indice += 1) {
+                const arquivo = arquivosImagemSelecionados[indice];
+                if (!arquivo) continue;
+
+                imagens[indice] = await enviarImagem(
+                    arquivo,
+                    idOriginal || id
+                );
             }
+            imagens = imagens.filter(Boolean);
 
             const registro = {
                 id: idOriginal || id,

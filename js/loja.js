@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", iniciarLoja);
 
 const NOVA_LOJA = {
     chaveCarrinho: "novaCarrinho",
+    chaveFavoritos: "novaFavoritos",
     tabelaProdutos: "produtos_nova",
     tabelaConfiguracoes: "configuracoes_nova",
     produtosPorPagina: 12
@@ -18,8 +19,8 @@ let configuracoes = {};
 let produtosFiltrados = [];
 let paginaAtual = 1;
 let categoriasAtivas = [];
-let tamanhosAtivos = [];
 let favoritos = new Set();
+let somenteFavoritos = false;
 let carregamentoEmAndamento = false;
 
 /* =========================================================
@@ -32,14 +33,12 @@ function obterElementos() {
     elementos.busca = document.querySelector(".shop-search input");
     elementos.limparBusca = document.querySelector("#clear-search");
 
-    elementos.abasCategoria =
-        [...document.querySelectorAll(".category-tab")];
-
     elementos.checkboxesCategoria =
         [...document.querySelectorAll(".filter-option input")];
-
-    elementos.botoesTamanho =
-        [...document.querySelectorAll(".size-options button")];
+    elementos.categoriasExtras =
+        [...document.querySelectorAll("[data-category-extra]")];
+    elementos.expandirCategorias =
+        document.querySelector("#category-expand");
 
     elementos.precos =
         [...document.querySelectorAll(".price-inputs input")];
@@ -50,8 +49,8 @@ function obterElementos() {
     elementos.ordenacao =
         document.querySelector(".sort-products");
 
-    elementos.contadorProdutos =
-        document.querySelector(".products-count");
+    elementos.filtrarFavoritos =
+        document.querySelector("#toggle-favorites");
 
     elementos.contadorCarrinho =
         document.querySelector(".cart-count");
@@ -315,6 +314,7 @@ function criarCardProduto(produto) {
     const precoOriginal = converterPreco(produto.preco);
     const precoAtual = obterPrecoAtual(produto);
     const emPromocao = precoAtual < precoOriginal;
+    const favorito = favoritos.has(String(produto.id));
 
     const imagemHTML = imagem
         ? `
@@ -349,11 +349,12 @@ function criarCardProduto(produto) {
 
             <button
                 type="button"
-                class="favorite-button"
-                aria-label="Adicionar aos favoritos"
-                aria-pressed="false"
+                class="favorite-button${favorito ? " active" : ""}"
+                data-favorite-id="${escaparHTML(produto.id)}"
+                aria-label="${favorito ? "Remover dos favoritos" : "Adicionar aos favoritos"}"
+                aria-pressed="${favorito}"
             >
-                <i class="fa-regular fa-heart"></i>
+                <i class="fa-${favorito ? "solid" : "regular"} fa-heart"></i>
             </button>
         </div>
 
@@ -375,7 +376,7 @@ function criarCardProduto(produto) {
         evento.preventDefault();
         evento.stopPropagation();
 
-        alternarFavorito(produto.id, botaoFavorito);
+        alternarFavorito(produto.id);
     });
 
     card.addEventListener("click", evento => {
@@ -401,28 +402,23 @@ function abrirProduto(produto) {
    FAVORITOS
    ========================================================= */
 
-function alternarFavorito(id, botao) {
-    const chave = String(id);
-    const icone = botao.querySelector("i");
+function alternarFavorito(id) {
+    try {
+        const resultado = window.NovaFavoritos.alternar(id);
+        favoritos = new Set(resultado.ids);
 
-    if (favoritos.has(chave)) {
-        favoritos.delete(chave);
-        botao.classList.remove("active");
-        botao.setAttribute("aria-pressed", "false");
-
-        if (icone) {
-            icone.classList.remove("fa-solid");
-            icone.classList.add("fa-regular");
+        if (somenteFavoritos) {
+            filtrarProdutos();
         }
-    } else {
-        favoritos.add(chave);
-        botao.classList.add("active");
-        botao.setAttribute("aria-pressed", "true");
 
-        if (icone) {
-            icone.classList.remove("fa-regular");
-            icone.classList.add("fa-solid");
-        }
+        mostrarMensagem(
+            resultado.ativo
+                ? "Produto adicionado aos favoritos."
+                : "Produto removido dos favoritos."
+        );
+    } catch (erro) {
+        console.error("Erro ao salvar favorito:", erro);
+        mostrarMensagem("Não foi possível salvar os favoritos.");
     }
 }
 
@@ -468,46 +464,7 @@ function obterCategoriasSelecionadas() {
             ""
         );
 
-    const categoriasAbas = elementos.abasCategoria
-        .filter(aba => aba.classList.contains("active"))
-        .map(aba => aba.dataset.category || aba.textContent.trim())
-        .filter(categoria =>
-            categoria && obterCategoria(categoria) !== "todo"
-        );
-
-    return [
-        ...new Set(
-            [...categoriasCheckbox, ...categoriasAbas]
-                .map(obterCategoria)
-                .filter(Boolean)
-        )
-    ];
-}
-
-function obterTamanhosSelecionados() {
-    return elementos.botoesTamanho
-        .filter(botao => botao.classList.contains("active"))
-        .map(botao =>
-            botao.dataset.filterSize ||
-            botao.textContent.trim()
-        );
-}
-
-function produtoTemTamanho(produto, tamanhos) {
-    if (!tamanhos.length) return true;
-
-    const tamanhosProduto = produto.tamanhos ||
-        produto.tamanhos_disponiveis ||
-        produto.tamanhosDisponiveis ||
-        [];
-
-    if (!Array.isArray(tamanhosProduto)) {
-        return true;
-    }
-
-    return tamanhos.some(tamanho =>
-        tamanhosProduto.map(String).includes(String(tamanho))
-    );
+    return [...new Set(categoriasCheckbox.map(obterCategoria).filter(Boolean))];
 }
 
 function filtrarProdutos() {
@@ -518,8 +475,6 @@ function filtrarProdutos() {
         .toLocaleLowerCase("pt-BR") || "";
 
     const categorias = obterCategoriasSelecionadas();
-    const tamanhos = obterTamanhosSelecionados();
-
     const precoMinimo = Math.max(
         0,
         converterPreco(elementos.precos[0]?.value)
@@ -527,6 +482,12 @@ function filtrarProdutos() {
 
     const valorMaximo = converterPreco(elementos.precos[1]?.value);
     const precoMaximo = valorMaximo > 0 ? valorMaximo : Infinity;
+
+    if (somenteFavoritos) {
+        resultado = resultado.filter(produto =>
+            favoritos.has(String(produto.id))
+        );
+    }
 
     if (busca) {
         resultado = resultado.filter(produto => {
@@ -548,12 +509,6 @@ function filtrarProdutos() {
     if (categorias.length) {
         resultado = resultado.filter(produto =>
             categorias.includes(obterCategoria(produto.categoria))
-        );
-    }
-
-    if (tamanhos.length) {
-        resultado = resultado.filter(produto =>
-            produtoTemTamanho(produto, tamanhos)
         );
     }
 
@@ -630,15 +585,25 @@ function renderizarPagina() {
         elementos.grade.appendChild(criarCardProduto(produto));
     });
 
-    if (elementos.contadorProdutos) {
-        elementos.contadorProdutos.textContent =
-            total === 1 ? "1 produto" : `${total} produtos`;
-    }
-
     const semProdutos = total === 0;
 
     if (elementos.tituloVazio) {
         elementos.tituloVazio.hidden = !semProdutos;
+
+        const titulo = elementos.tituloVazio.querySelector("h2");
+        const descricao = elementos.tituloVazio.querySelector("p");
+
+        if (titulo) {
+            titulo.textContent = somenteFavoritos
+                ? "Nenhum favorito encontrado"
+                : "Nenhum produto encontrado";
+        }
+
+        if (descricao) {
+            descricao.textContent = somenteFavoritos
+                ? "Marque produtos com o coração para encontrá-los aqui."
+                : "Tente alterar sua busca ou remover alguns filtros.";
+        }
     }
 
     if (elementos.paginacao) {
@@ -686,31 +651,28 @@ function mudarPagina(direcao) {
    ========================================================= */
 
 function limparFiltros() {
+    somenteFavoritos = false;
+    if (elementos.filtrarFavoritos) {
+        elementos.filtrarFavoritos.setAttribute("aria-pressed", "false");
+        elementos.filtrarFavoritos.querySelector("span").textContent =
+            "Ver favoritos";
+        elementos.filtrarFavoritos.querySelector("i")?.classList.replace(
+            "fa-solid",
+            "fa-regular"
+        );
+    }
+
     if (elementos.busca) elementos.busca.value = "";
 
     elementos.checkboxesCategoria.forEach(checkbox => {
         checkbox.checked = false;
     });
 
-    elementos.botoesTamanho.forEach(botao => {
-        botao.classList.remove("active");
-        botao.setAttribute("aria-pressed", "false");
-    });
-
     elementos.precos.forEach(input => {
         input.value = "";
     });
 
-    elementos.abasCategoria.forEach(aba => {
-        const categoria = obterCategoria(
-            aba.dataset.category || aba.textContent
-        );
-
-        const selecionada = categoria === "todo";
-
-        aba.classList.toggle("active", selecionada);
-        aba.setAttribute("aria-pressed", String(selecionada));
-    });
+    recolherCategorias();
 
     if (elementos.ordenacao) {
         elementos.ordenacao.value = "relevancia";
@@ -724,28 +686,23 @@ function aplicarCategoriaDaUrl() {
         window.location.search
     ).get("categoria");
 
-    if (!categoriaSolicitada) return;
+    if (!categoriaSolicitada || obterCategoria(categoriaSolicitada) === "todo") {
+        return;
+    }
 
-    const abaSelecionada = elementos.abasCategoria.find(aba =>
-        obterCategoria(aba.dataset.category || aba.textContent) ===
-        obterCategoria(categoriaSolicitada)
+    const categoriaSelecionada = obterCategoria(categoriaSolicitada);
+    const checkboxSelecionado = elementos.checkboxesCategoria.find(checkbox =>
+        obterCategoria(checkbox.value) === categoriaSelecionada
     );
 
-    if (!abaSelecionada) return;
+    if (!checkboxSelecionado) return;
 
-    elementos.abasCategoria.forEach(aba => {
-        const selecionada = aba === abaSelecionada;
-        aba.classList.toggle("active", selecionada);
-        aba.setAttribute("aria-pressed", String(selecionada));
-    });
-
-    const categoriaSelecionada = obterCategoria(
-        abaSelecionada.dataset.category || abaSelecionada.textContent
-    );
+    if (checkboxSelecionado.closest("[data-category-extra]")) {
+        expandirCategorias();
+    }
 
     elementos.checkboxesCategoria.forEach(checkbox => {
-        checkbox.checked = obterCategoria(checkbox.value) ===
-            categoriaSelecionada;
+        checkbox.checked = checkbox === checkboxSelecionado;
     });
 }
 
@@ -753,17 +710,20 @@ function inicializarCategoriasMenuMobile() {
     const listaCategorias = document.querySelector("#mobile-menu-categories");
     if (!listaCategorias) return;
 
-    const abas = elementos.abasCategoria;
+    const categorias = [
+        { nome: "Todos os produtos", valor: "todo" },
+        ...elementos.checkboxesCategoria.map(checkbox => ({
+            nome: checkbox.value,
+            valor: obterCategoria(checkbox.value)
+        }))
+    ];
 
-    abas.forEach(aba => {
-        const categoria = aba.dataset.category || aba.textContent.trim();
+    categorias.forEach(categoria => {
         const link = document.createElement("a");
 
         link.href = "#categorias";
-        link.dataset.menuCategory = obterCategoria(categoria);
-        link.textContent = obterCategoria(categoria) === "todo"
-            ? "Todos os produtos"
-            : categoria;
+        link.dataset.menuCategory = categoria.valor;
+        link.textContent = categoria.nome;
         listaCategorias.appendChild(link);
     });
 
@@ -771,20 +731,57 @@ function inicializarCategoriasMenuMobile() {
         const link = evento.target.closest("[data-menu-category]");
         if (!link) return;
 
-        const aba = abas.find(item =>
-            obterCategoria(item.dataset.category || item.textContent) ===
-            link.dataset.menuCategory
-        );
+        evento.preventDefault();
+        const categoria = link.dataset.menuCategory;
 
-        if (aba) {
-            evento.preventDefault();
-            aba.click();
-            document.querySelector("#categorias")?.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
+        if (categoria === "todo") {
+            elementos.checkboxesCategoria.forEach(checkbox => {
+                checkbox.checked = false;
             });
+        } else {
+            const checkboxSelecionado = elementos.checkboxesCategoria.find(
+                checkbox => obterCategoria(checkbox.value) === categoria
+            );
+
+            if (!checkboxSelecionado) return;
+
+            elementos.checkboxesCategoria.forEach(checkbox => {
+                checkbox.checked = checkbox === checkboxSelecionado;
+            });
+
+            if (checkboxSelecionado.closest("[data-category-extra]")) {
+                expandirCategorias();
+            }
         }
+
+        filtrarProdutos();
+        document.querySelector("#categorias")?.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
     });
+}
+
+function expandirCategorias() {
+    elementos.categoriasExtras.forEach(item => {
+        item.hidden = false;
+    });
+
+    if (elementos.expandirCategorias) {
+        elementos.expandirCategorias.textContent = "Ver menos";
+        elementos.expandirCategorias.setAttribute("aria-expanded", "true");
+    }
+}
+
+function recolherCategorias() {
+    elementos.categoriasExtras.forEach(item => {
+        item.hidden = !item.querySelector("input").checked;
+    });
+
+    if (elementos.expandirCategorias) {
+        elementos.expandirCategorias.textContent = "Ver mais";
+        elementos.expandirCategorias.setAttribute("aria-expanded", "false");
+    }
 }
 
 /* =========================================================
@@ -801,54 +798,44 @@ function inicializarFiltros() {
         elementos.busca?.focus();
     });
 
-    elementos.abasCategoria.forEach(aba => {
-        aba.addEventListener("click", () => {
-            elementos.abasCategoria.forEach(item => {
-                item.classList.remove("active");
-                item.setAttribute("aria-pressed", "false");
-            });
-
-            aba.classList.add("active");
-            aba.setAttribute("aria-pressed", "true");
-
-            const categoria = obterCategoria(
-                aba.dataset.category || aba.textContent
-            );
-
-            elementos.checkboxesCategoria.forEach(checkbox => {
-                const valor = checkbox.value ||
-                    checkbox.nextElementSibling?.textContent || "";
-
-                checkbox.checked = categoria !== "todo" &&
-                    obterCategoria(valor) === categoria;
-            });
-
-            filtrarProdutos();
-        });
-    });
-
     elementos.checkboxesCategoria.forEach(checkbox => {
         checkbox.addEventListener("change", () => {
-            elementos.abasCategoria.forEach(aba => {
-                aba.classList.remove("active");
-                aba.setAttribute("aria-pressed", "false");
-            });
+            if (
+                !checkbox.checked &&
+                checkbox.closest("[data-category-extra]") &&
+                elementos.expandirCategorias?.getAttribute("aria-expanded") !== "true"
+            ) {
+                checkbox.closest("[data-category-extra]").hidden = true;
+            }
 
             filtrarProdutos();
         });
     });
 
-    elementos.botoesTamanho.forEach(botao => {
-        botao.addEventListener("click", () => {
-            botao.classList.toggle("active");
+    elementos.expandirCategorias?.addEventListener("click", () => {
+        const expandido =
+            elementos.expandirCategorias.getAttribute("aria-expanded") === "true";
+        if (expandido) recolherCategorias();
+        else expandirCategorias();
+    });
 
-            botao.setAttribute(
-                "aria-pressed",
-                String(botao.classList.contains("active"))
-            );
-
-            filtrarProdutos();
-        });
+    elementos.filtrarFavoritos?.addEventListener("click", () => {
+        somenteFavoritos = !somenteFavoritos;
+        elementos.filtrarFavoritos.setAttribute(
+            "aria-pressed",
+            String(somenteFavoritos)
+        );
+        elementos.filtrarFavoritos.querySelector("span").textContent =
+            somenteFavoritos ? "Ver todos" : "Ver favoritos";
+        elementos.filtrarFavoritos.querySelector("i")?.classList.toggle(
+            "fa-solid",
+            somenteFavoritos
+        );
+        elementos.filtrarFavoritos.querySelector("i")?.classList.toggle(
+            "fa-regular",
+            !somenteFavoritos
+        );
+        filtrarProdutos();
     });
 
     elementos.precos.forEach(input => {
@@ -900,9 +887,6 @@ function mostrarCarregamento() {
         `;
     }
 
-    if (elementos.contadorProdutos) {
-        elementos.contadorProdutos.textContent = "Carregando produtos...";
-    }
 }
 
 function mostrarErro() {
@@ -927,10 +911,6 @@ function mostrarErro() {
         elementos.grade.setAttribute("aria-busy", "false");
     }
 
-    if (elementos.contadorProdutos) {
-        elementos.contadorProdutos.textContent =
-            "Não foi possível carregar os produtos";
-    }
 }
 
 /* =========================================================
@@ -977,11 +957,46 @@ window.addEventListener("storage", evento => {
         atualizarContadorCarrinho();
     }
 
+    if (evento.key === NOVA_LOJA.chaveFavoritos) {
+        atualizarFavoritos();
+    }
+
     /*
        Os produtos são carregados do Supabase.
        Alterações no localStorage não substituem o banco.
     */
 });
+
+window.addEventListener("nova:favoritos-atualizados", evento => {
+    atualizarFavoritos(evento.detail.ids);
+});
+
+function atualizarFavoritos(ids) {
+    try {
+        favoritos = new Set(
+            (ids || window.NovaFavoritos.obterIds()).map(String)
+        );
+
+        document.querySelectorAll(".favorite-button[data-favorite-id]").forEach(botao => {
+            const ativo = favoritos.has(botao.dataset.favoriteId);
+            botao.classList.toggle("active", ativo);
+            botao.setAttribute("aria-pressed", String(ativo));
+            botao.setAttribute(
+                "aria-label",
+                ativo ? "Remover dos favoritos" : "Adicionar aos favoritos"
+            );
+
+            const icone = botao.querySelector("i");
+            icone?.classList.toggle("fa-solid", ativo);
+            icone?.classList.toggle("fa-regular", !ativo);
+        });
+
+        if (somenteFavoritos) filtrarProdutos();
+    } catch (erro) {
+        console.error("Erro ao carregar favoritos:", erro);
+        mostrarMensagem("Não foi possível carregar os favoritos salvos.");
+    }
+}
 
 window.addEventListener("nova:carrinho-atualizado", () => {
     atualizarContadorCarrinho();
@@ -993,6 +1008,7 @@ window.addEventListener("nova:carrinho-atualizado", () => {
 
 async function iniciarLoja() {
     obterElementos();
+    atualizarFavoritos();
 
     inicializarFiltros();
     inicializarCategoriasMenuMobile();

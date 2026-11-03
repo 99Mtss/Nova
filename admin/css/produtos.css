@@ -661,6 +661,112 @@
    MODAL DE PRODUTO
 ===================================================== */
 
+.produto-image-fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 14px;
+    border: 1px solid #DED8CD;
+    border-radius: 8px;
+}
+
+.produto-image-fieldset legend {
+    padding: 0 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.produto-image-slots {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.produto-image-slot {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border: 1px dashed #BEB7AB;
+    border-radius: 8px;
+    background: #F7F4EE;
+}
+
+.produto-image-slot > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.produto-image-slot-placeholder {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    color: #777166;
+    font-size: 12px;
+    pointer-events: none;
+}
+
+.produto-image-slot-placeholder i {
+    font-size: 22px;
+}
+
+.produto-image-select {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 6px;
+    background: rgba(25, 25, 22, 0.78);
+    color: #fff;
+    font-size: 11px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.produto-image-select input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.produto-image-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 2;
+    padding: 5px 7px;
+    border: 0;
+    border-radius: 5px;
+    background: rgba(25, 25, 22, 0.82);
+    color: #fff;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.produto-image-remove[hidden] {
+    display: none;
+}
+
+.produto-image-help {
+    margin: 10px 0 0;
+    color: #777166;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
 .produto-modal {
     position: fixed !important;
     top: 0 !important;
@@ -1043,9 +1149,16 @@
     }
 
     .produto-form .form-row {
-
         grid-template-columns: 1fr;
+    }
 
+    .produto-image-slots {
+        gap: 7px;
+    }
+
+    .produto-image-select {
+        min-height: 40px;
+        font-size: 10px;
     }
 
     .produto-form .form-actions {

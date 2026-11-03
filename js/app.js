@@ -5,10 +5,50 @@
    ========================================================= */
 
 const NOVA_CART_KEY = "novaCarrinho";
+const NOVA_FAVORITES_KEY = "novaFavoritos";
 
 let novaCarrinho = [];
 let novaProdutos = [];
 let novaConfiguracoes = {};
+let novaBannerSlides = [];
+let novaBannerAtual = 0;
+let novaBannerTimer = null;
+
+window.NovaFavoritos = {
+    obterIds() {
+        const valor = localStorage.getItem(NOVA_FAVORITES_KEY);
+        if (!valor) return [];
+
+        const ids = JSON.parse(valor);
+        if (!Array.isArray(ids)) {
+            throw new Error("A lista de favoritos salva é inválida.");
+        }
+
+        return [...new Set(ids.map(String).filter(Boolean))];
+    },
+
+    alternar(id) {
+        const produtoId = String(id);
+        if (!produtoId) {
+            throw new Error("Não foi possível identificar o produto favorito.");
+        }
+
+        const ids = this.obterIds();
+        const favoritos = new Set(ids);
+        const ativo = !favoritos.has(produtoId);
+
+        if (ativo) favoritos.add(produtoId);
+        else favoritos.delete(produtoId);
+
+        const idsAtualizados = [...favoritos];
+        localStorage.setItem(NOVA_FAVORITES_KEY, JSON.stringify(idsAtualizados));
+        window.dispatchEvent(new CustomEvent("nova:favoritos-atualizados", {
+            detail: { ids: idsAtualizados }
+        }));
+
+        return { ids: idsAtualizados, ativo };
+    }
+};
 
 /* =========================================================
    FUNÇÕES AUXILIARES
@@ -368,13 +408,18 @@ function novaAplicarBanner(configuracoes) {
     );
 
     if (hero) {
-        const bannerUrl = novaImagemValida(configuracoes.banner);
+        const bannersConfigurados = Array.isArray(configuracoes.banners)
+            ? configuracoes.banners
+                .map(novaImagemValida)
+                .filter(Boolean)
+                .slice(0, 3)
+            : [];
+        const bannerAntigo = novaImagemValida(configuracoes.banner);
+        const slides = bannersConfigurados.length
+            ? bannersConfigurados
+            : bannerAntigo ? [bannerAntigo] : [];
 
-        if (bannerUrl) {
-            hero.style.backgroundImage =
-                `linear-gradient(rgba(25,25,22,0.42), rgba(25,25,22,0.42)), url("${bannerUrl}")`;
-            hero.classList.add("nova-banner-configurado");
-        }
+        novaConfigurarSlidesBanner(hero, slides);
     }
 
     const collection = document.querySelector("#banner-colecao");
@@ -462,6 +507,14 @@ function novaRenderizarDestaques(produtos, configuracoes) {
         produtos,
         configuracoes
     );
+    let favoritos = new Set();
+
+    try {
+        favoritos = new Set(window.NovaFavoritos.obterIds());
+    } catch (erro) {
+        console.error("Erro ao carregar favoritos:", erro);
+        novaMostrarMensagem("Não foi possível carregar os favoritos salvos.");
+    }
 
     if (destaques.length === 0) {
         lista.innerHTML = `
@@ -478,6 +531,7 @@ function novaRenderizarDestaques(produtos, configuracoes) {
         const categoria = novaEscaparHTML(produto.categoria || "VÉRTICE");
         const descricao = novaEscaparHTML(produto.descricao || "");
         const imagem = novaImagemValida(produto.imagem);
+        const favorito = favoritos.has(String(produto.id));
 
         const precoOriginal = novaConverterPreco(produto.preco);
         const promocao = novaEncontrarPromocao(
@@ -534,6 +588,16 @@ function novaRenderizarDestaques(produtos, configuracoes) {
                 data-product-id="${id}"
                 data-id="${id}"
             >
+                <button
+                    type="button"
+                    class="product-favorite${favorito ? " active" : ""}"
+                    data-favorite-toggle="${id}"
+                    aria-label="${favorito ? "Remover dos favoritos" : "Adicionar aos favoritos"}"
+                    aria-pressed="${favorito}"
+                >
+                    <i class="fa-${favorito ? "solid" : "regular"} fa-heart" aria-hidden="true"></i>
+                </button>
+
                 <a
                     href="pages/produto.html"
                     class="product-image nova-link-produto"
@@ -672,54 +736,116 @@ function novaInicializarControlesBanner() {
 
     const heroLeft = document.querySelector(".hero-arrow-left");
     const heroRight = document.querySelector(".hero-arrow-right");
-    const heroDots = document.querySelectorAll(".hero-dot");
+    const heroDots = document.querySelector(".hero-dots");
+    if (!hero) return;
 
-    let bannerAtual = 0;
+    heroLeft?.addEventListener("click", () => {
+        novaMostrarSlideBanner(novaBannerAtual - 1, true);
+    });
 
-    function atualizarBanner() {
-        heroDots.forEach((dot, index) => {
-            dot.classList.toggle("active", index === bannerAtual);
+    heroRight?.addEventListener("click", () => {
+        novaMostrarSlideBanner(novaBannerAtual + 1, true);
+    });
 
-            dot.setAttribute(
-                "aria-current",
-                index === bannerAtual ? "true" : "false"
-            );
+    heroDots?.addEventListener("click", evento => {
+        const botao = evento.target.closest("[data-banner-slide]");
+        if (!botao) return;
+        novaMostrarSlideBanner(Number(botao.dataset.bannerSlide), true);
+    });
+
+    hero.addEventListener("mouseenter", novaPararRotacaoBanner);
+    hero.addEventListener("mouseleave", novaIniciarRotacaoBanner);
+    hero.addEventListener("focusin", novaPararRotacaoBanner);
+    hero.addEventListener("focusout", evento => {
+        if (!hero.contains(evento.relatedTarget)) novaIniciarRotacaoBanner();
+    });
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) novaPararRotacaoBanner();
+        else novaIniciarRotacaoBanner();
+    });
+}
+
+function novaConfigurarSlidesBanner(hero, slides) {
+    novaBannerSlides = slides;
+    novaBannerAtual = 0;
+
+    const dots = document.querySelector(".hero-dots");
+    if (dots) {
+        dots.replaceChildren();
+
+        slides.forEach((_, index) => {
+            const botao = document.createElement("button");
+            botao.type = "button";
+            botao.className = "hero-dot";
+            botao.dataset.bannerSlide = String(index);
+            botao.setAttribute("aria-label", `Exibir imagem ${index + 1}`);
+            dots.appendChild(botao);
         });
 
-        if (hero) {
-            hero.dataset.bannerAtual = String(bannerAtual);
-        }
+        dots.hidden = slides.length < 2;
     }
 
-    if (heroDots.length > 0) {
-        if (heroLeft) {
-            heroLeft.addEventListener("click", () => {
-                bannerAtual =
-                    (bannerAtual - 1 + heroDots.length) %
-                    heroDots.length;
+    const anterior = document.querySelector(".hero-arrow-left");
+    const proximo = document.querySelector(".hero-arrow-right");
+    if (anterior) anterior.hidden = slides.length < 2;
+    if (proximo) proximo.hidden = slides.length < 2;
 
-                atualizarBanner();
-            });
-        }
-
-        if (heroRight) {
-            heroRight.addEventListener("click", () => {
-                bannerAtual =
-                    (bannerAtual + 1) % heroDots.length;
-
-                atualizarBanner();
-            });
-        }
-
-        heroDots.forEach((dot, index) => {
-            dot.addEventListener("click", () => {
-                bannerAtual = index;
-                atualizarBanner();
-            });
-        });
+    if (slides.length) {
+        hero.classList.add("nova-banner-configurado");
+        novaMostrarSlideBanner(0, false);
     }
 
-    atualizarBanner();
+    novaIniciarRotacaoBanner();
+}
+
+function novaMostrarSlideBanner(indice, reiniciarTimer = true) {
+    const hero = document.querySelector(".hero");
+    if (!hero || !novaBannerSlides.length) return;
+
+    novaBannerAtual =
+        (indice + novaBannerSlides.length) % novaBannerSlides.length;
+    const imagem = novaBannerSlides[novaBannerAtual];
+    hero.style.backgroundImage =
+        `linear-gradient(rgba(25,25,22,0.42), rgba(25,25,22,0.42)), url("${imagem}")`;
+    hero.dataset.bannerAtual = String(novaBannerAtual);
+
+    document.querySelectorAll(".hero-dot").forEach((dot, index) => {
+        const ativo = index === novaBannerAtual;
+        dot.classList.toggle("active", ativo);
+        dot.setAttribute("aria-current", String(ativo));
+    });
+
+    if (reiniciarTimer) {
+        novaPararRotacaoBanner();
+        novaIniciarRotacaoBanner();
+    }
+}
+
+function novaPararRotacaoBanner() {
+    if (novaBannerTimer !== null) {
+        window.clearInterval(novaBannerTimer);
+        novaBannerTimer = null;
+    }
+}
+
+function novaIniciarRotacaoBanner() {
+    novaPararRotacaoBanner();
+    const hero = document.querySelector(".hero");
+
+    if (
+        novaBannerSlides.length < 2 ||
+        document.hidden ||
+        hero?.matches(":hover") ||
+        hero?.contains(document.activeElement) ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+        return;
+    }
+
+    novaBannerTimer = window.setInterval(() => {
+        novaMostrarSlideBanner(novaBannerAtual + 1, false);
+    }, 5000);
 }
 
 /* =========================================================
@@ -732,6 +858,29 @@ function novaInicializarEventosProdutos() {
     }
 
     document.addEventListener("click", (event) => {
+        const botaoFavorito = event.target.closest("[data-favorite-toggle]");
+
+        if (botaoFavorito) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            try {
+                const resultado = window.NovaFavoritos.alternar(
+                    botaoFavorito.dataset.favoriteToggle
+                );
+                novaMostrarMensagem(
+                    resultado.ativo
+                        ? "Produto adicionado aos favoritos."
+                        : "Produto removido dos favoritos."
+                );
+            } catch (erro) {
+                console.error("Erro ao salvar favorito:", erro);
+                novaMostrarMensagem("Não foi possível salvar os favoritos.");
+            }
+
+            return;
+        }
+
         const botaoCarrinho = event.target.closest("[data-add-cart]");
 
         if (botaoCarrinho) {
@@ -785,6 +934,39 @@ function novaInicializarEventosProdutos() {
             );
         }
     });
+
+    function atualizarBotoesFavoritos(ids) {
+        const favoritos = new Set(ids.map(String));
+
+        document.querySelectorAll("[data-favorite-toggle]").forEach(botao => {
+            const ativo = favoritos.has(botao.dataset.favoriteToggle);
+            botao.classList.toggle("active", ativo);
+            botao.setAttribute("aria-pressed", String(ativo));
+            botao.setAttribute(
+                "aria-label",
+                ativo ? "Remover dos favoritos" : "Adicionar aos favoritos"
+            );
+
+            const icone = botao.querySelector("i");
+            icone?.classList.toggle("fa-solid", ativo);
+            icone?.classList.toggle("fa-regular", !ativo);
+        });
+    }
+
+    window.addEventListener("nova:favoritos-atualizados", evento => {
+        atualizarBotoesFavoritos(evento.detail.ids);
+    });
+
+    window.addEventListener("storage", evento => {
+        if (evento.key !== NOVA_FAVORITES_KEY) return;
+
+        try {
+            atualizarBotoesFavoritos(window.NovaFavoritos.obterIds());
+        } catch (erro) {
+            console.error("Erro ao sincronizar favoritos:", erro);
+            novaMostrarMensagem("Não foi possível sincronizar os favoritos.");
+        }
+    });
 }
 
 /* =========================================================
@@ -805,52 +987,6 @@ function novaInicializarSincronizacaoCarrinho() {
         }
 
         novaAtualizarContadorCarrinho();
-    });
-}
-
-function novaRenderizarImagensCategorias(produtos) {
-    const normalizar = (valor) => String(valor ?? "")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .trim();
-
-    document.querySelectorAll("[data-category-link]").forEach((card) => {
-        const categoria = normalizar(card.dataset.categoryLink);
-        const produto = produtos.find((item) =>
-            normalizar(item.categoria).includes(categoria)
-        );
-
-        if (!produto) return;
-
-        let imagens = produto.imagens;
-        if (typeof imagens === "string") {
-            try {
-                imagens = JSON.parse(imagens);
-            } catch (erro) {
-                console.error("Galeria de imagens do produto inválida:", erro);
-                imagens = [];
-            }
-        }
-
-        const candidatas = [
-            produto.imagem,
-            ...(Array.isArray(imagens) ? imagens.map((imagem) => {
-                if (typeof imagem === "string") return imagem;
-                if (!imagem || typeof imagem !== "object") return "";
-                return imagem.url || imagem.src || imagem.imagem || imagem.caminho || "";
-            }) : [])
-        ];
-        const url = candidatas.map(novaImagemValida).find(Boolean);
-
-        if (!url) return;
-
-        const imagem = document.createElement("img");
-        imagem.src = url;
-        imagem.alt = "";
-        imagem.loading = "lazy";
-        imagem.decoding = "async";
-        card.prepend(imagem);
     });
 }
 
@@ -898,7 +1034,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         novaAplicarCores(novaConfiguracoes);
         novaAplicarBanner(novaConfiguracoes);
-        novaRenderizarImagensCategorias(novaProdutos);
 
         novaRenderizarDestaques(
             novaProdutos,

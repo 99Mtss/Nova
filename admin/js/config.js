@@ -25,8 +25,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const botaoSalvar = document.querySelector("#salvar-configuracoes");
     const botaoRestaurarTema =
         document.querySelector("#restaurar-tema-nova");
-    const bannerArquivo = document.querySelector("#banner-arquivo");
-    const bannerPreview = document.querySelector("#banner-preview");
+    const bannerArquivos = [
+        ...document.querySelectorAll("[data-banner-file]")
+    ];
+    const bannerPreviews = [
+        ...document.querySelectorAll("[data-banner-preview]")
+    ];
+    const botoesRemoverBanner = [
+        ...document.querySelectorAll("[data-banner-clear]")
+    ];
     const previewTema = document.querySelector("#config-theme-preview");
     const previewDestaque =
         document.querySelector("#preview-cor-destaque");
@@ -98,7 +105,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const estado = {
         cores: {},
         configuracoesSalvas: {},
-        banner: "",
+        banners: ["", "", ""],
         destaques: [],
         promocoes: [],
         cupons: [],
@@ -417,7 +424,10 @@ document.addEventListener("DOMContentLoaded", async () => {
        5. PRÉ-VISUALIZAÇÃO DO BANNER
        ===================================================== */
 
-    function mostrarPlaceholderBanner(titulo, detalhe) {
+    function mostrarPlaceholderBanner(indice, titulo, detalhe) {
+        const bannerPreview = bannerPreviews.find(
+            preview => Number(preview.dataset.bannerPreview) === indice
+        );
         if (!bannerPreview) return;
 
         bannerPreview.classList.remove("has-image");
@@ -442,14 +452,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function visualizarBanner(
         urlRecebida,
+        indice,
         marcarAlteracaoPendente = true
     ) {
+        const bannerPreview = bannerPreviews.find(
+            preview => Number(preview.dataset.bannerPreview) === indice
+        );
         if (!bannerPreview) return Promise.resolve(false);
 
         const url = validarUrlImagem(urlRecebida);
 
         if (!url) {
             mostrarPlaceholderBanner(
+                indice,
                 "Imagem inválida",
                 "O endereço do banner não é válido."
             );
@@ -457,6 +472,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         mostrarPlaceholderBanner(
+            indice,
             "Carregando imagem...",
             "Aguarde a pré-visualização."
         );
@@ -469,7 +485,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 bannerPreview.replaceChildren(imagem);
                 bannerPreview.classList.add("has-image");
 
-                estado.banner = url;
+                estado.banners[indice] = url;
                 if (marcarAlteracaoPendente) {
                     marcarAlteracao();
                 }
@@ -478,6 +494,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             imagem.onerror = () => {
                 mostrarPlaceholderBanner(
+                    indice,
                     "Não foi possível carregar a imagem",
                     "Confira as permissões de leitura pública do bucket nova-produtos."
                 );
@@ -488,7 +505,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    async function enviarBanner(arquivo) {
+    async function enviarBanner(arquivo, indice) {
         if (!tiposImagemPermitidos.has(arquivo.type)) {
             throw new Error("Formato inválido. Use JPG, PNG, WebP ou GIF.");
         }
@@ -538,7 +555,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             );
         }
 
-        const imagemCarregada = await visualizarBanner(url);
+        const imagemCarregada = await visualizarBanner(url, indice);
 
         if (!imagemCarregada) {
             throw new Error(
@@ -548,46 +565,86 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function configurarBanner() {
-        bannerArquivo?.addEventListener("change", async () => {
-            const arquivo = bannerArquivo.files?.[0];
-            if (!arquivo) return;
+        bannerArquivos.forEach(bannerArquivo => {
+            bannerArquivo.addEventListener("change", async () => {
+                const arquivo = bannerArquivo.files?.[0];
+                const indice = Number(bannerArquivo.dataset.bannerFile);
+                if (!arquivo) return;
 
-            estado.enviandoBanner = true;
-            bannerArquivo.disabled = true;
-            if (botaoSalvar) {
-                botaoSalvar.disabled = true;
-            }
-            mostrarPlaceholderBanner(
-                "Enviando banner...",
-                "Aguarde o envio para o Supabase Storage."
-            );
-
-            try {
-                await enviarBanner(arquivo);
-                mostrarNotificacao(
-                    "Banner enviado. Salve as configurações para publicá-lo.",
-                    "sucesso"
-                );
-            } catch (erro) {
-                console.error("[Vértice Config] Erro ao enviar banner:", erro);
-                mostrarNotificacao(
-                    erro.message || "Não foi possível enviar o banner.",
-                    "erro"
-                );
-                mostrarPlaceholderBanner(
-                    "Falha no envio do banner",
-                    "Confira sua conexão e as permissões do bucket no Supabase."
-                );
-                bannerArquivo.value = "";
-            } finally {
-                estado.enviandoBanner = false;
-                bannerArquivo.disabled = false;
+                estado.enviandoBanner = true;
+                botoesRemoverBanner.forEach(botao => {
+                    botao.disabled = true;
+                });
+                bannerArquivos.forEach(input => {
+                    input.disabled = true;
+                });
                 if (botaoSalvar) {
-                    botaoSalvar.disabled =
-                        !estado.administradorAutorizado ||
-                        estado.carregando;
+                    botaoSalvar.disabled = true;
                 }
-            }
+                mostrarPlaceholderBanner(
+                    indice,
+                    "Enviando banner...",
+                    "Aguarde o envio para o Supabase Storage."
+                );
+
+                try {
+                    await enviarBanner(arquivo, indice);
+                    mostrarNotificacao(
+                        "Imagem enviada. Salve as configurações para publicá-la.",
+                        "sucesso"
+                    );
+                } catch (erro) {
+                    console.error("[Vértice Config] Erro ao enviar banner:", erro);
+                    mostrarNotificacao(
+                        erro.message || "Não foi possível enviar a imagem.",
+                        "erro"
+                    );
+                    const urlAnterior = estado.banners[indice];
+                    if (urlAnterior) {
+                        await visualizarBanner(urlAnterior, indice, false);
+                    } else {
+                        mostrarPlaceholderBanner(
+                            indice,
+                            "Falha no envio da imagem",
+                            "Confira sua conexão e as permissões do bucket no Supabase."
+                        );
+                    }
+                    bannerArquivo.value = "";
+                } finally {
+                    estado.enviandoBanner = false;
+                    bannerArquivos.forEach(input => {
+                        input.disabled = false;
+                    });
+                    botoesRemoverBanner.forEach(botao => {
+                        botao.disabled = false;
+                    });
+                    if (botaoSalvar) {
+                        botaoSalvar.disabled =
+                            !estado.administradorAutorizado ||
+                            estado.carregando;
+                    }
+                }
+            });
+        });
+
+        botoesRemoverBanner.forEach(botao => {
+            botao.addEventListener("click", () => {
+                const indice = Number(botao.dataset.bannerClear);
+                if (indice < 0 || indice >= estado.banners.length) return;
+
+                estado.banners[indice] = "";
+                const arquivo = bannerArquivos.find(
+                    input => Number(input.dataset.bannerFile) === indice
+                );
+                if (arquivo) arquivo.value = "";
+
+                mostrarPlaceholderBanner(
+                    indice,
+                    `Pré-visualização da imagem ${indice + 1}`,
+                    indice === 0 ? "Recomendado: imagem horizontal" : "Opcional"
+                );
+                marcarAlteracao();
+            });
         });
     }
 
@@ -1218,13 +1275,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         atualizarPreviaTema();
 
-        // Banner
-        const bannerSalvo = validarUrlImagem(configuracoes.banner);
+        // Banner principal (compatível com a configuração antiga de imagem única)
+        const bannersSalvos = Array.isArray(configuracoes.banners)
+            ? configuracoes.banners
+            : [configuracoes.banner];
 
-        if (bannerSalvo) {
-            estado.banner = bannerSalvo;
-            visualizarBanner(bannerSalvo, false);
-        }
+        estado.banners = [0, 1, 2].map(indice => {
+            const url = validarUrlImagem(bannersSalvos[indice]);
+            if (url) visualizarBanner(url, indice, false);
+            return url;
+        });
 
         // IDs de produtos em destaque
         estado.destaques = Array.isArray(configuracoes.destaques)
@@ -1390,7 +1450,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             ...estado.configuracoesSalvas,
             cores: { ...estado.cores },
             temaVisual: "personalizado",
-            banner: estado.banner || "",
+            banner: estado.banners[0] || "",
+            banners: [...estado.banners],
             destaques: estado.destaques,
             promocoes: estado.promocoes.map(item => ({
                 id: item.id,
@@ -1401,9 +1462,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         };
 
         estado.carregando = true;
-        if (bannerArquivo) {
-            bannerArquivo.disabled = true;
-        }
+        bannerArquivos.forEach(input => {
+            input.disabled = true;
+        });
+        botoesRemoverBanner.forEach(botao => {
+            botao.disabled = true;
+        });
 
         if (botaoSalvar) {
             botaoSalvar.disabled = true;
@@ -1455,9 +1519,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         } finally {
             estado.carregando = false;
-            if (bannerArquivo) {
-                bannerArquivo.disabled = false;
-            }
+            bannerArquivos.forEach(input => {
+                input.disabled = false;
+            });
+            botoesRemoverBanner.forEach(botao => {
+                botao.disabled = false;
+            });
 
             if (botaoSalvar) {
                 botaoSalvar.disabled =

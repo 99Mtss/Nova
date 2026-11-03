@@ -24,6 +24,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const mainImageContainer = document.getElementById("product-main-image");
     const placeholder = document.getElementById("product-image-placeholder");
     const thumbnailsContainer = document.getElementById("product-thumbnails");
+    const imageLightbox = document.getElementById("product-image-lightbox");
+    const lightboxImage = document.getElementById("lightbox-image");
+    const lightboxCounter = document.getElementById("lightbox-counter");
 
     const colorOption = document.getElementById("product-color-option");
     const colorContainer = document.getElementById("product-colors");
@@ -446,9 +449,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!produtoSelecionado || !mainImage) return;
 
         const imagens = obterImagens(produtoSelecionado);
+        let imagemAtual = 0;
 
         mainImage.hidden = true;
         mainImage.removeAttribute("src");
+        mainImage.tabIndex = 0;
+        mainImage.setAttribute("role", "button");
+        mainImage.setAttribute("aria-haspopup", "dialog");
 
         if (thumbnailsContainer) {
             thumbnailsContainer.replaceChildren();
@@ -462,9 +469,14 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        function selecionarImagem(url, botao) {
+        function selecionarImagem(url, botao, indice) {
+            imagemAtual = indice;
             mainImage.hidden = false;
             mainImage.alt = produtoSelecionado.nome || "Produto Vértice";
+            mainImage.setAttribute(
+                "aria-label",
+                `Ampliar imagem ${indice + 1} de ${imagens.length}`
+            );
 
             mainImage.onload = () => {
                 mainImage.hidden = false;
@@ -490,25 +502,96 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         imagens.forEach((url, indice) => {
-            if (indice === 0) {
-                selecionarImagem(url, null);
+            if (thumbnailsContainer) {
+                const botao = document.createElement("button");
+                botao.type = "button";
+                botao.className = "product-thumbnail";
+                botao.setAttribute("aria-label", `Ver imagem ${indice + 1}`);
+
+                const imagem = document.createElement("img");
+                imagem.src = url;
+                imagem.alt = `${produtoSelecionado.nome || "Produto"} — imagem ${indice + 1}`;
+                imagem.loading = "lazy";
+
+                botao.appendChild(imagem);
+                botao.addEventListener("click", () =>
+                    selecionarImagem(url, botao, indice)
+                );
+                thumbnailsContainer.appendChild(botao);
+            }
+        });
+
+        selecionarImagem(
+            imagens[0],
+            thumbnailsContainer?.querySelector("button") || null,
+            0
+        );
+
+        function atualizarImagemAmpliada(indice) {
+            imagemAtual = (indice + imagens.length) % imagens.length;
+            const url = imagens[imagemAtual];
+
+            lightboxImage.src = url;
+            lightboxImage.alt =
+                `${produtoSelecionado.nome || "Produto"} — imagem ${imagemAtual + 1}`;
+            lightboxCounter.textContent =
+                `${imagemAtual + 1} / ${imagens.length}`;
+            selecionarImagem(
+                url,
+                thumbnailsContainer?.querySelectorAll("button")[imagemAtual],
+                imagemAtual
+            );
+        }
+
+        function abrirImagemAmpliada() {
+            if (
+                !imageLightbox ||
+                !mainImage.complete ||
+                mainImage.naturalWidth === 0
+            ) {
+                return;
             }
 
-            if (!thumbnailsContainer) return;
+            atualizarImagemAmpliada(imagemAtual);
+            imageLightbox.showModal();
+        }
 
-            const botao = document.createElement("button");
-            botao.type = "button";
-            botao.className = "product-thumbnail";
-            botao.setAttribute("aria-label", `Ver imagem ${indice + 1}`);
+        mainImage.addEventListener("click", abrirImagemAmpliada);
+        mainImage.addEventListener("keydown", evento => {
+            if (evento.key !== "Enter" && evento.key !== " ") return;
+            evento.preventDefault();
+            abrirImagemAmpliada();
+        });
 
-            const imagem = document.createElement("img");
-            imagem.src = url;
-            imagem.alt = `${produtoSelecionado.nome || "Produto"} — imagem ${indice + 1}`;
-            imagem.loading = "lazy";
+        document.getElementById("lightbox-close")?.addEventListener(
+            "click",
+            () => imageLightbox.close()
+        );
+        document.getElementById("lightbox-previous")?.addEventListener(
+            "click",
+            () => atualizarImagemAmpliada(imagemAtual - 1)
+        );
+        document.getElementById("lightbox-next")?.addEventListener(
+            "click",
+            () => atualizarImagemAmpliada(imagemAtual + 1)
+        );
+        imageLightbox?.addEventListener("click", evento => {
+            if (evento.target === imageLightbox) imageLightbox.close();
+        });
+        imageLightbox?.addEventListener("close", () => mainImage.focus());
+        imageLightbox?.addEventListener("keydown", evento => {
+            if (evento.key === "ArrowLeft") {
+                evento.preventDefault();
+                atualizarImagemAmpliada(imagemAtual - 1);
+            } else if (evento.key === "ArrowRight") {
+                evento.preventDefault();
+                atualizarImagemAmpliada(imagemAtual + 1);
+            }
+        });
 
-            botao.appendChild(imagem);
-            botao.addEventListener("click", () => selecionarImagem(url, botao));
-            thumbnailsContainer.appendChild(botao);
+        ["lightbox-previous", "lightbox-next"].forEach(id => {
+            const botao = document.getElementById(id);
+            if (botao) botao.hidden = imagens.length < 2;
         });
     }
 
@@ -603,6 +686,25 @@ document.addEventListener("DOMContentLoaded", () => {
             tamanhoSelecionado = "Único";
             if (sizeError) sizeError.hidden = true;
             return;
+        }
+
+        const calcado = categoria.includes("tenis") ||
+            categoria.includes("sandalia") ||
+            categoria.includes("chinelo");
+
+        if (calcado) {
+            sizeContainer.replaceChildren();
+
+            for (let numero = 34; numero <= 44; numero += 1) {
+                const botao = document.createElement("button");
+                botao.type = "button";
+                botao.dataset.size = String(numero);
+                botao.textContent = String(numero);
+                sizeContainer.appendChild(botao);
+            }
+
+            const titulo = sizeOption.querySelector(".option-heading span");
+            if (titulo) titulo.textContent = "Numeração";
         }
 
         sizeOption.hidden = false;
@@ -822,19 +924,30 @@ document.addEventListener("DOMContentLoaded", () => {
        ===================================================== */
 
     function obterFavoritos() {
-        const favoritos = lerLocalStorage(FAVORITES_KEY, []);
-        return Array.isArray(favoritos) ? favoritos.map(String) : [];
+        return window.NovaFavoritos.obterIds();
     }
 
     function atualizarFavoritos() {
         if (!produtoSelecionado) return;
 
-        const favoritos = obterFavoritos();
-        const favorito = favoritos.includes(String(produtoSelecionado.id));
+        let favorito;
+
+        try {
+            const favoritos = obterFavoritos();
+            favorito = favoritos.includes(String(produtoSelecionado.id));
+        } catch (erro) {
+            console.error("Erro ao carregar favoritos:", erro);
+            mostrarMensagem("Não foi possível carregar os favoritos salvos.", "erro");
+            return;
+        }
 
         document.querySelectorAll("[data-favorite-product]").forEach(botao => {
             botao.classList.toggle("active", favorito);
             botao.setAttribute("aria-pressed", String(favorito));
+            botao.setAttribute(
+                "aria-label",
+                favorito ? "Remover dos favoritos" : "Adicionar aos favoritos"
+            );
 
             const icone = botao.querySelector("i");
 
@@ -849,26 +962,28 @@ document.addEventListener("DOMContentLoaded", () => {
         botao.addEventListener("click", () => {
             if (!produtoSelecionado) return;
 
-            let favoritos = obterFavoritos();
             const id = String(produtoSelecionado.id);
 
-            favoritos = favoritos.includes(id)
-                ? favoritos.filter(item => item !== id)
-                : [...favoritos, id];
+            try {
+                const resultado = window.NovaFavoritos.alternar(id);
+                atualizarFavoritos();
 
-            if (!salvarLocalStorage(FAVORITES_KEY, favoritos)) {
+                mostrarMensagem(
+                    resultado.ativo
+                        ? "Produto adicionado aos favoritos."
+                        : "Produto removido dos favoritos."
+                );
+            } catch (erro) {
+                console.error("Erro ao salvar favorito:", erro);
                 mostrarMensagem("Não foi possível salvar os favoritos.", "erro");
                 return;
             }
-
-            atualizarFavoritos();
-
-            mostrarMensagem(
-                favoritos.includes(id)
-                    ? "Produto adicionado aos favoritos."
-                    : "Produto removido dos favoritos."
-            );
         });
+    });
+
+    window.addEventListener("nova:favoritos-atualizados", atualizarFavoritos);
+    window.addEventListener("storage", evento => {
+        if (evento.key === FAVORITES_KEY) atualizarFavoritos();
     });
 
     /* =====================================================

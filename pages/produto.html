@@ -44,6 +44,15 @@
                         <a href="loja.html?categoria=moletons">Moletons</a>
                         <a href="loja.html?categoria=calcas">Calças</a>
                         <a href="loja.html?categoria=acessorios">Acessórios</a>
+                        <a href="loja.html?categoria=bermudas%20e%20shorts">Bermudas e shorts</a>
+                        <a href="loja.html?categoria=jaquetas">Jaquetas</a>
+                        <a href="loja.html?categoria=regatas">Regatas</a>
+                        <a href="loja.html?categoria=tenis">Tênis</a>
+                        <a href="loja.html?categoria=sandalias%20e%20chinelos">Sandálias e chinelos</a>
+                        <a href="loja.html?categoria=bones">Bonés</a>
+                        <a href="loja.html?categoria=meias">Meias</a>
+                        <a href="loja.html?categoria=cintos">Cintos</a>
+                        <a href="loja.html?categoria=oculos">Óculos</a>
                     </div>
                 </div>
                 <a
@@ -56,10 +65,6 @@
             </nav>
 
             <div class="header-actions">
-
-                <a href="loja.html" class="header-icon" aria-label="Pesquisar produtos">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </a>
 
                 <a href="carrinho.html" class="header-icon cart-icon" aria-label="Carrinho">
                     <i class="fa-solid fa-bag-shopping"></i>
@@ -139,6 +144,35 @@
 
                 </div>
 
+                <dialog
+                    class="product-image-lightbox"
+                    id="product-image-lightbox"
+                    aria-label="Visualização ampliada das imagens do produto">
+                    <button
+                        type="button"
+                        class="lightbox-close"
+                        id="lightbox-close"
+                        aria-label="Fechar imagem ampliada">
+                        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                    </button>
+                    <button
+                        type="button"
+                        class="lightbox-arrow lightbox-previous"
+                        id="lightbox-previous"
+                        aria-label="Ver imagem anterior">
+                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                    </button>
+                    <img id="lightbox-image" alt="">
+                    <button
+                        type="button"
+                        class="lightbox-arrow lightbox-next"
+                        id="lightbox-next"
+                        aria-label="Ver próxima imagem">
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </button>
+                    <span class="lightbox-counter" id="lightbox-counter" aria-live="polite"></span>
+                </dialog>
+
                 <!-- INFORMAÇÕES DO PRODUTO -->
                 <div class="product-information" id="product-information">
 
@@ -149,20 +183,6 @@
                     <h1 id="product-name" data-product-name>
                         Carregando produto...
                     </h1>
-
-                    <div class="product-rating" id="product-rating" hidden>
-                        <div class="rating-stars" aria-label="Avaliação do produto">
-                            <i class="fa-solid fa-star"></i>
-                            <i class="fa-solid fa-star"></i>
-                            <i class="fa-solid fa-star"></i>
-                            <i class="fa-solid fa-star"></i>
-                            <i class="fa-regular fa-star"></i>
-                        </div>
-
-                        <span id="product-rating-value"></span>
-                        <span class="rating-divider">|</span>
-                        <span id="product-review-count"></span>
-                    </div>
 
                     <!-- PREÇO -->
                     <div class="product-detail-price">
